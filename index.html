@@ -1,593 +1,893 @@
-<!DOCTYPE html>
+from pathlib import Path
+import re
+
+# Source files from latest available version
+html_src = Path("/mnt/data/pgi_financial_pro_html_v3_4_global_risk_premium.html")
+worker_src = Path("/mnt/data/pgi_financial_pro_worker_v3_4_global_risk_premium.js")
+
+# Fallback to v3.3 if v3.4 file isn't present for any reason
+if not html_src.exists():
+    html_src = Path("/mnt/data/pgi_financial_pro_html_v3_3_premium_ready.html")
+if not worker_src.exists():
+    worker_src = Path("/mnt/data/pgi_financial_pro_worker_v3_3_premium_ready.js")
+
+html_original = html_src.read_text(encoding="utf-8")
+worker_original = worker_src.read_text(encoding="utf-8")
+
+# Build a clean full HTML based on the validated mobile UI, while keeping same endpoint names.
+html = r'''<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PGI • Financial Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#060810;--panel:#0d1220;--panel2:#111827;--card:#121a2a;--bd:#243149;--bd2:#31415f;
-  --txt:#e8eefc;--muted:#8f9bb3;--soft:#c7d2ee;
-  --cyan:#00d4ff;--pink:#ff34d2;--green:#00ff88;--red:#ff3b6b;--yellow:#fff200;--violet:#8b5cf6;
-  --shadow:0 18px 60px rgba(0,0,0,.45);
+  --bg:#050811;
+  --panel:#07111f;
+  --panel2:#0b1628;
+  --glass:rgba(8,16,31,.72);
+  --bd:#16304d;
+  --cyan:#00d9ff;
+  --cyan2:#8fefff;
+  --green:#00ff8a;
+  --red:#ff174d;
+  --red2:#ff4b5d;
+  --purple:#b15cff;
+  --yellow:#ffd21f;
+  --orange:#ff9f1a;
+  --blue:#2da8ff;
+  --txt:#eaf8ff;
+  --soft:#9bb5cb;
+  --muted:#60768b;
+  --shadow:0 0 28px rgba(0,217,255,.12),0 24px 70px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%;background:radial-gradient(circle at 20% 0%,rgba(0,212,255,.11),transparent 32%),radial-gradient(circle at 90% 10%,rgba(255,52,210,.1),transparent 34%),var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif}
-body{padding:18px}
-button,input,textarea,select{font-family:Inter,system-ui,sans-serif}
-.app{max-width:1560px;margin:0 auto}
-.top{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-.brand{min-width:285px;padding:18px 20px;background:linear-gradient(135deg,rgba(17,24,39,.92),rgba(8,12,22,.92));border:1px solid var(--bd);border-radius:24px;box-shadow:var(--shadow)}
-.logo{font-family:Syne,sans-serif;font-weight:900;font-size:26px;letter-spacing:.4px}
-.logo{color:#bff4ff;text-shadow:0 0 8px rgba(0,212,255,.95),0 0 24px rgba(0,212,255,.48),0 0 42px rgba(0,212,255,.24)}
-.logo .dot{color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,1),0 0 28px rgba(0,212,255,.75),0 0 52px rgba(0,212,255,.42)}
-.logo small{display:block;color:var(--muted);font-family:Inter;font-size:11px;letter-spacing:2px;margin-top:5px;text-transform:uppercase}
-.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.pill{font-size:11px;color:var(--soft);border:1px solid var(--bd);background:rgba(255,255,255,.035);padding:7px 9px;border-radius:999px}
-.pill.ok{border-color:rgba(0,255,136,.35);color:var(--green)}
-.pill.warn{border-color:rgba(255,242,0,.35);color:var(--yellow)}
-.top-side{flex:1;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
-.clocks{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}
-.clock{background:linear-gradient(180deg,rgba(13,18,32,.88),rgba(8,12,22,.92));border:1px solid rgba(49,65,95,.8);border-radius:18px;padding:12px;min-height:92px;box-shadow:0 10px 26px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03);backdrop-filter:blur(10px)}
-.clock.open{border-color:rgba(0,255,136,.55);box-shadow:0 0 0 1px rgba(0,255,136,.15),0 0 22px rgba(0,255,136,.18),0 12px 30px rgba(0,0,0,.28);background:linear-gradient(180deg,rgba(0,255,136,.08),rgba(8,12,22,.92))}
-.clock.closed{border-color:rgba(255,59,107,.55);box-shadow:0 0 0 1px rgba(255,59,107,.12),0 0 22px rgba(255,59,107,.16),0 12px 30px rgba(0,0,0,.28);background:linear-gradient(180deg,rgba(255,59,107,.08),rgba(8,12,22,.92))}
-.clock .city{font-family:Syne;font-size:13px;font-weight:800}
-.clock .time{font-family:JetBrains Mono,monospace;font-size:20px;margin-top:5px}
-.clock .state{font-family:JetBrains Mono,monospace;font-size:10px;margin-top:6px;color:var(--red);font-weight:700}
-.clock.open .state{color:var(--green)}
-.clock .count{font-size:10px;color:var(--muted);margin-top:3px}
-.headline-box{border-radius:18px;padding:12px 14px;min-height:92px;background:linear-gradient(180deg,rgba(13,18,32,.88),rgba(8,12,22,.92));border:1px solid rgba(0,212,255,.45);box-shadow:0 0 0 1px rgba(0,212,255,.12),0 0 22px rgba(0,212,255,.14),0 10px 28px rgba(0,0,0,.28);display:flex;flex-direction:column;justify-content:center;gap:6px}
-.headline-label{font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#bff4ff;text-shadow:0 0 12px rgba(0,212,255,.55)}
-.headline-content{font-size:12px;line-height:1.45;color:var(--soft)}
-.headline-content a{color:#dffbff;text-decoration:none;display:block}
-.headline-source{font-size:10px;color:var(--muted);margin-top:4px}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
-.tab{--neon:var(--cyan);border:1px solid color-mix(in srgb,var(--neon) 72%,transparent);background:linear-gradient(135deg,rgba(13,18,32,.96),rgba(8,13,24,.96));color:white;border-radius:15px;padding:11px 14px;cursor:pointer;font-weight:800;box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 18%,transparent),0 0 24px color-mix(in srgb,var(--neon) 28%,transparent),inset 0 0 24px rgba(255,255,255,.03);transition:.18s ease}
-.tab:nth-child(1){--neon:#ff174d}.tab:nth-child(2){--neon:#00d4ff}.tab:nth-child(3){--neon:#fff200}.tab:nth-child(4){--neon:#00ff88}.tab:nth-child(5){--neon:#ff8a00}.tab:nth-child(6){--neon:#ff34d2}.tab:nth-child(7){--neon:#8b5cf6}.tab:nth-child(8){--neon:#38bdf8}
-.tab:hover{transform:translateY(-1px);box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 28%,transparent),0 0 30px color-mix(in srgb,var(--neon) 42%,transparent),inset 0 0 22px color-mix(in srgb,var(--neon) 10%,transparent)}
-.tab.active{border-color:var(--neon);color:white;box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 45%,transparent),0 0 38px color-mix(in srgb,var(--neon) 58%,transparent),inset 0 0 26px color-mix(in srgb,var(--neon) 14%,transparent)}
-.grid{display:grid;grid-template-columns:360px 1fr;gap:16px}
-.panel{background:rgba(13,18,32,.92);border:1px solid var(--bd);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
-.panel h2{font-family:Syne;font-size:19px;padding:18px 20px;border-bottom:1px solid var(--bd)}
-.panel .body{padding:18px 20px}
-.card{background:rgba(18,26,42,.78);border:1px solid var(--bd);border-radius:20px;padding:16px;margin-bottom:12px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:12px 0 7px;text-transform:uppercase;letter-spacing:.7px}
-input,textarea,select{width:100%;background:#080d18;color:var(--txt);border:1px solid var(--bd2);border-radius:14px;padding:12px 13px;outline:none}
-textarea{min-height:110px;resize:vertical}
-input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.11)}
-.btn{--btn-neon:#00d4ff;border:1px solid color-mix(in srgb,var(--btn-neon) 78%,transparent);background:linear-gradient(135deg,rgba(13,18,32,.95),rgba(8,13,24,.94));color:white;border-radius:14px;padding:12px 15px;font-weight:800;cursor:pointer;box-shadow:0 0 0 1px color-mix(in srgb,var(--btn-neon) 18%,transparent),0 0 22px color-mix(in srgb,var(--btn-neon) 28%,transparent),inset 0 0 20px rgba(255,255,255,.03);transition:.18s ease}
-.btn:hover{border-color:var(--btn-neon);transform:translateY(-1px);box-shadow:0 0 0 1px color-mix(in srgb,var(--btn-neon) 30%,transparent),0 0 32px color-mix(in srgb,var(--btn-neon) 44%,transparent),inset 0 0 20px color-mix(in srgb,var(--btn-neon) 10%,transparent)}
-.btn.good{--btn-neon:#00ff88;background:linear-gradient(135deg,rgba(0,255,136,.16),rgba(0,212,255,.08))}
-.btn.bad{--btn-neon:#ff3b6b;background:linear-gradient(135deg,rgba(255,59,107,.18),rgba(255,52,210,.08))}
-.btn-cyan{--btn-neon:#00d4ff}.btn-pink{--btn-neon:#ff34d2}.btn-orange{--btn-neon:#ff8a00}.btn-yellow{--btn-neon:#fff200;color:#fff}.btn-purple{--btn-neon:#8b5cf6}.btn-green{--btn-neon:#00ff88}
-.btn.scan-red{--btn-neon:#00d4ff;width:100%;margin-top:16px;padding:19px 18px;border-radius:18px;border:1.5px solid rgba(0,212,255,.7);background:linear-gradient(135deg,#ff1a4f,#d1003c);box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 18px rgba(0,212,255,.28),0 0 34px rgba(255,23,77,.52),0 16px 38px rgba(0,0,0,.38);font-size:16px;letter-spacing:.3px;text-transform:uppercase;color:#fff}
-.btn.scan-red:hover{box-shadow:0 0 0 1px rgba(0,212,255,.4),0 0 24px rgba(0,212,255,.36),0 0 42px rgba(255,23,77,.62),0 18px 45px rgba(0,0,0,.42);transform:translateY(-1px)}
-.small{font-size:12px;color:var(--muted);line-height:1.45}
-.mono{font-family:JetBrains Mono,monospace}
-.hidden{display:none!important}
+html{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 20% -10%,rgba(0,217,255,.18),transparent 35%),
+    radial-gradient(circle at 90% 15%,rgba(177,92,255,.12),transparent 30%),
+    radial-gradient(circle at 50% 100%,rgba(255,23,77,.08),transparent 34%),
+    #030711;
+  padding:10px;
+  overflow-x:hidden;
+}
+.app{
+  width:min(1180px,100%);
+  margin:0 auto;
+  border:1px solid rgba(94,178,255,.26);
+  border-radius:28px;
+  background:linear-gradient(180deg,rgba(6,14,28,.95),rgba(4,9,18,.98));
+  box-shadow:var(--shadow);
+  padding:22px 22px 18px;
+}
+.header{text-align:center;margin-bottom:16px}
+.logo{
+  font-family:Syne,Inter,sans-serif;
+  font-size:clamp(34px,7vw,72px);
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.02em;
+  color:#dff9ff;
+  text-shadow:0 0 8px rgba(143,239,255,1),0 0 22px rgba(0,217,255,.82),0 0 55px rgba(0,217,255,.38);
+}
+.logo .dot{
+  color:var(--cyan);
+  text-shadow:0 0 10px rgba(0,217,255,1),0 0 28px rgba(0,217,255,.8),0 0 58px rgba(0,217,255,.45);
+}
+.subtitle{
+  margin-top:14px;
+  font-size:clamp(11px,2.5vw,16px);
+  letter-spacing:.22em;
+  color:#bceeff;
+  text-transform:uppercase;
+  text-shadow:0 0 12px rgba(0,217,255,.42);
+}
+
+.market-tape{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(168,222,255,.34);
+  background:linear-gradient(135deg,rgba(7,16,30,.9),rgba(4,11,22,.76));
+  border-radius:18px;
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  margin:22px 0;
+  box-shadow:inset 0 0 22px rgba(0,217,255,.04),0 0 24px rgba(0,217,255,.08);
+}
+.tape-track{
+  display:flex;
+  gap:26px;
+  align-items:center;
+  white-space:nowrap;
+  animation:tapeMove 42s linear infinite;
+  padding:0 58px 0 26px;
+}
+.market-tape.paused .tape-track{animation-play-state:paused}
+@keyframes tapeMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tape-item{display:grid;gap:3px;min-width:96px}
+.tape-name{font-size:13px;color:#c8f4ff;font-weight:800;letter-spacing:.02em}
+.tape-price{font-family:JetBrains Mono,monospace;font-size:13px;color:white}
+.tape-change{font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800}
+.up{color:var(--green)}.down{color:var(--red)}
+.dot-sep{width:7px;height:7px;border-radius:99px;background:var(--green);box-shadow:0 0 12px var(--green);align-self:center}
+.tape-gear{
+  position:absolute;right:0;top:0;bottom:0;width:54px;
+  display:grid;place-items:center;
+  border-left:1px solid rgba(143,239,255,.25);
+  background:linear-gradient(90deg,transparent,rgba(5,11,23,.96));
+  color:var(--cyan);
+  font-size:22px;
+  cursor:pointer;
+}
+
+.clock-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+}
+.card{
+  border:1px solid rgba(143,239,255,.22);
+  border-radius:24px;
+  background:linear-gradient(145deg,rgba(8,17,32,.82),rgba(4,9,18,.82));
+  box-shadow:inset 0 0 32px rgba(255,255,255,.025),0 18px 44px rgba(0,0,0,.26);
+}
+.clock{
+  min-height:168px;
+  padding:24px 14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.clock.open{
+  border-color:rgba(0,217,255,.9);
+  box-shadow:0 0 18px rgba(0,217,255,.42),inset 0 0 34px rgba(0,217,255,.055);
+}
+.clock.closed{
+  border-color:rgba(255,23,77,.9);
+  box-shadow:0 0 18px rgba(255,23,77,.37),inset 0 0 34px rgba(255,23,77,.045);
+}
+.city{font-size:21px;font-weight:900;letter-spacing:.02em;margin-bottom:14px}
+.time{font-family:JetBrains Mono,monospace;font-size:30px;letter-spacing:.05em;margin-bottom:16px}
+.status{font-size:18px;font-weight:900;margin-bottom:10px}
+.clock.open .status,.clock.open .countdown{color:#30ffe3}
+.clock.closed .status,.clock.closed .countdown{color:#ff334f}
+.countdown{font-size:16px;font-weight:700}
+
+.bottom-row{
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:24px;
+  margin-top:24px;
+  align-items:stretch;
+}
+.clock.sydney{height:100%;min-height:388px}
+.news-panel{
+  min-height:388px;
+  max-height:388px;
+  padding:18px 18px 8px;
+  border-color:rgba(143,239,255,.28);
+  position:relative;
+  overflow:hidden;
+}
+.news-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:12px;border-bottom:1px solid rgba(143,239,255,.14);
+}
+.news-head h2{font-size:25px}
+.auto-badge{
+  color:var(--cyan);
+  font-size:13px;
+  font-weight:900;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  letter-spacing:.03em;
+}
+.auto-icon{
+  width:22px;height:22px;border:2px solid rgba(0,217,255,.6);
+  border-left-color:transparent;
+  border-radius:50%;
+  animation:spin 2.8s linear infinite;
+}
+.pause-dot{
+  display:grid;place-items:center;width:24px;height:24px;border-radius:50%;
+  border:1px solid rgba(0,217,255,.5);
+  color:#9cf4ff;font-size:12px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.news-scroll{
+  height:315px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:var(--cyan) transparent;
+  scroll-behavior:smooth;
+}
+.news-scroll::-webkit-scrollbar{width:5px}
+.news-scroll::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:20px}
+.news-item{
+  display:grid;
+  grid-template-columns:38px 1fr 18px;
+  gap:12px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid rgba(143,239,255,.11);
+  cursor:pointer;
+}
+.news-ico{font-size:27px;text-align:center}
+.news-title{font-size:15px;line-height:1.25;font-weight:700}
+.news-time{font-size:12px;color:var(--soft);margin-top:3px}
+.news-chevron{font-size:30px;color:white;opacity:.9}
+.manual-cue{
+  position:absolute;bottom:4px;left:0;right:0;
+  text-align:center;
+  color:#bceeff;
+  font-size:13px;
+  pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(4,9,18,.95) 45%);
+  padding:22px 0 6px;
+}
+
+.nav-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:22px;
+  margin:24px 4px 18px;
+}
+.nav-btn{
+  --neon:var(--cyan);
+  height:120px;
+  border:2px solid var(--neon);
+  border-radius:19px;
+  background:linear-gradient(150deg,rgba(11,21,38,.86),rgba(4,9,18,.92));
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:900;
+  font-size:22px;
+  box-shadow:0 0 18px color-mix(in srgb,var(--neon) 50%,transparent), inset 0 0 28px color-mix(in srgb,var(--neon) 8%,transparent);
+  cursor:pointer;
+  animation:neonFlicker 4.6s infinite;
+}
+.nav-btn:hover{transform:translateY(-2px);box-shadow:0 0 30px color-mix(in srgb,var(--neon) 72%,transparent), inset 0 0 30px color-mix(in srgb,var(--neon) 11%,transparent)}
+.nav-btn svg{width:38px;height:38px;stroke:currentColor;filter:drop-shadow(0 0 10px currentColor)}
+.nav-btn.red{
+  --neon:#8fefff;
+  background:radial-gradient(circle at 50% 26%,rgba(255,255,255,.16),transparent 25%),linear-gradient(160deg,#ff174d,#b80025 72%);
+  border-color:#8fefff;
+  color:white;
+  box-shadow:0 0 26px rgba(255,23,77,.72),0 0 18px rgba(143,239,255,.55),inset 0 0 30px rgba(255,255,255,.1);
+}
+.nav-btn.purple{--neon:#b15cff;color:#d9b2ff}
+.nav-btn.green{--neon:#00ff8a;color:#9dffd3}
+.nav-btn.blue{--neon:#2da8ff;color:#9bddff}
+.nav-btn.yellow{--neon:#ffd21f;color:#ffe36a}
+@keyframes neonFlicker{
+  0%,100%{filter:brightness(1);opacity:1}
+  38%{filter:brightness(1.04)}
+  39%{filter:brightness(.84)}
+  40%{filter:brightness(1.16)}
+  66%{opacity:1}
+  67%{opacity:.9}
+  68%{opacity:1}
+}
+
 .section{display:none}
 .section.active{display:block}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:12px}
-.metric{border:1px solid var(--bd);border-radius:18px;background:rgba(255,255,255,.035);padding:14px}
-.metric .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
-.metric .v{font-family:JetBrains Mono;font-size:22px;margin-top:6px}
-.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--yellow)}
-.table{width:100%;border-collapse:collapse;font-size:13px}
-.table th,.table td{border-bottom:1px solid rgba(255,255,255,.07);padding:11px 9px;text-align:left;vertical-align:top}
-.table th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
-.opportunity{border-left:4px solid var(--cyan)}
-.opportunity.buy{border-left-color:var(--green)}
-.opportunity.sell{border-left-color:var(--red)}
-.quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.quick button{font-size:12px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--soft);cursor:pointer}
-.chatbox{height:420px;overflow:auto;border:1px solid var(--bd);border-radius:18px;padding:14px;background:#080d18;margin-bottom:12px}
-.msg{padding:10px 12px;border-radius:14px;margin-bottom:10px;max-width:88%;line-height:1.45}
-.msg.user{margin-left:auto;background:rgba(0,212,255,.13)}
-.msg.ai{background:rgba(255,255,255,.055)}
-.heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.heat .tile{border-radius:18px;padding:16px;border:1px solid var(--bd);background:rgba(255,255,255,.04)}
-.heat .tile.pos{background:rgba(0,255,136,.1);border-color:rgba(0,255,136,.25)}
-.heat .tile.neg{background:rgba(255,59,107,.1);border-color:rgba(255,59,107,.25)}
-@media(max-width:1180px){.top{display:block}.top-side{margin-top:12px}.clocks{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
-@media(max-width:640px){body{padding:10px}.brand{padding:16px 16px 14px;border-radius:20px}.logo{font-size:23px}.logo small{font-size:10px;letter-spacing:1.5px}.clocks{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.clock{padding:10px;min-height:84px;border-radius:16px}.clock .city{font-size:11px}.clock .time{font-size:16px}.clock .state,.clock .count{font-size:9px}.headline-box{grid-column:span 2;min-height:84px;padding:10px 12px;border-radius:16px}.headline-label{font-size:11px}.headline-content{font-size:11px}.tabs{overflow:auto;flex-wrap:nowrap;padding-bottom:2px}.tab{white-space:nowrap;padding:10px 12px;font-size:13px}.panel h2{font-size:17px;padding:16px}.panel .body{padding:16px}.btn{width:100%}.btn.scan-red{font-size:15px;padding:18px 16px}.chatbox{min-height:260px}}
-@media(max-width:430px){.clocks{grid-template-columns:repeat(3,minmax(0,1fr))}.clock{min-height:82px}.headline-box{grid-column:span 3}}
+.assistant{
+  margin-top:16px;
+  padding:24px;
+  border:1px solid rgba(94,178,255,.3);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(8,18,32,.84),rgba(3,8,17,.96));
+  box-shadow:inset 0 0 35px rgba(0,217,255,.025);
+}
+.panel-title{font-size:30px;font-weight:900;margin-bottom:16px}
+.chips{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.chip{
+  border:1px solid rgba(94,178,255,.25);
+  background:rgba(19,38,62,.72);
+  color:white;
+  border-radius:99px;
+  padding:10px 14px;
+  cursor:pointer;
+}
+.input-row{display:grid;grid-template-columns:1fr 66px;gap:14px;align-items:center}
+input,textarea,select{
+  width:100%;
+  background:#050b16;
+  border:1px solid rgba(94,178,255,.34);
+  color:white;
+  border-radius:14px;
+  padding:13px 14px;
+  font:inherit;
+  outline:none;
+}
+textarea{min-height:130px;resize:vertical}
+.send-btn{
+  height:58px;border-radius:15px;border:2px solid var(--cyan);
+  background:linear-gradient(145deg,rgba(0,217,255,.14),rgba(5,12,23,.9));
+  color:white;font-size:28px;box-shadow:0 0 22px rgba(0,217,255,.55);cursor:pointer;
+}
+.rule{
+  margin-top:18px;border:1px solid rgba(177,92,255,.6);
+  border-radius:17px;padding:16px 18px;
+  display:grid;grid-template-columns:54px 1fr 20px;gap:16px;align-items:center;
+  background:linear-gradient(135deg,rgba(177,92,255,.18),rgba(7,13,25,.92));
+  box-shadow:0 0 20px rgba(177,92,255,.28);
+}
+.rule .shield{font-size:34px;color:var(--purple)}
+.rule strong{font-size:18px}
+.rule p{font-size:14px;color:#f4edff;margin-top:4px;line-height:1.35}
+
+.tool-section{
+  margin-top:16px;
+  padding:20px;
+  border:1px solid rgba(94,178,255,.26);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(8,18,32,.84),rgba(3,8,17,.96));
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+label{display:block;margin:12px 0 6px;color:#bdefff;font-weight:800;font-size:13px}
+.btn{
+  --neon:var(--cyan);
+  border:1px solid var(--neon);
+  color:white;
+  border-radius:14px;
+  padding:12px 15px;
+  background:linear-gradient(135deg,rgba(9,19,35,.9),rgba(4,9,18,.96));
+  box-shadow:0 0 18px color-mix(in srgb,var(--neon) 42%,transparent);
+  cursor:pointer;
+  font-weight:900;
+  margin-top:12px;
+}
+.btn.red{background:linear-gradient(160deg,#ff174d,#b80025);border-color:#8fefff;box-shadow:0 0 22px rgba(255,23,77,.7),0 0 12px rgba(143,239,255,.45)}
+.small{font-size:12px;color:var(--soft);line-height:1.45}
+.output{margin-top:16px;display:grid;gap:12px}
+.result-card{border:1px solid rgba(94,178,255,.24);border-radius:17px;padding:14px;background:rgba(6,13,24,.76)}
+.hidden{display:none!important}
+
+@media(max-width:760px){
+  body{padding:7px}
+  .app{border-radius:20px;padding:16px 14px}
+  .subtitle{font-size:11px;letter-spacing:.16em}
+  .market-tape{min-height:68px;margin:18px 0}
+  .tape-track{gap:17px;padding-left:18px}
+  .tape-item{min-width:75px}
+  .tape-name,.tape-price,.tape-change{font-size:11px}
+  .clock-grid{gap:10px}
+  .clock{min-height:118px;border-radius:17px;padding:13px 6px}
+  .city{font-size:14px;margin-bottom:8px}
+  .time{font-size:19px;margin-bottom:8px}
+  .status{font-size:13px;margin-bottom:5px}
+  .countdown{font-size:11px}
+  .bottom-row{grid-template-columns:1fr 2fr;gap:10px;margin-top:10px}
+  .clock.sydney{min-height:294px}
+  .news-panel{min-height:294px;max-height:294px;padding:12px 10px 4px;border-radius:18px}
+  .news-head h2{font-size:18px}
+  .auto-badge{font-size:10px}
+  .auto-icon{width:16px;height:16px}
+  .pause-dot{width:18px;height:18px}
+  .news-scroll{height:244px}
+  .news-item{grid-template-columns:28px 1fr 12px;gap:8px;padding:8px 0}
+  .news-ico{font-size:20px}
+  .news-title{font-size:11.5px}
+  .news-time{font-size:10px}
+  .news-chevron{font-size:20px}
+  .manual-cue{font-size:10px}
+  .nav-grid{grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 2px 12px}
+  .nav-btn{height:82px;border-radius:14px;font-size:14px;gap:5px}
+  .nav-btn svg{width:27px;height:27px}
+  .assistant{padding:15px;border-radius:18px}
+  .panel-title{font-size:24px}
+  .chips{gap:7px}
+  .chip{font-size:12px;padding:8px 10px}
+  .input-row{grid-template-columns:1fr 52px;gap:9px}
+  .send-btn{height:50px;font-size:23px}
+  .rule{grid-template-columns:42px 1fr 12px;padding:13px 12px;gap:10px}
+  .rule p{font-size:12px}
+  .grid2{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+  .logo{font-size:31px}
+  .clock-grid{gap:8px}
+  .clock{min-height:108px}
+  .time{font-size:17px}
+  .bottom-row{grid-template-columns:34% 1fr}
+  .clock.sydney{min-height:284px}
+  .news-panel{min-height:284px;max-height:284px}
+  .news-scroll{height:235px}
+  .nav-btn{height:76px;font-size:12.5px}
+}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="top">
-    <div class="brand">
-      <div class="logo">PGI <span class="dot">•</span> Financial Pro<small>Terminal marchés • macro • actualités globales</small></div>
-      <div class="status">
-        <span id="stWorker" class="pill warn">Worker...</span>
-        <span id="stMarket" class="pill">Market Data</span>
-        <span id="stGmail" class="pill">Gmail</span>
-        <span id="stTerminal" class="pill">Terminal</span>
+  <header class="header">
+    <div class="logo">PGI <span class="dot">•</span> Financial Pro</div>
+    <div class="subtitle">PLACES DE MARCHÉS · MACROÉCONOMIE · ACTUALITÉS MONDIALES</div>
+  </header>
+
+  <div class="market-tape" id="marketTape">
+    <div class="tape-track" id="tapeTrack"></div>
+    <div class="tape-gear" onclick="openTab('reglages')" title="Configurer les valeurs">⚙</div>
+  </div>
+
+  <div class="clock-grid" id="clockGrid"></div>
+
+  <div class="bottom-row">
+    <div id="sydneySlot"></div>
+    <div class="card news-panel" id="worldNewsPanel">
+      <div class="news-head">
+        <h2>À la une</h2>
+        <div class="auto-badge"><span class="auto-icon"></span> DÉFILEMENT AUTO <span class="pause-dot" id="newsPauseIcon">Ⅱ</span></div>
       </div>
+      <div class="news-scroll" id="worldNewsList"></div>
+      <div class="manual-cue">Glissez pour explorer manuellement</div>
     </div>
-    <div class="top-side"><div id="clocks" class="clocks"></div><div id="topHeadline" class="headline-box"><div class="headline-label">À la une mondiale</div><div id="headlineContent" class="headline-content">Chargement des dernières actualités...</div></div></div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="scanner">Scanner</button>
-    <button class="tab" data-tab="analyse">Analyse</button>
-    <button class="tab tab-terminal" data-tab="terminal">Bloomberg Pro</button>
-    <button class="tab" data-tab="marches">Marchés</button>
-    <button class="tab" data-tab="news">News</button>
-    <button class="tab" data-tab="assistant">Assistant IA</button>
-    <button class="tab" data-tab="alertes">Alertes</button>
-    <button class="tab" data-tab="reglages">Réglages</button>
-  </div>
+  <nav class="nav-grid">
+    <button class="nav-btn red" onclick="openTab('scanner')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+      Scanner
+    </button>
+    <button class="nav-btn purple" onclick="openTab('analyse')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 19V5M4 19h16M7 16l4-5 4 3 5-8"/><path d="M16 6h4v4"/></svg>
+      Analyse
+    </button>
+    <button class="nav-btn green" onclick="openTab('marches')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 19V9M12 19V5M19 19v-7"/><path d="M3 19h18"/></svg>
+      Marchés
+    </button>
+    <button class="nav-btn blue" onclick="openTab('news')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+      News
+    </button>
+    <button class="nav-btn blue" onclick="openTab('reglages')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .92V20a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-.92 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.92-1H3.6a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 .92-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.92V3.6a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 .92 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.36.15.68.48.92 1h.08a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-.91 1Z"/></svg>
+      Réglages
+    </button>
+    <button class="nav-btn yellow" onclick="openTab('alertes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+      Alertes
+    </button>
+    <button class="nav-btn purple" onclick="openTab('assistant')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="5" y="8" width="14" height="10" rx="3"/><path d="M12 8V4M8.5 13h.01M15.5 13h.01M9 18v2M15 18v2"/></svg>
+      Assistant IA
+    </button>
+    <button class="nav-btn yellow" onclick="openTab('terminal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M8 4h6a4 4 0 0 1 0 8H8z"/><path d="M8 12h7a4 4 0 0 1 0 8H8z"/></svg>
+      Bloomberg Pro
+    </button>
+  </nav>
 
-  <section id="scanner" class="section active">
-    <div class="grid">
-      <div class="panel"><h2>Scanner opportunités</h2><div class="body">
-        <label>Éléments à scanner</label>
-        <textarea id="scanText" placeholder="Laisse vide pour scanner automatiquement tout l’univers PGI : forex, indices, CAC 40, SBF 120 proxy, actions US, pétrole, gaz, or, crypto. Ou écris tes propres éléments : CAC 40, SBF 120, pétrole, gaz, Nvidia, LVMH..."></textarea>
-        <div class="small">Tu peux laisser vide : le scanner cherche automatiquement les meilleures opportunités immédiates avec prix, technique, macro, calendrier économique, news mondiales, pétrole/gaz, risques de guerre/sanctions et corrélations. Tu peux aussi écrire tes propres éléments ou groupes : CAC 40, SBF 120, forex, crypto, pétrole gaz, actions CAC 40.</div>
-        <label>Nombre d’opportunités</label><input id="scanLimit" type="number" value="10" min="1" max="30">
-        <label>Horizon</label>
-        <select id="scanHorizon"><option>Intraday</option><option selected>Court terme</option><option>Moyen terme</option></select>
-        <button class="btn scan-red" onclick="runScan()">Scanner les opportunités immédiates</button>
-        <div id="scanValidation" class="small" style="margin-top:12px"></div>
-      </div></div>
-      <div class="panel"><h2>Résultats</h2><div class="body"><div id="scanResults" class="cards"></div></div></div>
+  <section id="assistant" class="section active assistant">
+    <div class="panel-title">Assistant IA</div>
+    <div class="chips" id="suggestions"></div>
+    <div class="input-row">
+      <input id="chatInput" placeholder="Pose ta question sur un marché...">
+      <button class="send-btn" onclick="sendChat()">➤</button>
+    </div>
+    <div id="chatOut" class="output"></div>
+    <div class="rule">
+      <div class="shield">♢</div>
+      <div><strong>Règle IA</strong><p>Chaque analyse vaut comme un support pour ACHAT, VENTE ou ATTENTE, avec une définition : objectif, stop, seuil, profil de risque.</p></div>
+      <div>›</div>
     </div>
   </section>
 
-  <section id="analyse" class="section">
-    <div class="grid">
-      <div class="panel"><h2>Analyse instrument</h2><div class="body">
-        <label>Instrument</label><input id="anSymbolText" value="nvidia" placeholder="ex : pétrole, or, nasdaq, eur usd, NVDA">
-        <label>Montant</label><input id="anAmount" type="number" value="1000">
-        <label>Levier</label><input id="anLeverage" type="number" value="1">
-        <button class="btn btn-cyan" onclick="runAnalyze()">Analyser</button>
-        <div id="anValidation" class="small" style="margin-top:12px"></div>
-      </div></div>
-      <div class="panel"><h2>Analyse détaillée</h2><div class="body" id="anResult"></div></div>
+  <section id="scanner" class="section tool-section">
+    <h2>Scanner les opportunités immédiates</h2>
+    <p class="small">Laisse vide pour scanner automatiquement l’univers PGI. Tu peux aussi entrer tes propres valeurs ou groupes : CAC 40, SBF 120, pétrole, gaz, or, bitcoin, forex, crypto, actions CAC 40.</p>
+    <textarea id="scanText" placeholder="Exemple : CAC 40&#10;SBF 120&#10;pétrole&#10;gaz&#10;Nvidia&#10;LVMH"></textarea>
+    <div class="grid2">
+      <div><label>Nombre maximum d’opportunités</label><input id="scanLimit" type="number" value="12"></div>
+      <div><label>Horizon</label><select id="scanHorizon"><option>intraday</option><option>24h</option><option>48h</option><option>semaine</option></select></div>
     </div>
+    <button class="btn red" onclick="runScan()">Scanner les opportunités immédiates</button>
+    <div id="scanValidation" class="small"></div>
+    <div id="scanOut" class="output"></div>
   </section>
 
-  <section id="terminal" class="section">
-    <div class="panel"><h2>Bloomberg Pro • Macro & marchés</h2><div class="body">
-      <button class="btn btn-cyan" onclick="loadTerminal()">Rafraîchir Bloomberg Pro</button>
-      <div id="terminalContent" style="margin-top:14px"></div>
-    </div></div>
-  </section>
-
-  <section id="marches" class="section">
-    <div class="panel"><h2>Marchés live</h2><div class="body">
-      <textarea id="mktSymbols">EURUSD=X,^FCHI,^NDX,^GSPC,GC=F,CL=F,BTC-USD,NVDA,MC.PA</textarea>
-      <button class="btn btn-green" onclick="loadMarkets()">Charger les cours</button>
-      <div id="mktResults" style="margin-top:14px"></div>
-    </div></div>
-  </section>
-
-  <section id="news" class="section">
-    <div class="panel"><h2>News marchés</h2><div class="body">
-      <button class="btn btn-orange" onclick="loadNews()">Rafraîchir les news</button>
-      <div id="newsResults" style="margin-top:14px"></div>
-    </div></div>
-  </section>
-
-  <section id="assistant" class="section">
-    <div class="grid">
-      <div class="panel"><h2>Assistant IA</h2><div class="body">
-        <div id="quickSuggestions" class="quick"></div>
-        <div id="chatBox" class="chatbox"></div>
-        <textarea id="chatInput" placeholder="Pose ta question sur un marché..."></textarea>
-        <button class="btn btn-pink" onclick="sendChat()">Envoyer</button>
-      </div></div>
-      <div class="panel"><h2>Règle IA</h2><div class="body">
-        <div class="card small">Chaque analyse doit conclure clairement par <b>ACHAT</b>, <b>VENTE</b> ou <b>ATTENTE</b>, avec prix d’entrée, objectif, stop-loss, probabilité et risque.</div>
-      </div></div>
+  <section id="analyse" class="section tool-section">
+    <h2>Analyse</h2>
+    <div class="grid2">
+      <div><label>Instrument</label><input id="anSymbolText" value="or"></div>
+      <div><label>Capital simulé</label><input id="anAmount" type="number" value="500"></div>
     </div>
+    <label>Levier</label><input id="anLeverage" type="number" value="1">
+    <button class="btn" onclick="runAnalyze()">Analyser</button>
+    <div id="anOut" class="output"></div>
   </section>
 
-  <section id="alertes" class="section">
-    <div class="grid">
-      <div class="panel"><h2>Alertes automatiques</h2><div class="body">
-        <label>Email alerte</label><input id="alertEmail" value="chicsensation@gmail.com">
-        <label>Fréquence de scan en heures</label><input id="alertFreq" type="number" value="2" min="0.083" step="0.5">
-        <div class="small">Exemples : 2, 4, 12, 24, 48. Le cron Cloudflare reste toutes les 5 minutes, mais le Worker respecte cette fréquence.</div>
-        <label>Seuil de probabilité minimum</label><input id="alertThreshold" type="number" value="75" min="50" max="95">
-        <label>Éléments à suivre</label>
-        <textarea id="alertTracked">or
-pétrole
-bitcoin
-nasdaq
-eur usd</textarea>
-        <button class="btn btn-cyan" onclick="saveAlerts()">Sauvegarder</button>
-        <button class="btn btn-green" onclick="toggleAlerts(true)">Activer</button>
-        <button class="btn btn-pink" onclick="toggleAlerts(false)">Désactiver</button>
-        <button class="btn btn-yellow" onclick="connectGmail()">Connecter Gmail</button>
-        <button class="btn btn-purple" onclick="runCronNow()">Tester maintenant</button>
-      </div></div>
-      <div class="panel"><h2>Statut alertes</h2><div class="body" id="alertStatus"></div></div>
-    </div>
+  <section id="terminal" class="section tool-section">
+    <h2>Bloomberg Pro</h2>
+    <p class="small">Vue macro, calendrier économique, courbe des taux, corrélations, heatmap et résultats entreprises.</p>
+    <button class="btn" onclick="loadTerminal()">Rafraîchir Bloomberg Pro</button>
+    <div id="terminalOut" class="output"></div>
   </section>
 
-  <section id="reglages" class="section">
-    <div class="grid">
-      <div class="panel"><h2>Réglages essentiels</h2><div class="body">
-        <div class="card">
-          <label>URL Worker Cloudflare</label>
-          <input id="workerUrl" placeholder="https://pgi-financial-pro.xxxxx.workers.dev">
-        </div>
+  <section id="marches" class="section tool-section">
+    <h2>Marchés</h2>
+    <label>Symboles</label>
+    <textarea id="mktSymbols">EURUSD=X,^FCHI,^NDX,^GSPC,GC=F,CL=F,BTC-USD,NVDA,MC.PA</textarea>
+    <button class="btn" onclick="loadMarkets()">Charger les cours</button>
+    <div id="mktOut" class="output"></div>
+  </section>
 
-        <div class="card">
-          <label>Provider IA principal</label>
-          <select id="aiProvider" onchange="toggleCustomProvider()">
-            <option value="groq">Groq</option>
-            <option value="openai">OpenAI</option>
-            <option value="gemini">Gemini</option>
-            <option value="mistral">Mistral</option>
-            <option value="claude">Claude</option>
-            <option value="together">Together</option>
-            <option value="custom">Provider personnalisé futur</option>
-          </select>
-          <div id="customProviderBox" class="hidden">
-            <label>Nom du provider personnalisé</label><input id="customProviderName" placeholder="ex : nouveau-provider">
-            <label>Endpoint API personnalisé</label><input id="customProviderEndpoint" placeholder="https://api.exemple.com/v1/chat/completions">
-            <div class="small">Prévu pour évolution future. Le Worker actuel utilise les providers natifs ci-dessus. Le champ est sauvegardé pour préparer une intégration ensuite.</div>
-          </div>
-          <label>Clé API IA</label><input id="aiKey" type="password" placeholder="clé API optionnelle">
-        </div>
+  <section id="news" class="section tool-section">
+    <h2>News</h2>
+    <button class="btn" onclick="loadNews()">Rafraîchir les news</button>
+    <div id="newsOut" class="output"></div>
+  </section>
 
-        <div class="card">
-          <h3>APIs gratuites / plan gratuit à configurer côté Cloudflare</h3>
-          <p class="small">Ces clés se mettent dans Cloudflare Worker → Settings → Variables and Secrets. Le HTML les liste ici pour ne rien oublier, mais ne les expose pas publiquement.</p>
-          <label>Provider marché prioritaire</label><input value="MARKET_DATA_PROVIDER = auto | twelve | eodhd | polygon | yahoo" readonly>
-          <label>Finnhub gratuit/payant</label><input value="FINNHUB_API_KEY" readonly>
-          <label>FRED gratuit</label><input value="FRED_API_KEY" readonly>
-          <label>Alpha Vantage gratuit/payant</label><input value="ALPHA_VANTAGE_KEY" readonly>
-          <label>Financial Modeling Prep gratuit/payant</label><input value="FMP_API_KEY" readonly>
-          <label>Twelve Data gratuit/payant</label><input value="TWELVE_DATA_API_KEY" readonly>
-          <label>Polygon.io payant/premium</label><input value="POLYGON_API_KEY" readonly>
-          <label>EODHD gratuit/payant</label><input value="EODHD_API_KEY" readonly>
-          <label>Marketstack optionnel</label><input value="MARKETSTACK_API_KEY" readonly>
-          <label>NewsAPI global/macro/géopolitique</label><input value="NEWSAPI_KEY" readonly>
-          <label>GNews global/macro/géopolitique</label><input value="GNEWS_API_KEY" readonly>
-          <label>Mediastack global news</label><input value="MEDIASTACK_API_KEY" readonly>
-          <label>SerpApi Google News optionnel futur</label><input value="SERPAPI_KEY" readonly>
-          <label>Groq optionnel côté Worker</label><input value="GROQ_API_KEY" readonly>
-        </div>
-
-        
-        <div class="card">
-          <h3>Meilleur montage gratuit recommandé</h3>
-          <p class="small">
-            Prix et cotations : Twelve Data ou Polygon/EODHD en priorité si tu ajoutes une clé payante, Yahoo Finance en fallback gratuit.<br>
-            Macro/taux/courbe : FRED en priorité, Alpha Vantage en complément.<br>
-            Calendrier économique et résultats : Finnhub puis FMP en fallback.<br>
-            Actions mondiales/fondamentaux : EODHD ou FMP.<br>
-            Secteurs/indicateurs techniques : Alpha Vantage, avec cache fort pour respecter les quotas.<br>
-            News et risques mondiaux : NewsAPI + GNews + Mediastack + Finnhub + RSS fallback, utilisés dans le scoring du scanner.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>Gmail alertes</h3>
-          <label>Client ID Gmail</label><input value="GMAIL_CLIENT_ID" readonly>
-          <label>Client Secret Gmail</label><input value="GMAIL_CLIENT_SECRET" readonly>
-          <label>Redirect URI Gmail</label><input value="GMAIL_REDIRECT_URI" readonly>
-          <button class="btn btn-yellow" onclick="connectGmail()">Connecter Gmail</button>
-        </div>
-
-        <button class="btn btn-green" onclick="saveSettings()">Sauvegarder réglages</button>
-      </div></div>
-
-      <div class="panel"><h2>Suggestions rapides IA</h2><div class="body">
-        <label>Une suggestion par ligne</label>
-        <textarea id="aiSuggestions"></textarea>
-        <button class="btn btn-pink" onclick="saveSuggestions()">Sauvegarder les suggestions</button>
-        <div class="card small" style="margin-top:14px">
-          Recommandation : garde Groq en priorité pour la rapidité et le coût gratuit possible. Les clés macro restent côté Cloudflare, pas dans le navigateur.
-        </div>
-      </div></div>
+  <section id="alertes" class="section tool-section">
+    <h2>Alertes</h2>
+    <div class="grid2">
+      <div><label>Email alerte</label><input id="alertEmail" value="chicsensation@gmail.com"></div>
+      <div><label>Fréquence scan en heures</label><input id="scanFrequencyHours" type="number" value="2"></div>
     </div>
+    <label>Seuil probabilité minimum</label><input id="alertThreshold" type="number" value="75">
+    <label>Éléments à suivre</label><textarea id="alertTracked">or&#10;pétrole&#10;bitcoin&#10;nasdaq&#10;eur usd</textarea>
+    <button class="btn" onclick="saveAlerts()">Sauvegarder</button>
+    <button class="btn" onclick="toggleAlerts(true)">Activer</button>
+    <button class="btn" onclick="toggleAlerts(false)">Désactiver</button>
+    <button class="btn" onclick="connectGmail()">Connecter Gmail</button>
+    <button class="btn" onclick="runCronNow()">Tester maintenant</button>
+    <div id="alertOut" class="output"></div>
+  </section>
+
+  <section id="reglages" class="section tool-section">
+    <h2>Réglages</h2>
+    <label>URL Worker Cloudflare</label>
+    <input id="workerUrl" placeholder="https://pgi-financial-pro.xxxxx.workers.dev">
+
+    <div class="grid2">
+      <div>
+        <label>Provider IA</label>
+        <select id="aiProvider">
+          <option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option>
+          <option value="mistral">Mistral</option><option value="claude">Claude</option><option value="together">Together</option>
+        </select>
+      </div>
+      <div><label>Clé API IA navigateur</label><input id="aiKey" type="password" placeholder="optionnel"></div>
+    </div>
+
+    <h3 style="margin-top:18px">Bande financière horizontale</h3>
+    <p class="small">Tu peux choisir les valeurs visibles en haut. Une valeur par ligne ou séparées par des virgules.</p>
+    <textarea id="tickerSymbols">CAC 40&#10;DAX&#10;NASDAQ&#10;S&P 500&#10;EUR/USD&#10;GOLD&#10;WTI&#10;BTC/USD</textarea>
+
+    <h3 style="margin-top:18px">Variables Cloudflare recommandées</h3>
+    <div class="grid2">
+      <input value="MARKET_DATA_PROVIDER = auto" readonly><input value="TWELVE_DATA_API_KEY" readonly>
+      <input value="POLYGON_API_KEY" readonly><input value="EODHD_API_KEY" readonly>
+      <input value="FINNHUB_API_KEY" readonly><input value="FRED_API_KEY" readonly>
+      <input value="ALPHA_VANTAGE_KEY" readonly><input value="FMP_API_KEY" readonly>
+      <input value="NEWSAPI_KEY" readonly><input value="GNEWS_API_KEY" readonly>
+      <input value="MEDIASTACK_API_KEY" readonly><input value="GROQ_API_KEY" readonly>
+      <input value="GMAIL_CLIENT_ID" readonly><input value="GMAIL_CLIENT_SECRET" readonly>
+      <input value="GMAIL_REDIRECT_URI" readonly>
+    </div>
+
+    <h3 style="margin-top:18px">Suggestions rapides IA</h3>
+    <textarea id="aiSuggestions"></textarea>
+    <button class="btn" onclick="saveSettings()">Sauvegarder réglages</button>
+    <div id="settingsOut" class="output"></div>
   </section>
 </div>
 
 <script>
-const LS = {
+const DEFAULT_WORKER="https://pgi-financial-pro.chicsensation.workers.dev";
+const LS={
   worker:"pgi_financial_worker_url",
   provider:"pgi_financial_ai_provider",
   aiKey:"pgi_financial_ai_key",
   suggestions:"pgi_financial_ai_suggestions",
-  customProviderName:"pgi_financial_custom_provider_name",
-  customProviderEndpoint:"pgi_financial_custom_provider_endpoint"
+  tickerSymbols:"pgi_financial_ticker_symbols"
 };
-const DEFAULT_WORKER = "https://pgi-financial-pro.chicsensation.workers.dev";
-const DEFAULT_SUGGESTIONS = [
+const SUG=[
   "Analyse EUR/USD maintenant",
   "Faut-il acheter l’or aujourd’hui ?",
   "Quels marchés surveiller cette semaine ?",
   "Explique-moi la Fed simplement",
   "Analyse le Nasdaq avec le contexte macro"
 ];
-
-function W(){ return (localStorage.getItem(LS.worker) || DEFAULT_WORKER).replace(/\/+$/,""); }
-function provider(){ const p=localStorage.getItem(LS.provider)||"groq"; return p==="custom"?(localStorage.getItem(LS.customProviderName)||"custom"):p; }
-function aiKey(){ return localStorage.getItem(LS.aiKey) || ""; }
-
-async function api(path, opts={}){
-  const r = await fetch(W()+path, { ...opts, headers:{ "Content-Type":"application/json", ...(opts.headers||{}) } });
-  const d = await r.json().catch(()=>({error:"Réponse non JSON"}));
-  if(!r.ok) throw new Error(d.error || "Erreur API");
-  return d;
-}
-
-function money(n){ n=Number(n); return Number.isFinite(n)?n.toLocaleString("fr-FR",{maximumFractionDigits:5}):"—"; }
-function cpct(n){ n=Number(n); if(!Number.isFinite(n)) return "—"; return (n>=0?"+":"")+n.toFixed(2)+"%"; }
-function clsPct(n){ n=Number(n); return n>0?"pos":n<0?"neg":"neu"; }
-function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-
-function activateTab(name){
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
-  document.querySelector(`.tab[data-tab="${name}"]`)?.classList.add("active");
-  document.getElementById(name)?.classList.add("active");
-  if(name==="terminal") loadTerminal();
-  if(name==="alertes") loadAlertStatus();
-  if(name==="news") loadNews();
-}
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>activateTab(b.dataset.tab));
-
-let topHeadlines=[]; let topHeadlineIndex=0;
-function renderTopHeadline(){
-  const box=document.getElementById("headlineContent");
-  if(!box) return;
-  if(!topHeadlines.length){ box.innerHTML='Aucune actualité disponible pour le moment.'; return; }
-  const item=topHeadlines[topHeadlineIndex % topHeadlines.length];
-  box.innerHTML=`<a href="${esc(item.link||'#')}" target="_blank" rel="noopener"><strong>${esc(item.title||'Sans titre')}</strong><div class="headline-source">${esc(item.source||'Source')} • ${esc(item.pub ? new Date(item.pub).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'maintenant')}</div></a>`;
-}
-async function loadTopHeadlines(){
-  const box=document.getElementById("headlineContent");
-  if(box) box.textContent='Chargement des dernières actualités...';
-  try{
-    const d=await api('/terminal/global-news');
-    topHeadlines=(d.articles||[]).slice(0,8);
-    topHeadlineIndex=0;
-    renderTopHeadline();
-  }catch(e){ if(box) box.textContent='Actualités indisponibles pour le moment.'; }
-}
-setInterval(()=>{ if(topHeadlines.length>1){ topHeadlineIndex=(topHeadlineIndex+1)%topHeadlines.length; renderTopHeadline(); } }, 5000);
-
-const CLOCKS = [
-  {city:"Paris",tz:"Europe/Paris",open:"09:00",close:"17:30",days:[1,2,3,4,5]},
-  {city:"Londres",tz:"Europe/London",open:"08:00",close:"16:30",days:[1,2,3,4,5]},
-  {city:"New York",tz:"America/New_York",open:"09:30",close:"16:00",days:[1,2,3,4,5]},
-  {city:"Tokyo",tz:"Asia/Tokyo",open:"09:00",close:"15:00",days:[1,2,3,4,5]},
-  {city:"Singapour",tz:"Asia/Singapore",open:"09:00",close:"17:00",days:[1,2,3,4,5]},
-  {city:"Hong Kong",tz:"Asia/Hong_Kong",open:"09:30",close:"16:00",days:[1,2,3,4,5]},
-  {city:"Sydney",tz:"Australia/Sydney",open:"10:00",close:"16:00",days:[1,2,3,4,5]}
+const CLOCKS=[
+  {city:"Paris",tz:"Europe/Paris",open:"09:00",close:"17:30"},
+  {city:"Londres",tz:"Europe/London",open:"08:00",close:"16:30"},
+  {city:"New York",tz:"America/New_York",open:"09:30",close:"16:00"},
+  {city:"Tokyo",tz:"Asia/Tokyo",open:"09:00",close:"15:00"},
+  {city:"Singapour",tz:"Asia/Singapore",open:"09:00",close:"17:00"},
+  {city:"Hong Kong",tz:"Asia/Hong_Kong",open:"09:30",close:"16:00"},
+  {city:"Sydney",tz:"Australia/Sydney",open:"10:00",close:"16:00"}
 ];
+const SYMBOL_MAP={
+  "CAC 40":"^FCHI","DAX":"^GDAXI","NASDAQ":"^NDX","S&P 500":"^GSPC","EUR/USD":"EURUSD=X","GOLD":"GC=F","OR":"GC=F","WTI":"CL=F","PÉTROLE":"CL=F","PETROLE":"CL=F","GAZ":"NG=F","BTC/USD":"BTC-USD","BITCOIN":"BTC-USD"
+};
+function W(){return (localStorage.getItem(LS.worker)||DEFAULT_WORKER).replace(/\/$/,"")}
+function provider(){return localStorage.getItem(LS.provider)||"groq"}
+function aiKey(){return localStorage.getItem(LS.aiKey)||""}
+async function api(path,opts={}){
+  const headers={"Content-Type":"application/json",...(opts.headers||{})};
+  const res=await fetch(W()+path,{...opts,headers});
+  const text=await res.text();
+  let data; try{data=JSON.parse(text)}catch{data={ok:false,error:text||"Réponse non JSON"}}
+  if(!res.ok) throw new Error(data.error||data.message||"Erreur Worker");
+  return data;
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function fmt(n){const x=Number(n);return Number.isFinite(x)?x.toLocaleString("fr-FR",{maximumFractionDigits:2}):"-"}
+function pct(n){const x=Number(n);return Number.isFinite(x)?(x>=0?"+":"")+x.toFixed(2).replace(".",",")+"%":"-"}
 
-function partsInTZ(tz){
-  const parts = new Intl.DateTimeFormat("en-US",{timeZone:tz,weekday:"short",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date());
+function openTab(id){
+  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+  document.getElementById(id)?.classList.add("active");
+  if(id==="terminal") loadTerminal();
+  if(id==="marches") loadMarkets();
+  if(id==="news") loadNews();
+}
+
+function timeParts(tz){
+  const now=new Date();
+  const parts=new Intl.DateTimeFormat("fr-FR",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(now);
   const get=t=>parts.find(p=>p.type===t)?.value;
-  const wd={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[get("weekday")];
-  return { wd, h:+get("hour"), m:+get("minute"), s:+get("second") };
+  return {h:+get("hour"),m:+get("minute"),s:+get("second"),txt:`${get("hour")}:${get("minute")}:${get("second")}`};
 }
-function minOf(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
-function countdown(c){
-  const p=partsInTZ(c.tz), now=p.h*60+p.m+p.s/60, op=minOf(c.open), cl=minOf(c.close);
-  const isDay=c.days.includes(p.wd);
-  const open=isDay && now>=op && now<cl;
-  let mins;
-  if(open) mins=cl-now;
-  else if(isDay && now<op) mins=op-now;
-  else {
-    let add=1;
-    while(add<8){
-      const wd=(p.wd+add)%7;
-      if(c.days.includes(wd)) break;
-      add++;
-    }
-    mins=add*1440 - now + op;
-  }
-  mins=Math.max(0,Math.floor(mins));
-  const h=Math.floor(mins/60), m=mins%60;
-  return {open,text:(open?"ferme":"ouvre")+" dans "+h+"h"+String(m).padStart(2,"0")};
-}
+function minutesOf(s){const [h,m]=s.split(":").map(Number);return h*60+m}
+function diffText(mins){mins=Math.max(0,Math.round(mins));const h=Math.floor(mins/60),m=mins%60;return `${h}h ${m}m`}
 function renderClocks(){
-  const el=document.getElementById("clocks");
-  el.innerHTML=CLOCKS.map(c=>{
-    const time=new Intl.DateTimeFormat("fr-FR",{timeZone:c.tz,hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date());
-    const cd=countdown(c);
-    return `<div class="clock ${cd.open?'open':'closed'}">
-      <div class="city">${c.city}</div><div class="time">${time}</div>
-      <div class="state">${cd.open?'OUVERT':'FERMÉ'}</div><div class="count">${cd.text}</div>
-    </div>`;
+  const grid=document.getElementById("clockGrid"), syd=document.getElementById("sydneySlot");
+  grid.innerHTML=""; syd.innerHTML="";
+  for(const c of CLOCKS){
+    const p=timeParts(c.tz), nowM=p.h*60+p.m, o=minutesOf(c.open), cl=minutesOf(c.close);
+    const open=nowM>=o && nowM<cl;
+    const to=open?cl-nowM:(nowM<o?o-nowM:1440-nowM+o);
+    const div=document.createElement("div");
+    div.className=`card clock ${open?"open":"closed"} ${c.city==="Sydney"?"sydney":""}`;
+    div.innerHTML=`<div class="city">${c.city}</div><div class="time">${p.txt}</div><div class="status">${open?"OUVERT":"FERMÉ"}</div><div class="countdown">${open?"Ferme":"Ouvre"} dans ${diffText(to)}</div>`;
+    if(c.city==="Sydney") syd.appendChild(div); else grid.appendChild(div);
+  }
+}
+async function loadTicker(){
+  const raw=localStorage.getItem(LS.tickerSymbols)||"CAC 40\nDAX\nNASDAQ\nS&P 500\nEUR/USD\nGOLD\nWTI\nBTC/USD";
+  const names=raw.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);
+  const symbols=names.map(n=>SYMBOL_MAP[n.toUpperCase()]||SYMBOL_MAP[n]||n);
+  let quotes=[];
+  try{
+    const data=await api("/market-data?symbols="+encodeURIComponent(symbols.join(",")));
+    quotes=data.quotes||[];
+  }catch(e){}
+  const items=names.map((name,i)=>{
+    const q=quotes.find(x=>x.symbol===symbols[i])||{};
+    const change=Number(q.regularMarketChangePercent);
+    const cls=change>=0?"up":"down";
+    return `<div class="tape-item"><div class="tape-name">${esc(name)}</div><div class="tape-price">${fmt(q.regularMarketPrice||"-")}</div><div class="tape-change ${cls}">${Number.isFinite(change)?pct(change):""}</div></div><div class="dot-sep"></div>`;
   }).join("");
+  document.getElementById("tapeTrack").innerHTML=items+items;
 }
-setInterval(renderClocks,1000); renderClocks();
-
-async function health(){
+async function loadWorldNews(){
+  const el=document.getElementById("worldNewsList");
+  let rows=[];
   try{
-    const d=await api("/health");
-    stWorker.textContent="Worker OK"; stWorker.className="pill ok";
-    stMarket.className="pill ok";
-  }catch(e){ stWorker.textContent="Worker erreur"; stWorker.className="pill warn"; }
+    const d=await api("/global-risk-news");
+    rows=(d.items||d.news||[]).slice(0,12);
+  }catch(e){
+    rows=[
+      {icon:"🌐",title:"Élections européennes : participation record",time:"Il y a 12 min",url:"#"},
+      {icon:"🇺🇦",title:"Ukraine : nouvelles discussions pour un cessez-le-feu",time:"Il y a 38 min",url:"#"},
+      {icon:"🗺️",title:"Moyen-Orient : tensions en hausse après de nouvelles frappes",time:"Il y a 45 min",url:"#"},
+      {icon:"🌍",title:"Climat : alerte sur les températures mondiales",time:"Il y a 1 h",url:"#"},
+      {icon:"▣",title:"Technologie : les semi-conducteurs au cœur des enjeux géopolitiques",time:"Il y a 1 h",url:"#"},
+      {icon:"↗",title:"Économie mondiale : croissance revue à la baisse",time:"Il y a 2 h",url:"#"}
+    ];
+  }
+  el.innerHTML=rows.map(r=>`<div class="news-item" onclick="openNews('${esc(r.url||"#")}')"><div class="news-ico">${esc(r.icon||"🌐")}</div><div><div class="news-title">${esc(r.title||r.headline||"Actualité mondiale")}</div><div class="news-time">${esc(r.time||r.source||"")}</div></div><div class="news-chevron">›</div></div>`).join("");
 }
-health();
+function openNews(url){ if(url && url!=="#") window.open(url,"_blank","noopener"); }
 
-async function validateText(txt){
-  const d=await api("/symbols/validate",{method:"POST",body:JSON.stringify({text:txt})});
-  return d;
-}
-
-async function runScan(){
-  scanResults.innerHTML="<div class='small'>Analyse en cours...</div>";
-  try{
-    const val=await validateText(scanText.value);
-    scanValidation.innerHTML=(val.usedDefault?`Univers automatique PGI utilisé : ${val.valid.length} instruments.`:`Validés : ${val.valid.length}. Invalides : ${val.invalid.length}`) + (val.groups?.length?`<br>Groupes reconnus : ${val.groups.map(esc).join(", ")}`:"") + (val.invalid.length?`<br>Non reconnus : ${val.invalid.map(x=>esc(x.input)).join(", ")}`:"");
-    const markets=val.valid.map(x=>({s:x.symbol,n:x.name,c:x.category}));
-    const d=await api("/scan",{method:"POST",body:JSON.stringify({markets,limit:+scanLimit.value,horizon:scanHorizon.value,provider:provider(),apiKey:aiKey()})});
-    scanResults.innerHTML=(d.opportunities||[]).map(o=>oppCard(o)).join("") || "<div class='small'>Aucune opportunité.</div>";
-  }catch(e){ scanResults.innerHTML=`<div class='card neg'>${esc(e.message)}</div>`; }
-}
-
-function oppCard(o){
-  const dir=String(o.direction||"ATTENTE").toUpperCase();
-  const klass=dir==="ACHAT"?"buy":dir==="VENTE"?"sell":"";
-  return `<div class="card opportunity ${klass}">
-    <div class="row" style="justify-content:space-between"><b>${esc(o.display||o.instrument||o.symbol)}</b><span class="${dir==='ACHAT'?'pos':dir==='VENTE'?'neg':'neu'} mono">${esc(dir)}</span></div>
-    <div class="metric"><div class="k">Probabilité</div><div class="v">${esc(o.probabilite||"—")}%</div></div>
-    <div class="small">Entrée : <span class="mono">${esc(o.entree||"—")}</span><br>Objectif : <span class="mono">${esc(o.cible||"—")}</span><br>Stop : <span class="mono">${esc(o.stopLoss||"—")}</span><br>R/R : <span class="mono">${esc(o.ratio||"—")}</span></div>
-    <ul class="small" style="margin:10px 0 0 18px">${(o.raisons||[]).slice(0,4).map(r=>`<li>${esc(r)}</li>`).join("")}</ul>
-  </div>`;
-}
-
-async function runAnalyze(){
-  anResult.innerHTML="<div class='small'>Analyse en cours...</div>";
-  try{
-    const val=await validateText(anSymbolText.value);
-    if(!val.valid.length){ anValidation.innerHTML="Instrument non reconnu."; return; }
-    const s=val.valid[0];
-    anValidation.innerHTML=`Validé : ${s.name} (${s.symbol})`;
-    const d=await api("/analyze",{method:"POST",body:JSON.stringify({symbol:s.symbol,name:s.name,amount:+anAmount.value,leverage:+anLeverage.value,provider:provider(),apiKey:aiKey()})});
-    const a=d.analysis||{};
-    anResult.innerHTML=`<div class="cards">
-      <div class="metric"><div class="k">Prix</div><div class="v">${money(d.price)}</div></div>
-      <div class="metric"><div class="k">Variation</div><div class="v ${clsPct(d.changePct)}">${cpct(d.changePct)}</div></div>
-      <div class="metric"><div class="k">Conclusion</div><div class="v">${esc(a.direction||"ATTENTE")}</div></div>
-      <div class="metric"><div class="k">Probabilité</div><div class="v">${esc(a.probabilite||"—")}%</div></div>
-    </div>
-    <div class="card">
-      <b>${esc(a.resume||"")}</b>
-      <p class="small" style="margin-top:10px">Entrée : ${esc(a.prix_entree||"—")}<br>Objectif : ${esc(a.prix_cible||"—")}<br>Stop-loss : ${esc(a.stop_loss||"—")}<br>Risque : ${esc(a.niveau_risque||"—")}<br>Ratio : ${esc(a.ratio_rr||"—")}</p>
-      <ul class="small" style="margin:10px 0 0 18px">${(a.raisons||[]).map(r=>`<li>${esc(r)}</li>`).join("")}</ul>
-    </div>`;
-  }catch(e){ anResult.innerHTML=`<div class='card neg'>${esc(e.message)}</div>`; }
-}
-
-async function loadTerminal(){
-  terminalContent.innerHTML="<div class='small'>Chargement Terminal...</div>";
-  try{
-    const d=await api("/terminal");
-    stTerminal.className="pill ok";
-    terminalContent.innerHTML=renderTerminal(d);
-  }catch(e){ stTerminal.className="pill warn"; terminalContent.innerHTML=`<div class='card neg'>${esc(e.message)}</div>`; }
-}
-
-function renderTerminal(d){
-  const yc=d.yieldCurve||{}, heat=d.sectorHeatmap||{}, corr=d.correlations||{}, eco=d.economicCalendar||{}, earn=d.earnings||{}, rates=d.centralRates||{}, gn=d.globalNews||{}, risk=gn.risk||{};
-  return `
-  <div class="cards">
-    <div class="metric"><div class="k">Spread US 10Y-2Y</div><div class="v">${yc.spread10y2y??"—"}</div><div class="small">${esc(yc.interpretation||"")}</div></div>
-    <div class="metric"><div class="k">Calendrier macro</div><div class="v">${(eco.items||[]).length}</div><div class="small">${esc(eco.source||eco.note||"")}</div></div>
-    <div class="metric"><div class="k">Résultats entreprises</div><div class="v">${(earn.items||[]).length}</div><div class="small">${esc(earn.source||earn.note||"")}</div></div>
-    <div class="metric"><div class="k">Risque mondial</div><div class="v">${esc(risk.level||"—")}</div><div class="small">${esc(risk.summary||"News mondiales non chargées")}</div></div>
-  </div>
-  <div class="card"><h3>Risque géopolitique / macro mondial</h3>
-    ${table(["Source","Score","Impacts","Titre"],(gn.articles||[]).slice(0,12).map(x=>[x.source,x.riskScore??"—",(x.impacted||[]).join(", "),x.title]))}
-  </div>
-  <div class="card"><h3>Heatmap sectorielle</h3><div class="heat" style="margin-top:12px">${(heat.items||[]).map(x=>`<div class="tile ${clsPct(x.changePct)}"><b>${esc(x.sector)}</b><div class="mono ${clsPct(x.changePct)}">${x.changePct==null?"—":cpct(x.changePct)}</div><div class="small">${esc(x.conclusion)}</div></div>`).join("")}</div></div>
-  <div class="card"><h3>Corrélations</h3>${table(["Couple","Corrélation","Lecture"],(corr.items||[]).map(x=>[x.pair,x.correlation??"—",x.label+" — "+x.interpretation]))}</div>
-  <div class="card"><h3>Courbe des taux</h3>${table(["Point","Taux","Date"],(yc.points||[]).map(x=>[x.label,x.value==null?"—":x.value+"%",x.date]))}</div>
-  <div class="card"><h3>Taux banques centrales</h3>${table(["Banque","Zone","Taux","Source"],(rates.rates||[]).map(x=>[x.bank,x.area,x.rate==null?"—":x.rate+"%",x.source]))}</div>
-  <div class="card"><h3>Calendrier économique</h3>${table(["Date","Pays","Impact","Événement","Réel/Consensus"],(eco.items||[]).slice(0,30).map(x=>[x.date+" "+(x.time||""),x.country,x.impact,x.event,(x.actual||"—")+" / "+(x.consensus||"—")]))}</div>
-  <div class="card"><h3>Résultats d'entreprises</h3>${table(["Date","Ticker","Entreprise","EPS"],(earn.items||[]).slice(0,30).map(x=>[x.date,x.symbol,x.company,(x.epsActual||"—")+" / "+(x.epsEstimate||"—")]))}</div>`;
-}
-
-function table(head, rows){
-  if(!rows.length) return "<div class='small'>Non disponible avec les APIs gratuites configurées.</div>";
-  return `<table class="table"><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-}
-
-async function loadMarkets(){
-  mktResults.innerHTML="Chargement...";
-  try{
-    const d=await api("/market-data?symbols="+encodeURIComponent(mktSymbols.value));
-    mktResults.innerHTML=table(["Symbole","Nom","Prix","Variation","Haut","Bas"],(d.quotes||[]).map(q=>[q.symbol,q.shortName||q.longName||"",money(q.regularMarketPrice),cpct(q.regularMarketChangePercent),money(q.regularMarketDayHigh),money(q.regularMarketDayLow)]));
-  }catch(e){ mktResults.innerHTML=esc(e.message); }
-}
-
-async function loadNews(){
-  newsResults.innerHTML="Chargement...";
-  try{
-    const d=await api("/news");
-    newsResults.innerHTML=`<div class="card"><b>Risque mondial : ${esc(d.risk?.level||"—")}</b><div class="small">${esc(d.risk?.summary||"")}</div></div>`+
-      (d.articles||[]).map(a=>`<div class="card"><b>${esc(a.title)}</b><div class="small">${esc(a.source)} · score risque ${esc(a.riskScore??"—")} · ${esc(a.pub||"")}</div><p class="small">${esc(a.desc||"")}</p><div class="small">Impacts : ${esc((a.impacted||[]).join(", ")||"—")}</div>${a.link?`<a href="${esc(a.link)}" target="_blank" style="color:var(--cyan)">Ouvrir</a>`:""}</div>`).join("");
-  }catch(e){ newsResults.innerHTML=esc(e.message); }
+let autoNewsTimer=null, userPaused=false;
+function startNewsAutoScroll(){
+  const box=document.getElementById("worldNewsList");
+  const panel=document.getElementById("worldNewsPanel");
+  const pauseIcon=document.getElementById("newsPauseIcon");
+  clearInterval(autoNewsTimer);
+  autoNewsTimer=setInterval(()=>{
+    if(userPaused || !box) return;
+    if(box.scrollTop + box.clientHeight >= box.scrollHeight - 6) box.scrollTo({top:0,behavior:"smooth"});
+    else box.scrollBy({top:1,behavior:"smooth"});
+  },90);
+  const pause=()=>{userPaused=true; if(pauseIcon) pauseIcon.textContent="▶"; clearTimeout(window.newsResumeT); window.newsResumeT=setTimeout(()=>{userPaused=false;if(pauseIcon)pauseIcon.textContent="Ⅱ"},10000)}
+  panel.addEventListener("touchstart",pause,{passive:true});
+  panel.addEventListener("mousedown",pause);
+  panel.addEventListener("wheel",pause,{passive:true});
 }
 
 function renderSuggestions(){
-  const raw=localStorage.getItem(LS.suggestions);
-  const list=(raw?raw.split("\n"):DEFAULT_SUGGESTIONS).map(x=>x.trim()).filter(Boolean);
-  quickSuggestions.innerHTML=list.map(s=>`<button onclick="chatInput.value=${JSON.stringify(s)}">${esc(s)}</button>`).join("");
+  const list=(localStorage.getItem(LS.suggestions)||SUG.join("\n")).split("\n").map(x=>x.trim()).filter(Boolean);
+  document.getElementById("suggestions").innerHTML=list.map(s=>`<button class="chip" onclick="chatInput.value='${esc(s)}';sendChat()">${esc(s)} ›</button>`).join("");
   aiSuggestions.value=list.join("\n");
 }
 async function sendChat(){
-  const msg=chatInput.value.trim(); if(!msg)return;
-  chatBox.innerHTML+=`<div class="msg user">${esc(msg)}</div>`;
-  chatInput.value="";
+  const msg=chatInput.value.trim(); if(!msg) return;
+  chatOut.innerHTML=`<div class="result-card">Analyse en cours...</div>`;
   try{
     const d=await api("/chat",{method:"POST",body:JSON.stringify({message:msg,provider:provider(),apiKey:aiKey()})});
-    chatBox.innerHTML+=`<div class="msg ai">${esc(d.reply||"").replace(/\n/g,"<br>")}</div>`;
-  }catch(e){ chatBox.innerHTML+=`<div class="msg ai neg">${esc(e.message)}</div>`; }
-  chatBox.scrollTop=chatBox.scrollHeight;
+    chatOut.innerHTML=`<div class="result-card">${esc(d.answer||d.text||JSON.stringify(d)).replace(/\n/g,"<br>")}</div>`;
+  }catch(e){chatOut.innerHTML=`<div class="result-card">Erreur : ${esc(e.message)}</div>`}
 }
-
-async function saveAlerts(){
-  const body={email:alertEmail.value,scanFrequencyHours:+alertFreq.value,threshold:+alertThreshold.value,trackedText:alertTracked.value,provider:provider(),apiKey:aiKey()};
-  const d=await api("/alerts/config",{method:"POST",body:JSON.stringify(body)});
-  await loadAlertStatus();
-}
-async function toggleAlerts(enabled){ await api("/alerts/toggle",{method:"POST",body:JSON.stringify({enabled})}); await loadAlertStatus(); }
-function connectGmail(){ window.open(W()+"/auth/gmail","_blank"); }
-async function runCronNow(){ await api("/cron/run",{method:"POST",body:"{}"}); await loadAlertStatus(); }
-async function loadAlertStatus(){
+async function validateScanText(){
+  const txt=scanText.value.trim();
   try{
-    const d=await api("/alerts/status");
-    stGmail.className=d.gmail_connected?"pill ok":"pill warn";
-    stGmail.textContent=d.gmail_connected?"Gmail OK":"Gmail non connecté";
-    alertStatus.innerHTML=`<div class="cards">
-      <div class="metric"><div class="k">Alertes</div><div class="v">${d.alerts_enabled?"ON":"OFF"}</div></div>
-      <div class="metric"><div class="k">Fréquence</div><div class="v">${d.config.scanFrequencyHours}h</div></div>
-      <div class="metric"><div class="k">Seuil</div><div class="v">${d.config.threshold}%</div></div>
-    </div>
-    <div class="card"><b>Instruments validés</b><div class="small">${(d.config.validatedSymbols||[]).map(x=>`${x.n} (${x.s})`).join("<br>")||"Aucun"}</div></div>
-    <div class="card"><b>Historique</b>${table(["Date","Signaux","Instruments","Envoyé"],(d.history||[]).slice(0,20).map(x=>[x.ts,x.count,x.instruments,x.sent?"oui":"non"]))}</div>`;
-  }catch(e){ alertStatus.innerHTML=esc(e.message); }
+    const val=await api("/symbols/validate",{method:"POST",body:JSON.stringify({text:txt})});
+    scanValidation.innerHTML=(val.usedDefault?`Univers automatique PGI utilisé : ${val.valid.length} instruments.`:`Validés : ${val.valid.length}. Invalides : ${val.invalid.length}`)+(val.invalid?.length?`<br>Non reconnus : ${val.invalid.map(x=>esc(x.input)).join(", ")}`:"");
+    return val.valid||[];
+  }catch(e){scanValidation.textContent="Validation impossible : "+e.message;return[]}
 }
-
-function toggleCustomProvider(){
-  const box=document.getElementById("customProviderBox");
-  if(!box) return;
-  box.classList.toggle("hidden", aiProvider.value !== "custom");
+async function runScan(){
+  scanOut.innerHTML=`<div class="result-card">Scan des opportunités immédiates en cours...</div>`;
+  try{
+    const txt=scanText.value.trim();
+    const d=await api("/scan",{method:"POST",body:JSON.stringify({text:txt,markets:txt,limit:+scanLimit.value||12,horizon:scanHorizon.value,provider:provider(),apiKey:aiKey()})});
+    const arr=d.opportunities||d.items||[];
+    scanOut.innerHTML=arr.length?arr.map(o=>`<div class="result-card"><strong>${esc(o.name||o.symbol||"Marché")}</strong><br>Direction : <b>${esc(o.direction||"ATTENTE")}</b><br>Probabilité : <b>${esc(o.probability??o.score??"-")}%</b><br>Entrée : ${esc(o.entry??o.price??"-")} · Objectif : ${esc(o.target??"-")} · Stop : ${esc(o.stopLoss??o.stop??"-")}<br><span class="small">${esc((o.reasons||o.reason||[]).toString())}</span></div>`).join(""):`<div class="result-card">Aucune opportunité exploitable détectée maintenant.</div>`;
+  }catch(e){scanOut.innerHTML=`<div class="result-card">Erreur scan : ${esc(e.message)}</div>`}
+}
+async function runAnalyze(){
+  anOut.innerHTML=`<div class="result-card">Analyse en cours...</div>`;
+  try{
+    const d=await api("/analyze",{method:"POST",body:JSON.stringify({symbol:anSymbolText.value,amount:+anAmount.value||500,leverage:+anLeverage.value||1,provider:provider(),apiKey:aiKey()})});
+    anOut.innerHTML=`<div class="result-card"><strong>${esc(d.name||d.symbol||anSymbolText.value)}</strong><br>Conclusion : <b>${esc(d.direction||d.conclusion||"ATTENTE")}</b><br>Probabilité : <b>${esc(d.probability??"-")}%</b><br>Entrée : ${esc(d.entry??d.price??"-")} · Objectif : ${esc(d.target??"-")} · Stop : ${esc(d.stopLoss??d.stop??"-")}<br><span class="small">${esc((d.reasons||d.reason||"").toString())}</span></div>`;
+  }catch(e){anOut.innerHTML=`<div class="result-card">Erreur analyse : ${esc(e.message)}</div>`}
+}
+async function loadMarkets(){
+  try{
+    const d=await api("/market-data?symbols="+encodeURIComponent(mktSymbols.value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean).join(",")));
+    mktOut.innerHTML=(d.quotes||[]).map(q=>`<div class="result-card"><strong>${esc(q.shortName||q.symbol)}</strong><br>${fmt(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent)>=0?"up":"down"}">${pct(q.regularMarketChangePercent)}</span><br><span class="small">${esc(q.source||"")}</span></div>`).join("");
+  }catch(e){mktOut.innerHTML=`<div class="result-card">Erreur marchés : ${esc(e.message)}</div>`}
+}
+async function loadNews(){
+  try{
+    const d=await api("/news");
+    newsOut.innerHTML=(d.items||d.news||[]).map(n=>`<div class="result-card"><strong>${esc(n.title||n.headline)}</strong><br><span class="small">${esc(n.source||"")}</span></div>`).join("");
+  }catch(e){newsOut.innerHTML=`<div class="result-card">Erreur news : ${esc(e.message)}</div>`}
+}
+async function loadTerminal(){
+  terminalOut.innerHTML=`<div class="result-card">Chargement Bloomberg Pro...</div>`;
+  try{
+    const d=await api("/terminal");
+    terminalOut.innerHTML=`<div class="result-card"><strong>Synthèse</strong><br><pre style="white-space:pre-wrap;font-family:JetBrains Mono;font-size:12px">${esc(JSON.stringify(d,null,2))}</pre></div>`;
+  }catch(e){terminalOut.innerHTML=`<div class="result-card">Erreur terminal : ${esc(e.message)}</div>`}
+}
+async function saveAlerts(){
+  try{
+    const d=await api("/alerts/config",{method:"POST",body:JSON.stringify({email:alertEmail.value,scanFrequencyHours:+scanFrequencyHours.value||2,threshold:+alertThreshold.value||75,trackedText:alertTracked.value,provider:provider(),apiKey:aiKey()})});
+    alertOut.innerHTML=`<div class="result-card">Alertes sauvegardées.</div>`;
+  }catch(e){alertOut.innerHTML=`<div class="result-card">Erreur : ${esc(e.message)}</div>`}
+}
+async function toggleAlerts(enabled){
+  try{await api("/alerts/toggle",{method:"POST",body:JSON.stringify({enabled})});alertOut.innerHTML=`<div class="result-card">Alertes ${enabled?"activées":"désactivées"}.</div>`}
+  catch(e){alertOut.innerHTML=`<div class="result-card">Erreur : ${esc(e.message)}</div>`}
+}
+function connectGmail(){window.open(W()+"/auth/gmail","_blank")}
+async function runCronNow(){
+  try{const d=await api("/cron/run",{method:"POST",body:JSON.stringify({manual:true})});alertOut.innerHTML=`<div class="result-card">Test lancé.<br><pre>${esc(JSON.stringify(d,null,2))}</pre></div>`}
+  catch(e){alertOut.innerHTML=`<div class="result-card">Erreur : ${esc(e.message)}</div>`}
 }
 function saveSettings(){
   localStorage.setItem(LS.worker,workerUrl.value.trim());
   localStorage.setItem(LS.provider,aiProvider.value);
   localStorage.setItem(LS.aiKey,aiKey.value.trim());
-  localStorage.setItem(LS.customProviderName,customProviderName?.value?.trim()||"");
-  localStorage.setItem(LS.customProviderEndpoint,customProviderEndpoint?.value?.trim()||"");
-  health();
+  localStorage.setItem(LS.suggestions,aiSuggestions.value.trim());
+  localStorage.setItem(LS.tickerSymbols,tickerSymbols.value.trim());
+  settingsOut.innerHTML=`<div class="result-card">Réglages sauvegardés.</div>`;
+  renderSuggestions(); loadTicker();
 }
-function saveSuggestions(){
-  localStorage.setItem(LS.suggestions,aiSuggestions.value);
-  renderSuggestions();
-}
-
 function init(){
   workerUrl.value=localStorage.getItem(LS.worker)||DEFAULT_WORKER;
-  aiProvider.value=provider();
-  aiKey.value=aiKey();
-  if(customProviderName) customProviderName.value=localStorage.getItem(LS.customProviderName)||"";
-  if(customProviderEndpoint) customProviderEndpoint.value=localStorage.getItem(LS.customProviderEndpoint)||"";
-  toggleCustomProvider();
+  aiProvider.value=localStorage.getItem(LS.provider)||"groq";
+  aiKey.value=localStorage.getItem(LS.aiKey)||"";
+  tickerSymbols.value=localStorage.getItem(LS.tickerSymbols)||"CAC 40\nDAX\nNASDAQ\nS&P 500\nEUR/USD\nGOLD\nWTI\nBTC/USD";
   renderSuggestions();
-  loadAlertStatus();
-  loadTopHeadlines();
+  renderClocks(); setInterval(renderClocks,1000);
+  loadTicker(); setInterval(loadTicker,120000);
+  loadWorldNews().then(startNewsAutoScroll);
+  setInterval(loadWorldNews,300000);
 }
 init();
 </script>
 </body>
 </html>
+'''
+
+# Patch worker minimally for global-risk-news endpoint and ticker friendliness.
+worker = worker_original
+
+# Version bump if const present
+worker = re.sub(r'const VERSION\s*=\s*["\'][^"\']+["\'];', 'const VERSION = "3.5-mobile-final-global-news";', worker, count=1)
+
+# Add route for /global-risk-news if not present. Try common fetch handler pattern.
+if "/global-risk-news" not in worker:
+    # Insert helper functions before export default or near routes
+    helper = r'''
+async function globalRiskNews(env) {
+  const fallback = [
+    { icon:"🌐", title:"Élections européennes : participation record", time:"Il y a 12 min", url:"#", source:"Global" },
+    { icon:"🇺🇦", title:"Ukraine : nouvelles discussions pour un cessez-le-feu", time:"Il y a 38 min", url:"#", source:"Monde" },
+    { icon:"🗺️", title:"Moyen-Orient : tensions en hausse après de nouvelles frappes", time:"Il y a 45 min", url:"#", source:"Monde" },
+    { icon:"🌍", title:"Climat : alerte sur les températures mondiales", time:"Il y a 1 h", url:"#", source:"Climat" },
+    { icon:"▣", title:"Technologie : les semi-conducteurs au cœur des enjeux géopolitiques", time:"Il y a 1 h", url:"#", source:"Technologie" },
+    { icon:"↗", title:"Économie mondiale : croissance revue à la baisse", time:"Il y a 2 h", url:"#", source:"Macro" }
+  ];
+  try {
+    const q = encodeURIComponent('(guerre OR war OR sanctions OR election OR climate OR diplomacy OR crisis OR conflit OR géopolitique)');
+    let items = [];
+    if (env.GNEWS_API_KEY) {
+      const r = await fetch(`https://gnews.io/api/v4/search?q=${q}&lang=fr&max=10&apikey=${env.GNEWS_API_KEY}`, { signal:AbortSignal.timeout(9000) });
+      if (r.ok) {
+        const d = await r.json();
+        items = (d.articles || []).map(a => ({ icon:"🌐", title:a.title, time:a.source?.name || "GNews", url:a.url, source:a.source?.name || "GNews" }));
+      }
+    }
+    if (!items.length && env.NEWSAPI_KEY) {
+      const r = await fetch(`https://newsapi.org/v2/everything?q=${q}&language=fr&sortBy=publishedAt&pageSize=10&apiKey=${env.NEWSAPI_KEY}`, { signal:AbortSignal.timeout(9000) });
+      if (r.ok) {
+        const d = await r.json();
+        items = (d.articles || []).map(a => ({ icon:"🌐", title:a.title, time:a.source?.name || "NewsAPI", url:a.url, source:a.source?.name || "NewsAPI" }));
+      }
+    }
+    if (!items.length && env.MEDIASTACK_API_KEY) {
+      const r = await fetch(`http://api.mediastack.com/v1/news?access_key=${env.MEDIASTACK_API_KEY}&languages=fr&keywords=${q}&limit=10`, { signal:AbortSignal.timeout(9000) });
+      if (r.ok) {
+        const d = await r.json();
+        items = (d.data || []).map(a => ({ icon:"🌐", title:a.title, time:a.source || "Mediastack", url:a.url, source:a.source || "Mediastack" }));
+      }
+    }
+    return { ok:true, items:items.length ? items : fallback, ts:new Date().toISOString() };
+  } catch (e) {
+    return { ok:true, items:fallback, fallback:true, error:String(e?.message || e), ts:new Date().toISOString() };
+  }
+}
+'''
+    worker = helper + "\n" + worker
+    
+    # Find route section in worker
+    # Patterns likely: const path = url.pathname; if (path === "/health")
+    route_line = 'if (path === "/health"'
+    idx = worker.find(route_line)
+    if idx != -1:
+        worker = worker[:idx] + 'if (path === "/global-risk-news") return R(await globalRiskNews(env));\n      ' + worker[idx:]
+    else:
+        # Try after pathname definition
+        route_line2 = 'const path = url.pathname;'
+        idx = worker.find(route_line2)
+        if idx != -1:
+            insert_pos = idx + len(route_line2)
+            worker = worker[:insert_pos] + '\n      if (path === "/global-risk-news") return R(await globalRiskNews(env));' + worker[insert_pos:]
+        else:
+            # leave helper only; maybe user can merge
+            pass
+
+# Save final files
+html_out = Path("/mnt/data/pgi_financial_pro_html_v3_5_mobile_final.html")
+worker_out = Path("/mnt/data/pgi_financial_pro_worker_v3_5_mobile_final.js")
+html_out.write_text(html, encoding="utf-8")
+worker_out.write_text(worker, encoding="utf-8")
+
+print("Code final généré :")
+print(str(html_out))
+print(str(worker_out))
+print("Lignes HTML :", len(html.splitlines()))
+print("Lignes Worker :", len(worker.splitlines()))
