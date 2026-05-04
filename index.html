@@ -29,12 +29,18 @@ button,input,textarea,select{font-family:Inter,system-ui,sans-serif}
 .pill{font-size:11px;color:var(--soft);border:1px solid var(--bd);background:rgba(255,255,255,.035);padding:7px 9px;border-radius:999px}
 .pill.ok{border-color:rgba(0,255,136,.35);color:var(--green)}
 .pill.warn{border-color:rgba(255,242,0,.35);color:var(--yellow)}
-.clocks{flex:1;display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:9px}
-.clock{background:rgba(13,18,32,.88);border:1px solid var(--bd);border-radius:18px;padding:12px;min-height:92px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.clocks{flex:1;display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:9px}
+.clock{position:relative;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all .18s ease}
+.clock.open{background:linear-gradient(180deg,rgba(8,34,24,.55),rgba(9,17,30,.88));border:1px solid rgba(0,255,136,.34);box-shadow:0 0 0 1px rgba(0,255,136,.10),0 10px 28px rgba(0,0,0,.28),0 0 22px rgba(0,255,136,.14)}
+.clock.closed{background:linear-gradient(180deg,rgba(45,8,18,.35),rgba(13,18,32,.88));border:1px solid rgba(255,59,107,.34);box-shadow:0 0 0 1px rgba(255,59,107,.08),0 10px 28px rgba(0,0,0,.28),0 0 22px rgba(255,59,107,.12)}
+.clock{border-radius:18px;padding:12px;min-height:92px}
 .clock .city{font-family:Syne;font-size:13px;font-weight:800}
 .clock .time{font-family:JetBrains Mono,monospace;font-size:20px;margin-top:5px}
-.clock .state{font-family:JetBrains Mono,monospace;font-size:10px;margin-top:6px;color:var(--red)}
+.clock .state{font-family:JetBrains Mono,monospace;font-size:10px;margin-top:6px;color:var(--red);font-weight:700;letter-spacing:.4px}
 .clock.open .state{color:var(--green)}
+.clock.open .city,.clock.open .time{color:#dffff2}
+.clock.closed .city,.clock.closed .time{color:#ffe5ec}
+.clock.closed .state{color:var(--red)}
 .clock .count{font-size:10px;color:var(--muted);margin-top:3px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
 .tab{--neon:var(--cyan);border:1px solid color-mix(in srgb,var(--neon) 58%,transparent);background:linear-gradient(135deg,rgba(13,18,32,.94),rgba(8,13,24,.94));color:white;border-radius:15px;padding:11px 14px;cursor:pointer;font-weight:800;box-shadow:0 0 16px color-mix(in srgb,var(--neon) 20%,transparent), inset 0 0 18px rgba(255,255,255,.025);transition:.18s ease}
@@ -84,20 +90,66 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
 .heat .tile{border-radius:18px;padding:16px;border:1px solid var(--bd);background:rgba(255,255,255,.04)}
 .heat .tile.pos{background:rgba(0,255,136,.1);border-color:rgba(0,255,136,.25)}
 .heat .tile.neg{background:rgba(255,59,107,.1);border-color:rgba(255,59,107,.25)}
-@media(max-width:1180px){.top{display:block}.clocks{grid-template-columns:repeat(2,1fr);margin-top:12px}.grid{grid-template-columns:1fr}}
-@media(max-width:640px){body{padding:10px}.clocks{grid-template-columns:1fr}.tabs{overflow:auto;flex-wrap:nowrap}.tab{white-space:nowrap}}
+@media(max-width:1180px){
+  .top{display:block}
+  .brand{width:100%;min-width:0}
+  .clocks{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px}
+  .grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  body{padding:10px}
+  .app{max-width:100%}
+  .top{gap:12px;margin-bottom:12px}
+  .brand{padding:14px 14px 12px;border-radius:20px}
+  .logo{font-size:22px;line-height:1.02}
+  .logo small{font-size:10px;letter-spacing:1.2px;margin-top:6px}
+  .status{gap:6px;margin-top:12px}
+  .pill{font-size:10px;padding:6px 8px}
+  .clocks{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .clock{padding:8px 8px 9px;border-radius:14px;min-height:74px}
+  .clock .city{font-size:10px;line-height:1.05}
+  .clock .time{font-size:16px;margin-top:4px}
+  .clock .state{font-size:8px;margin-top:5px}
+  .clock .count{font-size:8px;line-height:1.18;margin-top:2px}
+  .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;overflow:visible;flex-wrap:wrap}
+  .tab{white-space:normal;text-align:center;padding:10px 7px;border-radius:12px;font-size:12px;line-height:1.15;min-height:44px}
+  .panel{border-radius:18px}
+  .panel h2{font-size:17px;padding:14px 15px}
+  .panel .body{padding:14px 15px}
+  .card,.metric,.heat .tile{border-radius:16px}
+  .btn.scan-red{padding:16px 14px;font-size:14px;border-radius:16px}
+  textarea{min-height:96px}
+  .quick{gap:6px}
+  .quick button{font-size:11px;padding:7px 8px}
+  .chatbox{height:320px;padding:10px;border-radius:14px}
+  .msg{max-width:94%;font-size:13px}
+  .table{display:block;overflow:auto;-webkit-overflow-scrolling:touch}
+}
+@media(max-width:420px){
+  .logo{font-size:19px}
+  .logo small{font-size:9px}
+  .clocks{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .clock{padding:7px;min-height:70px}
+  .clock .city{font-size:9px}
+  .clock .time{font-size:14px}
+  .clock .state,.clock .count{font-size:7px}
+  .tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .tab{font-size:11px;padding:9px 5px;min-height:42px}
+  label{font-size:11px}
+  input,textarea,select,.btn{padding:11px 11px}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
     <div class="brand">
-      <div class="logo">PGI <span class="dot">•</span> Financial Pro<small>Bloomberg Terminal v3.4 Global Risk</small></div>
+      <div class="logo">PGI <span class="dot">•</span> Financial Pro<small>Plateforme d’analyse multi-marchés</small></div>
       <div class="status">
         <span id="stWorker" class="pill warn">Worker...</span>
         <span id="stMarket" class="pill">Market Data</span>
         <span id="stGmail" class="pill">Gmail</span>
-        <span id="stTerminal" class="pill">Terminal</span>
+        <span id="stTerminal" class="pill">Macro & Risk</span>
       </div>
     </div>
     <div id="clocks" class="clocks"></div>
@@ -106,7 +158,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
   <div class="tabs">
     <button class="tab active" data-tab="scanner">Scanner</button>
     <button class="tab" data-tab="analyse">Analyse</button>
-    <button class="tab tab-terminal" data-tab="terminal">Bloomberg Terminal</button>
+    <button class="tab tab-terminal" data-tab="terminal">Terminal Pro</button>
     <button class="tab" data-tab="marches">Marchés</button>
     <button class="tab" data-tab="news">News</button>
     <button class="tab" data-tab="assistant">Assistant IA</button>
@@ -144,8 +196,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
   </section>
 
   <section id="terminal" class="section">
-    <div class="panel"><h2>Bloomberg Terminal macro & marchés</h2><div class="body">
-      <button class="btn btn-cyan" onclick="loadTerminal()">Rafraîchir Bloomberg Terminal</button>
+    <div class="panel"><h2>Terminal Pro macro & marchés</h2><div class="body">
+      <button class="btn btn-cyan" onclick="loadTerminal()">Rafraîchir le terminal</button>
       <div id="terminalContent" style="margin-top:14px"></div>
     </div></div>
   </section>
@@ -362,14 +414,14 @@ function countdown(c){
   }
   mins=Math.max(0,Math.floor(mins));
   const h=Math.floor(mins/60), m=mins%60;
-  return {open,text:(open?"ferme":"ouvre")+" dans "+h+"h"+String(m).padStart(2,"0")};
+  return {open,text:(open?"fermeture":"ouverture")+" dans "+h+"h"+String(m).padStart(2,"0")};
 }
 function renderClocks(){
   const el=document.getElementById("clocks");
   el.innerHTML=CLOCKS.map(c=>{
     const time=new Intl.DateTimeFormat("fr-FR",{timeZone:c.tz,hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date());
     const cd=countdown(c);
-    return `<div class="clock ${cd.open?'open':''}">
+    return `<div class="clock ${cd.open?'open':'closed'}">
       <div class="city">${c.city}</div><div class="time">${time}</div>
       <div class="state">${cd.open?'OUVERT':'FERMÉ'}</div><div class="count">${cd.text}</div>
     </div>`;
