@@ -1011,7 +1011,7 @@ eur usd</textarea>
       <button class="btn btn-cyan" onclick="saveAlerts()">Sauvegarder</button>
       <button class="btn btn-green" onclick="toggleAlerts(true)">Activer</button>
       <button class="btn btn-red" onclick="toggleAlerts(false)">Désactiver</button>
-      <button class="btn btn-yellow" onclick="connectGmail()">Gmail</button>
+      <button class="btn btn-yellow" onclick="testEmail()">Tester l'email</button>
       <button class="btn btn-purple" onclick="runCronNow()">Tester maintenant</button>
     </div>
   </div>
@@ -1030,7 +1030,7 @@ eur usd</textarea>
   <div class="status-pills" id="statusPills">
     <span id="stWorker" class="pill warn">Worker…</span>
     <span id="stMarket" class="pill">Market Data</span>
-    <span id="stGmail" class="pill">Gmail</span>
+    <span id="stGmail" class="pill">Resend Email</span>
     <span id="stTerminal" class="pill">Terminal</span>
   </div>
   <div class="card">
@@ -1081,7 +1081,16 @@ eur usd</textarea>
     <textarea id="aiSuggestions"></textarea>
     <button class="btn btn-pink btn-block" onclick="saveSuggestions()">Sauvegarder les suggestions</button>
   </div>
-  <button class="btn btn-green btn-block" onclick="connectGmail()">Connecter Gmail</button>
+  <div class="card">
+    <h3>Email — Alertes via Resend</h3>
+    <div class="small">Les alertes sont envoyées via <b>Resend</b>. Ajoute simplement <code>RESEND_API_KEY</code> dans Cloudflare → Settings → Variables and Secrets.</div>
+    <label>Clé Resend (dans Cloudflare, pas ici)</label>
+    <input value="RESEND_API_KEY → à mettre dans Cloudflare Variables and Secrets" readonly>
+    <label>Expéditeur personnalisé (optionnel, dans Cloudflare)</label>
+    <input value="RESEND_FROM_EMAIL → ex: alertes@tondomaine.com (optionnel)" readonly>
+    <div class="small" style="margin-top:8px">Sans RESEND_FROM_EMAIL, les emails partent depuis <b>onboarding@resend.dev</b> — fonctionne parfaitement pour les tests et usage perso.</div>
+    <a href="https://resend.com/signup" target="_blank" class="btn btn-cyan btn-block" style="display:block;text-align:center;margin-top:10px;text-decoration:none">Créer un compte Resend gratuit ↗</a>
+  </div>
 </div>
 
 
@@ -1502,7 +1511,18 @@ async function toggleAlerts(enabled){
   try{ await api("/alerts/toggle",{method:"POST",body:JSON.stringify({enabled})}); await loadAlertStatus(); }
   catch(e){ alert("Erreur : "+e.message); }
 }
-function connectGmail(){ window.open(W()+"/auth/gmail","_blank"); }
+async function testEmail(){
+  const email=document.getElementById("alertEmail")?.value||"";
+  if(!email){ alert("Entre d'abord un email dans le champ ci-dessus."); return; }
+  const res=document.getElementById("alertStatus");
+  if(res) res.innerHTML=`<div class='loading'>Envoi de l'email de test via Resend…</div>`;
+  try{
+    const d=await api("/alerts/test-email",{method:"POST",body:JSON.stringify({email})});
+    if(res) res.innerHTML=`<div class='card'><div class='pos' style='font-size:15px;font-weight:700'>✓ Email de test envoyé !</div><div class='small' style='margin-top:6px'>Vérifie ta boîte ${esc(email)}. ID Resend : ${esc(d.resend_id||"—")}</div></div>`;
+  } catch(e){
+    if(res) res.innerHTML=`<div class='card'><div class='error'>Erreur : ${esc(e.message)}</div><div class='small' style='margin-top:6px'>Vérifie que RESEND_API_KEY est bien ajoutée dans Cloudflare Variables and Secrets.</div></div>`;
+  }
+}
 async function runCronNow(){
   try{ await api("/cron/run",{method:"POST",body:"{}"}); await loadAlertStatus(); }
   catch(e){ alert("Erreur : "+e.message); }
@@ -1513,10 +1533,14 @@ async function loadAlertStatus(){
   try{
     const d=await api("/alerts/status");
     const sg=document.getElementById("stGmail");
-    if(sg){ sg.className=d.gmail_connected?"pill ok":"pill warn"; sg.textContent=d.gmail_connected?"Gmail OK":"Gmail non connecté"; }
+    if(sg){
+      sg.className=d.resend_configured?"pill ok":"pill warn";
+      sg.textContent=d.resend_configured?"Resend OK":"Resend non configuré";
+    }
     res.innerHTML=`<div class="card">
       <div class="metric-grid">
         <div class="metric"><div class="metric-k">Alertes</div><div class="metric-v ${d.alerts_enabled?"pos":"neg"}">${d.alerts_enabled?"ON":"OFF"}</div></div>
+        <div class="metric"><div class="metric-k">Email</div><div class="metric-v ${d.resend_configured?"pos":"neg"}">${d.resend_configured?"Resend ✓":"Clé manquante"}</div></div>
         <div class="metric"><div class="metric-k">Fréquence</div><div class="metric-v">${d.config?.scanFrequencyHours||"—"}h</div></div>
         <div class="metric"><div class="metric-k">Seuil</div><div class="metric-v">${d.config?.threshold||"—"}%</div></div>
       </div>
