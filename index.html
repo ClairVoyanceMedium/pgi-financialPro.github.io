@@ -6,7 +6,7 @@
 <title>PGI • Financial Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#060810; --panel:#0b1120; --card:#0f1828; --bd:#1c2d48; --bd2:#253a5e;
@@ -14,19 +14,24 @@
   --cyan:#00d4ff; --pink:#ff34d2; --green:#00ff88; --red:#ff3b6b;
   --yellow:#fff200; --violet:#8b5cf6; --orange:#ff8a00; --gold:#ffd700;
   --blue-nav:#1e3a7a; --navy:#0f1e4a;
+  /* Neon intensités accentuées */
+  --glow-cyan:  0 0 8px rgba(0,212,255,1), 0 0 22px rgba(0,212,255,.8), 0 0 50px rgba(0,212,255,.45), 0 0 90px rgba(0,212,255,.2);
+  --glow-green: 0 0 8px rgba(0,255,136,1), 0 0 22px rgba(0,255,136,.8), 0 0 50px rgba(0,255,136,.4);
+  --glow-red:   0 0 8px rgba(255,59,107,1), 0 0 22px rgba(255,59,107,.8), 0 0 50px rgba(255,59,107,.4);
+  --glow-gold:  0 0 8px rgba(255,215,0,1),  0 0 22px rgba(255,215,0,.7),  0 0 50px rgba(255,215,0,.35);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;font-size:14px}
+html{background:var(--bg);color:var(--txt);font-family:'Montserrat',system-ui,sans-serif;font-size:14px}
 body{
   min-height:100vh;
   background:
-    radial-gradient(ellipse at 15% 0%, rgba(0,212,255,.12) 0%, transparent 40%),
-    radial-gradient(ellipse at 85% 5%, rgba(255,52,210,.09) 0%, transparent 35%),
-    radial-gradient(ellipse at 50% 100%, rgba(139,92,246,.07) 0%, transparent 40%),
+    radial-gradient(ellipse at 15% 0%, rgba(0,212,255,.14) 0%, transparent 40%),
+    radial-gradient(ellipse at 85% 5%, rgba(255,52,210,.10) 0%, transparent 35%),
+    radial-gradient(ellipse at 50% 100%, rgba(139,92,246,.08) 0%, transparent 40%),
     var(--bg);
   overflow-x:hidden;
 }
-button,input,textarea,select{font-family:Inter,system-ui,sans-serif}
+button,input,textarea,select{font-family:'Montserrat',system-ui,sans-serif}
 a{color:var(--cyan);text-decoration:none}
 
 /* ── SCREENS ─────────────────────────── */
@@ -40,31 +45,32 @@ a{color:var(--cyan);text-decoration:none}
   padding:22px 16px 10px;
 }
 .app-title{
-  font-family:Syne,sans-serif;
-  font-weight:900;
-  font-size:30px;
-  letter-spacing:.3px;
-  color:#c8f5ff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:28px;
+  letter-spacing:1.5px;
+  color:#d6f4ff;
   text-shadow:
-    0 0 10px rgba(0,212,255,1),
-    0 0 26px rgba(0,212,255,.7),
-    0 0 55px rgba(0,212,255,.35),
-    0 0 90px rgba(0,212,255,.18);
+    0 0 6px rgba(0,212,255,.9),
+    0 0 18px rgba(0,212,255,.55),
+    0 0 38px rgba(0,212,255,.25);
+  animation:titlePulse 3.5s ease-in-out infinite;
+}
+@keyframes titlePulse{
+  0%,100%{text-shadow:0 0 6px rgba(0,212,255,.9),0 0 18px rgba(0,212,255,.55),0 0 38px rgba(0,212,255,.25);}
+  50%{text-shadow:0 0 10px rgba(0,212,255,1),0 0 28px rgba(0,212,255,.75),0 0 55px rgba(0,212,255,.4);}
 }
 .app-title .dot{
   color:#00d4ff;
-  text-shadow:
-    0 0 12px rgba(0,212,255,1),
-    0 0 30px rgba(0,212,255,.9),
-    0 0 60px rgba(0,212,255,.5);
 }
 .app-subtitle{
-  font-size:10px;
+  font-size:9.5px;
   color:var(--muted);
-  letter-spacing:2.5px;
-  margin-top:5px;
+  letter-spacing:3px;
+  margin-top:6px;
   text-transform:uppercase;
   font-weight:600;
+  font-family:'Montserrat',sans-serif;
 }
 
 /* ── TICKER BAR ─────────────────────── */
@@ -121,104 +127,46 @@ a{color:var(--cyan);text-decoration:none}
 .ticker-gear:hover{color:var(--cyan)}
 
 /* ── CLOCKS SECTION ─────────────────── */
-.clocks-section{
-  display:flex;
-  flex-direction:column;
-  gap:7px;
-  padding:0 10px;
-  margin-bottom:8px;
-}
-.clocks-row{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:7px;
-}
-.clocks-row-bottom{
-  display:grid;
-  grid-template-columns:1fr 1.55fr;
-  gap:7px;
-  align-items:stretch;
-}
-#clock-sydney{
-  min-height:236px;
-  height:auto;
-}
+.clocks-section{display:flex;flex-direction:column;gap:7px;padding:0 10px;margin-bottom:8px}
+.clocks-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.clocks-row-bottom{display:grid;grid-template-columns:1fr 1.55fr;gap:7px;align-items:stretch}
+#clock-sydney{min-height:236px;height:auto}
+
 .clock-card{
-  position:relative;
-  border-radius:14px;
-  padding:11px 10px 10px;
-  overflow:hidden;
-  min-height:136px;
-  height:136px;
-  display:flex;
-  flex-direction:column;
-  border:1.5px solid var(--bd);
-  background:rgba(8,14,26,.95);
-  transition:.3s;
+  position:relative;border-radius:14px;padding:10px 6px 8px;overflow:hidden;
+  min-height:195px;height:195px;display:flex;flex-direction:column;align-items:center;
+  border:1.5px solid var(--bd);background:rgba(6,10,20,.98);transition:.3s;
 }
 .clock-card.is-open{
-  border-color:rgba(0,212,255,.7);
-  box-shadow:0 0 18px rgba(0,212,255,.18), 0 0 0 1px rgba(0,212,255,.08) inset;
+  border-color:rgba(0,212,255,.9);
+  box-shadow:var(--glow-cyan),0 0 0 1px rgba(0,212,255,.1) inset;
 }
 .clock-card.is-closed{
-  border-color:rgba(255,59,107,.65);
-  box-shadow:0 0 18px rgba(255,59,107,.15), 0 0 0 1px rgba(255,59,107,.06) inset;
+  border-color:rgba(255,59,107,.85);
+  box-shadow:var(--glow-red),0 0 0 1px rgba(255,59,107,.08) inset;
 }
 .clock-city{
-  font-family:Syne,sans-serif;
-  font-size:12.5px;
-  font-weight:800;
-  color:var(--txt);
+  font-family:'Montserrat',sans-serif;font-size:9.5px;font-weight:700;
+  color:var(--txt);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;
   position:relative;z-index:2;
-  letter-spacing:.2px;
 }
-.clock-time{
-  font-family:'JetBrains Mono',monospace;
-  font-size:18px;
-  font-weight:700;
-  color:var(--txt);
-  margin-top:5px;
-  position:relative;z-index:2;
-  letter-spacing:-.5px;
+.clock-time-digital{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;
+  color:var(--muted);margin-top:5px;position:relative;z-index:2;letter-spacing:.8px;
 }
 .clock-status{
-  font-family:'JetBrains Mono',monospace;
-  font-size:10px;
-  font-weight:700;
-  margin-top:5px;
-  letter-spacing:1px;
-  position:relative;z-index:2;
+  font-family:'Montserrat',sans-serif;font-size:7.5px;font-weight:800;
+  margin-top:3px;letter-spacing:2.5px;position:relative;z-index:2;text-transform:uppercase;
 }
-.clock-status.open{color:var(--green)}
-.clock-status.closed{color:var(--red)}
+.clock-status.open{color:var(--green);text-shadow:var(--glow-green);animation:statusPulse 2s ease-in-out infinite}
+.clock-status.closed{color:var(--red);text-shadow:var(--glow-red)}
+@keyframes statusPulse{0%,100%{opacity:1}50%{opacity:.65}}
 .clock-count{
-  font-size:10px;
-  color:var(--muted);
-  margin-top:2px;
-  position:relative;z-index:2;
+  font-size:7.5px;color:var(--muted);margin-top:2px;position:relative;z-index:2;
+  font-family:'Montserrat',sans-serif;font-weight:500;letter-spacing:.3px;text-align:center;
 }
-/* City background SVG silhouette */
-.clock-bg{
-  position:absolute;
-  bottom:0; left:0; right:0;
-  height:55%;
-  z-index:1;
-  opacity:.35;
-}
-.is-open .clock-bg{filter:drop-shadow(0 0 4px rgba(0,212,255,.6)) drop-shadow(0 2px 8px rgba(0,212,255,.3))}
-.is-closed .clock-bg{filter:drop-shadow(0 0 4px rgba(255,59,107,.5)) drop-shadow(0 2px 8px rgba(255,59,107,.2))}
-/* Neon glow overlay at bottom of cards */
-.clock-card::after{
-  content:'';
-  position:absolute;
-  bottom:0; left:0; right:0;
-  height:35%;
-  z-index:1;
-  pointer-events:none;
-  border-radius:0 0 12px 12px;
-}
-.is-open::after{background:linear-gradient(to top, rgba(0,212,255,.12), transparent)}
-.is-closed::after{background:linear-gradient(to top, rgba(255,59,107,.1), transparent)}
+.clock-svg-wrap{position:relative;z-index:2;flex-shrink:0}
+.hand{transform-box:fill-box;transform-origin:center bottom}
 
 /* ── NEWS PANEL ─────────────────────── */
 .news-panel{
@@ -240,7 +188,7 @@ a{color:var(--cyan);text-decoration:none}
   flex-shrink:0;
 }
 .news-title{
-  font-family:Syne,sans-serif;
+  font-family:'Montserrat',sans-serif;
   font-size:13px;
   font-weight:800;
   color:var(--txt);
@@ -315,16 +263,20 @@ a{color:var(--cyan);text-decoration:none}
   justify-content:center;
   gap:6px;
   padding:13px 8px;
-  background:rgba(11,17,32,.9);
-  border:1.5px solid color-mix(in srgb, var(--neon) 55%, transparent);
+  background:rgba(8,13,24,.92);
+  border:1.5px solid color-mix(in srgb, var(--neon) 65%, transparent);
   border-radius:16px;
   color:var(--txt);
   cursor:pointer;
-  font-size:11px;
+  font-size:10.5px;
   font-weight:700;
-  letter-spacing:.2px;
+  letter-spacing:.4px;
+  text-transform:uppercase;
   transition:.18s ease;
-  box-shadow:0 0 18px color-mix(in srgb, var(--neon) 18%, transparent), inset 0 0 22px rgba(255,255,255,.02);
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--neon) 28%, transparent),
+    0 0 28px color-mix(in srgb, var(--neon) 12%, transparent),
+    inset 0 0 22px rgba(255,255,255,.02);
   -webkit-appearance:none;
   position:relative;
   overflow:hidden;
@@ -333,15 +285,18 @@ a{color:var(--cyan);text-decoration:none}
   content:'';
   position:absolute;
   inset:0;
-  background:radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--neon) 12%, transparent), transparent 70%);
+  background:radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--neon) 16%, transparent), transparent 70%);
   pointer-events:none;
 }
 .nav-btn:hover,.nav-btn:active{
   border-color:var(--neon);
   transform:scale(.97);
-  box-shadow:0 0 26px color-mix(in srgb, var(--neon) 38%, transparent), inset 0 0 20px color-mix(in srgb, var(--neon) 10%, transparent);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--neon) 55%, transparent),
+    0 0 45px color-mix(in srgb, var(--neon) 25%, transparent),
+    inset 0 0 20px color-mix(in srgb, var(--neon) 12%, transparent);
 }
-.nav-btn span{color:color-mix(in srgb, var(--neon) 80%, white)}
+.nav-btn span{color:color-mix(in srgb, var(--neon) 85%, white)}
 .nav-icon{width:22px;height:22px;color:var(--neon)}
 .nav-red{--neon:#ff174d}
 .nav-purple{--neon:#aa45ff}
@@ -365,7 +320,7 @@ a{color:var(--cyan);text-decoration:none}
   align-items:center;
   justify-content:space-between;
   padding:12px 15px 8px;
-  font-family:Syne,sans-serif;
+  font-family:'Montserrat',sans-serif;
   font-size:15px;
   font-weight:800;
   color:var(--txt);
@@ -474,7 +429,7 @@ a{color:var(--cyan);text-decoration:none}
 }
 .back-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 .section-screen-title{
-  font-family:Syne,sans-serif;
+  font-family:'Montserrat',sans-serif;
   font-size:18px;
   font-weight:800;
   color:var(--txt);
@@ -488,7 +443,7 @@ a{color:var(--cyan);text-decoration:none}
   padding:16px;
   margin-bottom:12px;
 }
-.card h3{font-family:Syne;font-size:14px;font-weight:800;margin-bottom:10px;color:var(--soft)}
+.card h3{font-family:'Montserrat';font-size:14px;font-weight:800;margin-bottom:10px;color:var(--soft)}
 label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.8px}
 input,textarea,select{
   width:100%;
@@ -596,7 +551,26 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
 
 /* Terminal */
 .terminal-panel{background:rgba(6,8,16,.95);border:1px solid rgba(0,212,255,.2);border-radius:16px;padding:16px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;font-size:12px}
-.terminal-panel h3{font-family:Syne;font-size:14px;font-weight:800;color:var(--cyan);margin-bottom:12px;border-bottom:1px solid rgba(0,212,255,.2);padding-bottom:8px}
+.terminal-panel h3{font-family:'Montserrat';font-size:14px;font-weight:800;color:var(--cyan);margin-bottom:12px;border-bottom:1px solid rgba(0,212,255,.2);padding-bottom:8px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.tf-btn{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--bd);
+  border-radius:8px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  padding:6px 11px;
+  cursor:pointer;
+  transition:.15s;
+  letter-spacing:.3px;
+}
+.tf-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.tf-btn.active{background:rgba(0,212,255,.15);border-color:var(--cyan);color:var(--cyan);}
+
+.tf-btn.ind-btn.active{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.5);color:var(--cyan)}
+.tf-btn.ind-btn{color:var(--muted)}
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -649,68 +623,366 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <div class="clocks-row">
       <div class="clock-card" id="clock-paris">
         <span class="clock-city">Paris</span>
-        <span class="clock-time" id="ct-paris">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-paris" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-paris" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-paris" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-paris" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-paris">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-paris)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-paris)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-paris)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-paris" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-paris)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-paris" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-paris)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-paris" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-paris" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-paris">--:--:--</span>
         <span class="clock-status" id="cs-paris">—</span>
         <span class="clock-count" id="cc-paris"></span>
-        <!-- Paris / Eiffel Tower silhouette -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#00d4ff">
-            <polygon points="100,2 90,40 88,40 86,55 94,55 93,72 107,72 106,55 114,55 112,40 110,40"/>
-            <rect x="84" y="38" width="32" height="4" rx="1"/>
-            <rect x="87" y="52" width="26" height="3" rx="1"/>
-            <rect x="91" y="71" width="18" height="28"/>
-            <rect x="78" y="90" width="44" height="10"/>
-            <rect x="15" y="75" width="35" height="25"/>
-            <rect x="55" y="82" width="20" height="18"/>
-            <rect x="135" y="78" width="30" height="22"/>
-            <rect x="170" y="83" width="25" height="17"/>
-          </g>
-        </svg>
       </div>
       <div class="clock-card" id="clock-londres">
         <span class="clock-city">Londres</span>
-        <span class="clock-time" id="ct-londres">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-londres" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-londres" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-londres" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-londres" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-londres">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-londres)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-londres)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-londres)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-londres" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-londres)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-londres" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-londres)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-londres" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-londres" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-londres">--:--:--</span>
         <span class="clock-status" id="cs-londres">—</span>
         <span class="clock-count" id="cc-londres"></span>
-        <!-- Big Ben silhouette -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#00d4ff">
-            <rect x="87" y="60" width="26" height="40"/>
-            <rect x="84" y="50" width="32" height="13"/>
-            <rect x="82" y="43" width="36" height="10"/>
-            <rect x="87" y="30" width="26" height="15"/>
-            <rect x="91" y="18" width="18" height="14"/>
-            <rect x="96" y="5" width="8" height="15"/>
-            <circle cx="100" cy="56" r="7" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
-            <rect x="10" y="72" width="30" height="28"/>
-            <rect x="45" y="80" width="22" height="20"/>
-            <rect x="130" y="77" width="28" height="23"/>
-            <rect x="163" y="82" width="22" height="18"/>
-          </g>
-        </svg>
       </div>
       <div class="clock-card" id="clock-newyork">
         <span class="clock-city">New York</span>
-        <span class="clock-time" id="ct-newyork">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-newyork" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-newyork" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-newyork" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-newyork" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-newyork">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-newyork)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-newyork)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-newyork)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-newyork" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-newyork)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-newyork" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-newyork)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-newyork" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-newyork" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-newyork">--:--:--</span>
         <span class="clock-status" id="cs-newyork">—</span>
         <span class="clock-count" id="cc-newyork"></span>
-        <!-- NY Skyline -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#00d4ff">
-            <rect x="0" y="65" width="18" height="35"/>
-            <rect x="20" y="55" width="15" height="45"/>
-            <rect x="37" y="42" width="20" height="58"/>
-            <rect x="59" y="60" width="14" height="40"/>
-            <rect x="75" y="25" width="22" height="75"/>
-            <rect x="79" y="18" width="4" height="10"/>
-            <rect x="81" y="10" width="1" height="10"/>
-            <rect x="99" y="50" width="16" height="50"/>
-            <rect x="117" y="38" width="22" height="62"/>
-            <rect x="141" y="58" width="16" height="42"/>
-            <rect x="159" y="48" width="20" height="52"/>
-            <rect x="181" y="63" width="19" height="37"/>
-          </g>
-        </svg>
       </div>
     </div>
 
@@ -718,64 +990,366 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <div class="clocks-row">
       <div class="clock-card" id="clock-tokyo">
         <span class="clock-city">Tokyo</span>
-        <span class="clock-time" id="ct-tokyo">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-tokyo" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-tokyo" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-tokyo" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-tokyo" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-tokyo">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-tokyo)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-tokyo)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-tokyo)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-tokyo" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-tokyo)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-tokyo" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-tokyo)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-tokyo" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-tokyo" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-tokyo">--:--:--</span>
         <span class="clock-status" id="cs-tokyo">—</span>
         <span class="clock-count" id="cc-tokyo"></span>
-        <!-- Tokyo Tower -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#ff3b6b">
-            <polygon points="100,2 88,100 112,100"/>
-            <rect x="84" y="62" width="32" height="5" rx="1"/>
-            <rect x="89" y="42" width="22" height="4" rx="1"/>
-            <rect x="96" y="25" width="8" height="3"/>
-            <rect x="98" y="0" width="4" height="25"/>
-            <rect x="5" y="72" width="28" height="28"/>
-            <rect x="38" y="80" width="20" height="20"/>
-            <rect x="140" y="74" width="26" height="26"/>
-            <rect x="170" y="79" width="22" height="21"/>
-          </g>
-        </svg>
       </div>
       <div class="clock-card" id="clock-singapour">
         <span class="clock-city">Singapour</span>
-        <span class="clock-time" id="ct-singapour">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-singapour" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-singapour" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-singapour" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-singapour" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-singapour">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-singapour)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-singapour)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-singapour)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-singapour" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-singapour)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-singapour" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-singapour)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-singapour" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-singapour" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-singapour">--:--:--</span>
         <span class="clock-status" id="cs-singapour">—</span>
         <span class="clock-count" id="cc-singapour"></span>
-        <!-- Marina Bay Sands -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#ff3b6b">
-            <rect x="45" y="45" width="22" height="55"/>
-            <rect x="89" y="50" width="22" height="50"/>
-            <rect x="133" y="47" width="22" height="53"/>
-            <ellipse cx="100" cy="38" rx="70" ry="12"/>
-            <rect x="30" y="38" width="140" height="15" rx="6"/>
-            <rect x="5" y="80" width="25" height="20"/>
-            <rect x="175" y="78" width="20" height="22"/>
-          </g>
-        </svg>
       </div>
       <div class="clock-card" id="clock-hongkong">
         <span class="clock-city">Hong Kong</span>
-        <span class="clock-time" id="ct-hongkong">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-hongkong" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-hongkong" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-hongkong" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-hongkong" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-hongkong">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-hongkong)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-hongkong)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-hongkong)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-hongkong" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-hongkong)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-hongkong" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-hongkong)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-hongkong" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-hongkong" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-hongkong">--:--:--</span>
         <span class="clock-status" id="cs-hongkong">—</span>
         <span class="clock-count" id="cc-hongkong"></span>
-        <!-- HK Skyline -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#ff3b6b">
-            <rect x="0" y="70" width="15" height="30"/>
-            <rect x="17" y="58" width="17" height="42"/>
-            <rect x="37" y="42" width="19" height="58"/>
-            <rect x="58" y="30" width="22" height="70"/>
-            <rect x="62" y="22" width="3" height="10"/>
-            <rect x="82" y="48" width="16" height="52"/>
-            <rect x="100" y="35" width="20" height="65"/>
-            <rect x="104" y="25" width="4" height="12"/>
-            <rect x="122" y="53" width="17" height="47"/>
-            <rect x="141" y="44" width="19" height="56"/>
-            <rect x="163" y="58" width="16" height="42"/>
-            <rect x="181" y="66" width="19" height="34"/>
-          </g>
-        </svg>
       </div>
     </div>
 
@@ -783,20 +1357,124 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <div class="clocks-row-bottom">
       <div class="clock-card" id="clock-sydney">
         <span class="clock-city">Sydney</span>
-        <span class="clock-time" id="ct-sydney">--:--:--</span>
+        <svg class="clock-svg-wrap" id="svg-sydney" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="face-sydney" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#111d30"/>
+              <stop offset="100%" stop-color="#050912"/>
+            </radialGradient>
+            <radialGradient id="bezel-sydney" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#1e3050"/>
+              <stop offset="60%" stop-color="#0a1525"/>
+              <stop offset="100%" stop-color="#060e1a"/>
+            </radialGradient>
+            <radialGradient id="gloss-sydney" cx="38%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="glow-sydney">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Biseau extérieur -->
+          <circle cx="44" cy="44" r="43" fill="url(#bezel-sydney)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+          <!-- Anneau neon -->
+          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
+          <!-- Cadran -->
+          <circle cx="44" cy="44" r="38" fill="url(#face-sydney)"/>
+          <!-- Graduations minutes (60) -->
+          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+          <!-- Graduations heures (12) -->
+          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Chiffres heures Montserrat -->
+          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
+          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
+          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
+          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
+          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
+          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
+          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
+          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
+          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
+          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
+          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
+          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
+          <!-- Reflet verre -->
+          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-sydney)" opacity=".6"/>
+          <!-- Aiguille heures -->
+          <line id="h-sydney" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-sydney)"/>
+          <!-- Aiguille minutes -->
+          <line id="m-sydney" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-sydney)"/>
+          <!-- Aiguille secondes -->
+          <line id="s-sydney" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
+          <!-- Contre-poids secondes -->
+          <line id="sb-sydney" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+          <!-- Centre cap -->
+          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
+          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+        </svg>
+        <span class="clock-time-digital" id="ct-sydney">--:--:--</span>
         <span class="clock-status" id="cs-sydney">—</span>
         <span class="clock-count" id="cc-sydney"></span>
-        <!-- Sydney Opera House -->
-        <svg class="clock-bg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet">
-          <g fill="#ff3b6b" stroke="none">
-            <path d="M20,100 Q20,45 60,40 Q60,90 20,100Z"/>
-            <path d="M55,100 Q55,25 100,20 Q100,85 55,100Z"/>
-            <path d="M95,100 Q95,40 125,38 Q125,88 95,100Z"/>
-            <rect x="10" y="95" width="150" height="5"/>
-            <rect x="145" y="75" width="25" height="25"/>
-            <rect x="175" y="80" width="20" height="20"/>
-          </g>
-        </svg>
       </div>
 
       <!-- News Panel -->
@@ -855,9 +1533,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.5" fill="currentColor" stroke="none"/><path d="M8 7V5M16 7V5M12 19v2" stroke-linecap="round"/><circle cx="12" cy="22" r="1" fill="currentColor" stroke="none"/></svg>
       <span>Assistant IA</span>
     </button>
-    <button class="nav-btn nav-gold" onclick="showScreen('terminal')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M6 10l4 4 4-4M15 14h3M2 17h20M8 21h8"/></svg>
-      <span>Bloomberg Pro</span>
+    <button class="nav-btn nav-gold" onclick="showScreen('charts')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,6 13.5,14.5 8.5,9.5 2,16"/><polyline points="16,6 22,6 22,12"/></svg>
+      <span>Graphiques</span>
     </button>
   </div>
 
@@ -1095,6 +1773,128 @@ eur usd</textarea>
 
 
 <!-- ══════════════════════════════════════
+     GRAPHIQUES SCREEN
+═══════════════════════════════════════ -->
+<div id="chartsScreen" class="screen section-screen">
+  <div class="section-header-bar">
+    <button class="back-btn" onclick="showScreen('home')">‹ Accueil</button>
+    <span class="section-screen-title">📈 Graphiques</span>
+  </div>
+
+  <!-- Recherche instrument -->
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="chartSymbolInput" class="chat-input" style="flex:1" placeholder="ex: BTC-USD, GC=F, NVDA, ^FCHI, EURUSD=X" onkeydown="if(event.key==='Enter')loadChart()">
+      <button class="btn btn-cyan" onclick="loadChart()" style="white-space:nowrap;padding:10px 14px">Charger</button>
+    </div>
+    <!-- Raccourcis instruments -->
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px" id="chartShortcuts">
+      <button class="pill" onclick="chartQuick('BTC-USD')">₿ Bitcoin</button>
+      <button class="pill" onclick="chartQuick('GC=F')">🥇 Or</button>
+      <button class="pill" onclick="chartQuick('CL=F')">🛢 Pétrole</button>
+      <button class="pill" onclick="chartQuick('^FCHI')">📊 CAC 40</button>
+      <button class="pill" onclick="chartQuick('^NDX')">📊 Nasdaq</button>
+      <button class="pill" onclick="chartQuick('^GSPC')">📊 S&amp;P 500</button>
+      <button class="pill" onclick="chartQuick('EURUSD=X')">💱 EUR/USD</button>
+      <button class="pill" onclick="chartQuick('NVDA')">🖥 Nvidia</button>
+      <button class="pill" onclick="chartQuick('TSLA')">⚡ Tesla</button>
+      <button class="pill" onclick="chartQuick('ETH-USD')">⬡ ETH</button>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div id="chartStatsBar" style="display:none;background:rgba(11,17,32,.95);border:1px solid var(--bd);border-radius:14px;padding:10px 14px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span id="chartSymbolTitle" style="font-family:'Montserrat',sans-serif;font-size:16px;font-weight:800"></span>
+      <span id="chartPriceMain" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700"></span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Ouverture</div><div class="metric-v" id="cs-open" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Haut</div><div class="metric-v pos" id="cs-high" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Bas</div><div class="metric-v neg" id="cs-low" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Variation</div><div class="metric-v" id="cs-change" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Volume</div><div class="metric-v" id="cs-volume" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Période H</div><div class="metric-v pos" id="cs-phigh" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Période B</div><div class="metric-v neg" id="cs-plow" style="font-size:14px">—</div></div>
+      <div class="metric" style="flex:1;min-width:70px"><div class="metric-k">Bougies</div><div class="metric-v" id="cs-count" style="font-size:14px">—</div></div>
+    </div>
+  </div>
+
+  <!-- Timeframe selector -->
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px" id="tfSelector">
+    <button class="tf-btn" onclick="setTF('1min')"  id="tf-1min">1M</button>
+    <button class="tf-btn" onclick="setTF('5min')"  id="tf-5min">5M</button>
+    <button class="tf-btn" onclick="setTF('15min')" id="tf-15min">15M</button>
+    <button class="tf-btn" onclick="setTF('30min')" id="tf-30min">30M</button>
+    <button class="tf-btn" onclick="setTF('1h')"    id="tf-1h">1H</button>
+    <button class="tf-btn" onclick="setTF('4h')"    id="tf-4h">4H</button>
+    <button class="tf-btn active" onclick="setTF('1day')"  id="tf-1day">1J</button>
+    <button class="tf-btn" onclick="setTF('1week')" id="tf-1week">1S</button>
+    <div style="margin-left:auto;display:flex;gap:5px">
+      <button class="tf-btn active" onclick="setChartType('candlestick')" id="ct-candle" title="Chandeliers">🕯</button>
+      <button class="tf-btn" onclick="setChartType('line')" id="ct-line" title="Ligne">📈</button>
+      <button class="tf-btn" onclick="setChartType('bar')" id="ct-bar" title="Barres">📊</button>
+    </div>
+  </div>
+
+  <!-- Indicateurs techniques -->
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
+    <span style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-right:2px">Indicateurs</span>
+    <button class="tf-btn ind-btn active" id="ind-ma20"   onclick="toggleIndicator('ma20')"  title="Moyenne Mobile 20">MA 20</button>
+    <button class="tf-btn ind-btn active" id="ind-ma50"   onclick="toggleIndicator('ma50')"  title="Moyenne Mobile 50">MA 50</button>
+    <button class="tf-btn ind-btn"        id="ind-ma200"  onclick="toggleIndicator('ma200')" title="Moyenne Mobile 200">MA 200</button>
+    <button class="tf-btn ind-btn active" id="ind-bb"     onclick="toggleIndicator('bb')"    title="Bandes de Bollinger">BB</button>
+    <button class="tf-btn ind-btn active" id="ind-rsi"    onclick="toggleIndicator('rsi')"   title="RSI 14">RSI</button>
+    <button class="tf-btn ind-btn"        id="ind-macd"   onclick="toggleIndicator('macd')"  title="MACD">MACD</button>
+    <button class="tf-btn ind-btn"        id="ind-ema"    onclick="toggleIndicator('ema')"   title="EMA 21">EMA 21</button>
+    <button class="tf-btn ind-btn active" id="ind-sr"     onclick="toggleIndicator('sr')"    title="Supports & Résistances">S/R</button>
+    <button class="tf-btn ind-btn"        id="ind-vwap"   onclick="toggleIndicator('vwap')"  title="VWAP">VWAP</button>
+    <button class="tf-btn ind-btn"        id="ind-stoch"  onclick="toggleIndicator('stoch')" title="Stochastique">STOCH</button>
+    <button class="tf-btn ind-btn"        id="ind-ichi"   onclick="toggleIndicator('ichi')"  title="Ichimoku Cloud">ICHI</button>
+  </div>
+
+  <!-- Chart container -->
+  <div id="chartContainer" style="background:rgba(6,8,16,.98);border:1px solid var(--bd);border-radius:14px;overflow:hidden;position:relative;min-height:340px">
+    <div id="chartPlaceholder" style="display:flex;align-items:center;justify-content:center;height:340px;color:var(--muted);font-size:13px;flex-direction:column;gap:8px">
+      <span style="font-size:32px">📈</span>
+      <span>Sélectionne un instrument pour afficher le graphique</span>
+    </div>
+    <div id="chartCanvas" style="width:100%;height:340px;display:none"></div>
+    <div id="chartLoading" style="display:none;position:absolute;inset:0;background:rgba(6,8,16,.8);align-items:center;justify-content:center;flex-direction:column;gap:10px">
+      <div style="width:32px;height:32px;border:2px solid var(--bd);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite"></div>
+      <span style="font-size:12px;color:var(--muted)" id="chartLoadingMsg">Chargement…</span>
+    </div>
+  </div>
+  <!-- Sous-graphiques indicateurs (RSI / MACD / Stoch) -->
+  <div id="rsiCanvas"   style="width:100%;height:110px;display:none;background:rgba(6,8,16,.98);border:1px solid var(--bd);border-top:none;border-radius:0 0 14px 14px;margin-top:-1px"></div>
+  <div id="macdCanvas"  style="width:100%;height:110px;display:none;background:rgba(6,8,16,.98);border:1px solid var(--bd);border-top:none;border-radius:0 0 14px 14px;margin-top:-1px"></div>
+  <div id="stochCanvas" style="width:100%;height:110px;display:none;background:rgba(6,8,16,.98);border:1px solid var(--bd);border-top:none;border-radius:0 0 14px 14px;margin-top:-1px"></div>
+
+  <div id="chartSource" style="font-size:10px;color:var(--muted);text-align:right;margin-top:4px;padding:0 4px"></div>
+
+  <!-- Niveaux clés calculés -->
+  <div id="keyLevels" style="display:none" class="card" style="margin-top:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <b style="font-family:'Montserrat',sans-serif;font-size:13px">Niveaux clés</b>
+      <span style="font-size:10px;color:var(--muted)">Calculés sur les données chargées</span>
+    </div>
+    <div id="keyLevelsContent" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+
+  <!-- Analyse rapide IA -->
+  <div class="card" style="margin-top:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <b style="font-family:'Montserrat',sans-serif;font-size:14px">Analyse IA</b>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-cyan" onclick="showIndicatorSummary()" style="padding:7px 12px;font-size:12px">Résumé indicateurs</button>
+        <button class="btn btn-purple" onclick="analyzeCurrentChart()" style="padding:7px 12px;font-size:12px">Analyse complète ↗</button>
+      </div>
+    </div>
+    <div id="chartAIResult" class="small" style="color:var(--muted)">Charge un graphique puis clique Analyser pour obtenir une analyse IA complète avec indicateurs.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      BLOOMBERG TERMINAL SCREEN
 ═══════════════════════════════════════ -->
 <div id="terminalScreen" class="screen section-screen">
@@ -1222,6 +2022,65 @@ function renderClocks(){
   }
 }
 setInterval(renderClocks,1000); renderClocks();
+
+// ══════════════════════════════════════════════════
+// PENDULES SVG RÉALISTES — salle de marché
+// ══════════════════════════════════════════════════
+const SVG_CLOCKS = [
+  {id:"paris",     tz:"Europe/Paris"},
+  {id:"londres",   tz:"Europe/London"},
+  {id:"newyork",   tz:"America/New_York"},
+  {id:"tokyo",     tz:"Asia/Tokyo"},
+  {id:"singapour", tz:"Asia/Singapore"},
+  {id:"hongkong",  tz:"Asia/Hong_Kong"},
+  {id:"sydney",    tz:"Australia/Sydney"}
+];
+
+function getTimeParts(tz){
+  const parts=new Intl.DateTimeFormat("en-US",{
+    timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
+  }).formatToParts(new Date());
+  const g=t=>+parts.find(p=>p.type===t)?.value;
+  return{h:g("hour"),m:g("minute"),s:g("second")};
+}
+
+// Rotation d'une ligne SVG autour du centre (44,44)
+function rotateLine(el, cx, cy, deg){
+  if(!el) return;
+  el.setAttribute("transform", `rotate(${deg},${cx},${cy})`);
+}
+
+function renderSVGClocks(){
+  for(const c of SVG_CLOCKS){
+    const card = document.getElementById("clock-"+c.id);
+    if(!card) continue;
+    const isOpen = card.classList.contains("is-open");
+    const neon = isOpen ? "#00d4ff" : "#ff3b6b";
+    const t = getTimeParts(c.tz);
+    // Degrés de chaque aiguille
+    const secDeg  = t.s * 6;                            // 360/60
+    const minDeg  = t.m * 6  + t.s * 0.1;              // + avance douce
+    const hourDeg = (t.h % 12) * 30 + t.m * 0.5;       // 360/12 + min offset
+    // Appliquer les rotations
+    rotateLine(document.getElementById("h-"+c.id),  44, 44, hourDeg);
+    rotateLine(document.getElementById("m-"+c.id),  44, 44, minDeg);
+    rotateLine(document.getElementById("s-"+c.id),  44, 44, secDeg);
+    rotateLine(document.getElementById("sb-"+c.id), 44, 44, secDeg);
+    // Couleur dynamique aiguille secondes selon ouverture marché
+    const sEl = document.getElementById("s-"+c.id);
+    const sbEl = document.getElementById("sb-"+c.id);
+    if(sEl) sEl.setAttribute("stroke", neon);
+    if(sbEl) sbEl.setAttribute("stroke", neon);
+    // Anneau neon
+    const ring = document.querySelector(`#svg-${c.id} circle:nth-child(2)`);
+    if(ring) ring.setAttribute("stroke", neon);
+    // Centre point
+    const cpts = document.querySelectorAll(`#svg-${c.id} circle`);
+    if(cpts.length >= 3) cpts[cpts.length-1].setAttribute("fill", neon);
+  }
+}
+setInterval(renderSVGClocks, 1000);
+renderSVGClocks();
 
 // ══════════════════════════════════════════════════
 // TICKER
@@ -1653,8 +2512,775 @@ function saveSuggestions(){
 }
 
 // ══════════════════════════════════════════════════
-// INIT
+// GRAPHIQUES — Lightweight Charts (TradingView)
 // ══════════════════════════════════════════════════
+let chartInstance     = null;
+let chartSeries       = null;
+let chartCurrentSymbol= "";
+let chartCurrentTF    = "1day";
+let chartCurrentType  = "candlestick";
+let chartCurrentData  = [];
+let lwc               = null; // bibliothèque chargée dynamiquement
+
+const SCREENS_EXT = { charts:"chartsScreen", terminal:"terminalScreen" };
+
+// Injection dynamique de Lightweight Charts (TradingView)
+function loadLWC(cb){
+  if(window.LightweightCharts){ cb(window.LightweightCharts); return; }
+  const s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js";
+  s.onload=()=>cb(window.LightweightCharts);
+  s.onerror=()=>{ console.warn("LWC CDN 1 failed, trying unpkg"); const s2=document.createElement("script"); s2.src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"; s2.onload=()=>cb(window.LightweightCharts); document.head.appendChild(s2); };
+  document.head.appendChild(s);
+}
+
+function chartQuick(symbol){
+  document.getElementById("chartSymbolInput").value=symbol;
+  loadChart();
+}
+
+function setTF(tf){
+  chartCurrentTF=tf;
+  document.querySelectorAll(".tf-btn[id^='tf-']").forEach(b=>b.classList.remove("active"));
+  const btn=document.getElementById("tf-"+tf);
+  if(btn) btn.classList.add("active");
+  if(chartCurrentSymbol) loadChart();
+}
+
+function setChartType(type){
+  chartCurrentType=type;
+  document.querySelectorAll(".tf-btn[id^='ct-']").forEach(b=>b.classList.remove("active"));
+  const btn=document.getElementById("ct-"+type.slice(0,6));
+  if(btn) btn.classList.add("active");
+  if(chartCurrentData.length) renderChart(chartCurrentData);
+}
+
+function showChartLoading(msg){
+  const el=document.getElementById("chartLoading");
+  const msg_el=document.getElementById("chartLoadingMsg");
+  if(el){ el.style.display="flex"; }
+  if(msg_el) msg_el.textContent=msg||"Chargement…";
+}
+function hideChartLoading(){
+  const el=document.getElementById("chartLoading");
+  if(el) el.style.display="none";
+}
+
+async function loadChart(){
+  const input=document.getElementById("chartSymbolInput");
+  const symbol=(input.value||"").trim().toUpperCase();
+  if(!symbol) return;
+  chartCurrentSymbol=symbol;
+  showChartLoading("Récupération des données "+symbol+"…");
+  document.getElementById("chartPlaceholder").style.display="none";
+  document.getElementById("chartCanvas").style.display="block";
+  try{
+    const limit=chartCurrentTF==="1min"||chartCurrentTF==="5min"?300:200;
+    const d=await api(`/chart?symbol=${encodeURIComponent(symbol)}&interval=${chartCurrentTF}&limit=${limit}`);
+    if(!d.ok||!d.candles||!d.candles.length) throw new Error(d.error||"Aucune donnée retournée");
+    chartCurrentData=d.candles;
+    updateChartStats(d.stats, symbol);
+    await renderChart(d.candles);
+    document.getElementById("chartSource").textContent="Source : "+esc(d.source)+" · "+esc(d.candles.length)+" bougies · MAJ "+new Date(d.ts||Date.now()).toLocaleTimeString("fr-FR");
+    document.getElementById("chartAIResult").textContent="Charge un graphique puis clique Analyser pour obtenir une analyse IA basée sur les données affichées.";
+  } catch(e){
+    document.getElementById("chartPlaceholder").style.display="flex";
+    document.getElementById("chartCanvas").style.display="none";
+    document.getElementById("chartPlaceholder").innerHTML=`<span style='font-size:26px'>⚠️</span><span style='color:var(--red);font-size:13px'>${esc(e.message)}</span>`;
+  } finally{ hideChartLoading(); }
+}
+
+function updateChartStats(s, symbol){
+  if(!s) return;
+  const bar=document.getElementById("chartStatsBar");
+  if(bar) bar.style.display="block";
+  const title=document.getElementById("chartSymbolTitle");
+  if(title) title.textContent=symbol;
+  const priceEl=document.getElementById("chartPriceMain");
+  if(priceEl){
+    const up=Number(s.changePct)>=0;
+    priceEl.textContent=money(s.last);
+    priceEl.className=up?"pos":"neg";
+  }
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val||"—"; };
+  set("cs-open",  money(s.open));
+  set("cs-high",  money(s.high));
+  set("cs-low",   money(s.low));
+  const chg=document.getElementById("cs-change");
+  if(chg){
+    const up=Number(s.changePct)>=0;
+    chg.textContent=(up?"+":"")+Number(s.changePct).toFixed(2)+"%";
+    chg.className="metric-v "+(up?"pos":"neg");
+  }
+  set("cs-volume", s.volume>1e9?(s.volume/1e9).toFixed(2)+"B":s.volume>1e6?(s.volume/1e6).toFixed(2)+"M":s.volume>1e3?(s.volume/1e3).toFixed(0)+"K":(s.volume||"—").toString());
+  set("cs-phigh",  money(s.periodHigh));
+  set("cs-plow",   money(s.periodLow));
+  set("cs-count",  (s.candles||"—").toString());
+}
+
+// ══════════════════════════════════════════════════
+// INDICATEURS TECHNIQUES — 100% calculés client
+// Aucune clé API supplémentaire requise
+// ══════════════════════════════════════════════════
+
+// État des indicateurs actifs
+const INDICATORS = {
+  ma20:true, ma50:true, ma200:false, bb:true,
+  rsi:true,  macd:false, ema:false,  sr:true,
+  vwap:false, stoch:false, ichi:false
+};
+
+function toggleIndicator(id){
+  INDICATORS[id] = !INDICATORS[id];
+  const btn = document.getElementById("ind-"+id);
+  if(btn) btn.classList.toggle("active", INDICATORS[id]);
+  if(chartCurrentData.length) renderChart(chartCurrentData);
+}
+
+// ── Calculs ────────────────────────────────────────
+
+function calcSMA(closes, period){
+  return closes.map((_, i) => {
+    if(i < period-1) return null;
+    const slice = closes.slice(i-period+1, i+1);
+    return slice.reduce((a,b)=>a+b,0)/period;
+  });
+}
+
+function calcEMA(closes, period){
+  const k = 2/(period+1);
+  const out = new Array(closes.length).fill(null);
+  let started = false;
+  for(let i=0;i<closes.length;i++){
+    if(i < period-1){ continue; }
+    if(!started){ out[i]=closes.slice(0,period).reduce((a,b)=>a+b,0)/period; started=true; }
+    else out[i] = closes[i]*k + out[i-1]*(1-k);
+  }
+  return out;
+}
+
+function calcBB(closes, period=20, mult=2){
+  const sma = calcSMA(closes, period);
+  return closes.map((_,i)=>{
+    if(sma[i]==null) return {mid:null,upper:null,lower:null};
+    const slice = closes.slice(Math.max(0,i-period+1), i+1);
+    const mean = sma[i];
+    const std = Math.sqrt(slice.reduce((a,b)=>a+(b-mean)**2,0)/slice.length);
+    return {mid:mean, upper:mean+mult*std, lower:mean-mult*std};
+  });
+}
+
+function calcRSI(closes, period=14){
+  const out = new Array(closes.length).fill(null);
+  if(closes.length < period+1) return out;
+  let gains=0, losses=0;
+  for(let i=1;i<=period;i++){
+    const d=closes[i]-closes[i-1];
+    if(d>0) gains+=d; else losses+=Math.abs(d);
+  }
+  let avgG=gains/period, avgL=losses/period;
+  out[period] = avgL===0 ? 100 : 100 - 100/(1+avgG/avgL);
+  for(let i=period+1;i<closes.length;i++){
+    const d=closes[i]-closes[i-1];
+    const g=d>0?d:0, l=d<0?Math.abs(d):0;
+    avgG=(avgG*(period-1)+g)/period;
+    avgL=(avgL*(period-1)+l)/period;
+    out[i] = avgL===0 ? 100 : 100 - 100/(1+avgG/avgL);
+  }
+  return out;
+}
+
+function calcMACD(closes, fast=12, slow=26, signal=9){
+  const emaFast = calcEMA(closes, fast);
+  const emaSlow = calcEMA(closes, slow);
+  const macdLine = closes.map((_,i) => emaFast[i]!=null && emaSlow[i]!=null ? emaFast[i]-emaSlow[i] : null);
+  const validMacd = macdLine.filter(v=>v!=null);
+  const sigEMA = calcEMA(validMacd, signal);
+  // Rebuild signal to full length
+  const sigLine = new Array(closes.length).fill(null);
+  let vi=0;
+  for(let i=0;i<closes.length;i++){
+    if(macdLine[i]!=null){ sigLine[i]=sigEMA[vi]; vi++; }
+  }
+  const hist = closes.map((_,i)=> macdLine[i]!=null && sigLine[i]!=null ? macdLine[i]-sigLine[i] : null);
+  return {macdLine, sigLine, hist};
+}
+
+function calcStoch(candles, kPeriod=14, dPeriod=3){
+  const kLine = candles.map((_,i)=>{
+    if(i<kPeriod-1) return null;
+    const slice = candles.slice(i-kPeriod+1, i+1);
+    const hh = Math.max(...slice.map(c=>c.high));
+    const ll = Math.min(...slice.map(c=>c.low));
+    return hh===ll ? 50 : ((candles[i].close-ll)/(hh-ll))*100;
+  });
+  const dLine = calcSMA(kLine.map(v=>v??0), dPeriod).map((v,i)=> kLine[i]!=null ? v : null);
+  return {kLine, dLine};
+}
+
+// ── Ichimoku Kinkō Hyō ────────────────────────────
+// Tenkan-sen  (9)  : (max+min) / 2 sur 9 périodes
+// Kijun-sen   (26) : (max+min) / 2 sur 26 périodes
+// Senkou A    : (Tenkan + Kijun) / 2 — projeté +26 périodes
+// Senkou B    : (max+min) / 2 sur 52 périodes — projeté +26 périodes
+// Chikou Span : close actuel décalé -26 périodes (affiché dans le passé)
+function calcIchimoku(candles, t=9, k=26, sB=52){
+  function midRange(arr, i, period){
+    if(i < period-1) return null;
+    const sl = arr.slice(i-period+1, i+1);
+    return (Math.max(...sl.map(c=>c.high)) + Math.min(...sl.map(c=>c.low))) / 2;
+  }
+  const n = candles.length;
+  const tenkan  = candles.map((_,i) => midRange(candles, i, t));
+  const kijun   = candles.map((_,i) => midRange(candles, i, k));
+  const senkouA = candles.map((_,i) => {
+    const te=tenkan[i], ki=kijun[i];
+    return te!=null&&ki!=null ? (te+ki)/2 : null;
+  });
+  const senkouB = candles.map((_,i) => midRange(candles, i, sB));
+  // Chikou = close[i] tracé à la position i-26
+  const chikou = candles.map((c,i) => ({ time: candles[Math.max(0,i-k)]?.time ?? c.time, value: c.close }));
+  return { tenkan, kijun, senkouA, senkouB, chikou };
+}
+
+function calcVWAP(candles){
+  let cumPV=0, cumV=0;
+  return candles.map(c=>{
+    const tp=(c.high+c.low+c.close)/3;
+    cumPV+=tp*(c.volume||1);
+    cumV+=(c.volume||1);
+    return cumV ? cumPV/cumV : tp;
+  });
+}
+
+function calcSupportResistance(candles, lookback=20){
+  const levels = [];
+  const closes = candles.map(c=>c.close);
+  const highs = candles.map(c=>c.high);
+  const lows = candles.map(c=>c.low);
+  // Pivots hauts
+  for(let i=lookback;i<candles.length-lookback;i++){
+    const sliceH = highs.slice(i-lookback, i+lookback+1);
+    if(highs[i]===Math.max(...sliceH)) levels.push({price:highs[i], type:"resistance", idx:i});
+  }
+  // Pivots bas
+  for(let i=lookback;i<candles.length-lookback;i++){
+    const sliceL = lows.slice(i-lookback, i+lookback+1);
+    if(lows[i]===Math.min(...sliceL)) levels.push({price:lows[i], type:"support", idx:i});
+  }
+  // Dédoublonner niveaux proches (< 0.5% écart)
+  const deduped = [];
+  for(const lv of levels){
+    if(!deduped.some(d=>Math.abs(d.price-lv.price)/lv.price < 0.005)) deduped.push(lv);
+  }
+  return deduped.slice(0,12);
+}
+
+function renderKeyLevels(levels, lastPrice){
+  const kl = document.getElementById("keyLevels");
+  const klc = document.getElementById("keyLevelsContent");
+  if(!kl||!klc||!levels.length) return;
+  kl.style.display="block";
+  const sorted = levels.sort((a,b)=>Math.abs(a.price-lastPrice)-Math.abs(b.price-lastPrice)).slice(0,8);
+  klc.innerHTML = sorted.map(l=>{
+    const dist = ((l.price-lastPrice)/lastPrice*100).toFixed(2);
+    const isRes = l.type==="resistance";
+    return `<div style="background:rgba(255,255,255,.04);border:1px solid ${isRes?"rgba(255,59,107,.3)":"rgba(0,255,136,.3)"};border-radius:10px;padding:6px 10px;font-size:11px;font-family:'JetBrains Mono',monospace">
+      <div style="color:${isRes?"var(--red)":"var(--green)"};font-weight:700;font-size:10px;letter-spacing:.5px">${isRes?"RÉSISTANCE":"SUPPORT"}</div>
+      <div style="color:var(--txt);font-size:13px;font-weight:700">${l.price.toFixed(4)}</div>
+      <div style="color:var(--muted);font-size:10px">${dist>0?"+":""}${dist}%</div>
+    </div>`;
+  }).join("");
+}
+
+// ── Sous-graphiques LWC ─────────────────────────────
+
+let rsiChart=null, macdChart=null, stochChart=null;
+
+function destroySubCharts(){
+  try{ if(rsiChart)  rsiChart.remove();  }catch{}
+  try{ if(macdChart) macdChart.remove(); }catch{}
+  try{ if(stochChart)stochChart.remove();}catch{}
+  rsiChart=macdChart=stochChart=null;
+  ["rsiCanvas","macdCanvas","stochCanvas"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.style.display="none"; el.innerHTML=""; }
+  });
+}
+
+function makeSubChart(LWC, containerId, height=110){
+  const el=document.getElementById(containerId);
+  if(!el) return null;
+  el.style.display="block";
+  el.innerHTML="";
+  return LWC.createChart(el,{
+    width:el.offsetWidth||window.innerWidth-24, height,
+    layout:{background:{type:"solid",color:"rgba(6,8,16,.98)"},textColor:"#6b7a99"},
+    grid:{vertLines:{color:"rgba(255,255,255,.03)"},horzLines:{color:"rgba(255,255,255,.03)"}},
+    rightPriceScale:{borderColor:"rgba(255,255,255,.06)",textColor:"#6b7a99",scaleMargins:{top:.1,bottom:.1}},
+    timeScale:{borderColor:"rgba(255,255,255,.06)",textColor:"#6b7a99",timeVisible:true},
+    crosshair:{mode:1},handleScroll:true,handleScale:true
+  });
+}
+
+function renderChart(candles){
+  return new Promise(resolve=>{
+    loadLWC(LWC=>{
+      const container=document.getElementById("chartCanvas");
+      if(!container){ resolve(); return; }
+
+      // Détruire anciens charts
+      if(chartInstance){ try{chartInstance.remove();}catch{} chartInstance=null; chartSeries=null; }
+      destroySubCharts();
+
+      const sorted=candles.slice().sort((a,b)=>a.time-b.time);
+      const closes=sorted.map(c=>c.close);
+      const times=sorted.map(c=>c.time);
+
+      // ── Chart principal ──────────────────────────
+      chartInstance=LWC.createChart(container,{
+        width:container.offsetWidth||window.innerWidth-24,
+        height:340,
+        layout:{background:{type:"solid",color:"rgba(6,8,16,.98)"},textColor:"#6b7a99"},
+        grid:{vertLines:{color:"rgba(255,255,255,.04)"},horzLines:{color:"rgba(255,255,255,.04)"}},
+        crosshair:{mode:LWC.CrosshairMode.Normal,
+          vertLine:{color:"rgba(0,212,255,.4)",labelBackgroundColor:"#0b1120"},
+          horzLine:{color:"rgba(0,212,255,.3)",labelBackgroundColor:"#0b1120"}},
+        rightPriceScale:{borderColor:"rgba(255,255,255,.08)",textColor:"#6b7a99"},
+        timeScale:{borderColor:"rgba(255,255,255,.08)",textColor:"#6b7a99",timeVisible:true,secondsVisible:chartCurrentTF==="1min"},
+        handleScroll:true, handleScale:true
+      });
+
+      // ── Série principale ─────────────────────────
+      if(chartCurrentType==="candlestick"){
+        chartSeries=chartInstance.addCandlestickSeries({
+          upColor:"#00ff88",downColor:"#ff3b6b",
+          borderUpColor:"#00ff88",borderDownColor:"#ff3b6b",
+          wickUpColor:"rgba(0,255,136,.7)",wickDownColor:"rgba(255,59,107,.7)"
+        });
+        chartSeries.setData(sorted);
+      } else if(chartCurrentType==="line"){
+        chartSeries=chartInstance.addLineSeries({color:"#00d4ff",lineWidth:2});
+        chartSeries.setData(sorted.map(c=>({time:c.time,value:c.close})));
+      } else {
+        chartSeries=chartInstance.addBarSeries({upColor:"#00ff88",downColor:"#ff3b6b"});
+        chartSeries.setData(sorted);
+      }
+
+      // ── Volume ───────────────────────────────────
+      const volS=chartInstance.addHistogramSeries({
+        color:"rgba(0,212,255,.18)",priceFormat:{type:"volume"},
+        priceScaleId:"vol",scaleMargins:{top:.8,bottom:0}
+      });
+      chartInstance.priceScale("vol").applyOptions({scaleMargins:{top:.85,bottom:0}});
+      volS.setData(sorted.map(c=>({time:c.time,value:c.volume||0,color:c.close>=c.open?"rgba(0,255,136,.22)":"rgba(255,59,107,.22)"})));
+
+      // ── MA 20 ────────────────────────────────────
+      if(INDICATORS.ma20){
+        const sma20=calcSMA(closes,20);
+        const ma20S=chartInstance.addLineSeries({color:"#00d4ff",lineWidth:1.2,priceLineVisible:false,lastValueVisible:true,title:"MA20"});
+        ma20S.setData(times.map((t,i)=>sma20[i]!=null?{time:t,value:sma20[i]}:null).filter(Boolean));
+      }
+
+      // ── MA 50 ────────────────────────────────────
+      if(INDICATORS.ma50){
+        const sma50=calcSMA(closes,50);
+        const ma50S=chartInstance.addLineSeries({color:"#ff8a00",lineWidth:1.2,priceLineVisible:false,lastValueVisible:true,title:"MA50"});
+        ma50S.setData(times.map((t,i)=>sma50[i]!=null?{time:t,value:sma50[i]}:null).filter(Boolean));
+      }
+
+      // ── MA 200 ───────────────────────────────────
+      if(INDICATORS.ma200){
+        const sma200=calcSMA(closes,200);
+        const ma200S=chartInstance.addLineSeries({color:"#ff34d2",lineWidth:1,priceLineVisible:false,lastValueVisible:true,title:"MA200"});
+        ma200S.setData(times.map((t,i)=>sma200[i]!=null?{time:t,value:sma200[i]}:null).filter(Boolean));
+      }
+
+      // ── EMA 21 ───────────────────────────────────
+      if(INDICATORS.ema){
+        const ema21=calcEMA(closes,21);
+        const ema21S=chartInstance.addLineSeries({color:"#8b5cf6",lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:true,title:"EMA21"});
+        ema21S.setData(times.map((t,i)=>ema21[i]!=null?{time:t,value:ema21[i]}:null).filter(Boolean));
+      }
+
+      // ── Bandes de Bollinger ───────────────────────
+      if(INDICATORS.bb){
+        const bb=calcBB(closes,20,2);
+        const bbMidS=chartInstance.addLineSeries({color:"rgba(255,242,0,.5)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false,title:"BB Mid"});
+        const bbUpS=chartInstance.addLineSeries({color:"rgba(255,242,0,.35)",lineWidth:1,lineStyle:3,priceLineVisible:false,lastValueVisible:false,title:"BB+"});
+        const bbLoS=chartInstance.addLineSeries({color:"rgba(255,242,0,.35)",lineWidth:1,lineStyle:3,priceLineVisible:false,lastValueVisible:false,title:"BB-"});
+        bbMidS.setData(times.map((t,i)=>bb[i].mid!=null?{time:t,value:bb[i].mid}:null).filter(Boolean));
+        bbUpS.setData(times.map((t,i)=>bb[i].upper!=null?{time:t,value:bb[i].upper}:null).filter(Boolean));
+        bbLoS.setData(times.map((t,i)=>bb[i].lower!=null?{time:t,value:bb[i].lower}:null).filter(Boolean));
+      }
+
+      // ── VWAP ─────────────────────────────────────
+      if(INDICATORS.vwap){
+        const vwap=calcVWAP(sorted);
+        const vwapS=chartInstance.addLineSeries({color:"#c084fc",lineWidth:1.5,lineStyle:1,priceLineVisible:false,lastValueVisible:true,title:"VWAP"});
+        vwapS.setData(sorted.map((c,i)=>({time:c.time,value:vwap[i]})));
+      }
+
+      // ── ICHIMOKU ─────────────────────────────────
+      if(INDICATORS.ichi && sorted.length >= 52){
+        const ichi = calcIchimoku(sorted);
+
+        // Tenkan-sen (rouge)
+        const tenkanS = chartInstance.addLineSeries({
+          color:"#ff4d6d", lineWidth:1.2, priceLineVisible:false,
+          lastValueVisible:true, title:"Tenkan"
+        });
+        tenkanS.setData(sorted.map((c,i)=>ichi.tenkan[i]!=null?{time:c.time,value:ichi.tenkan[i]}:null).filter(Boolean));
+
+        // Kijun-sen (bleu)
+        const kijunS = chartInstance.addLineSeries({
+          color:"#3b82f6", lineWidth:1.5, priceLineVisible:false,
+          lastValueVisible:true, title:"Kijun"
+        });
+        kijunS.setData(sorted.map((c,i)=>ichi.kijun[i]!=null?{time:c.time,value:ichi.kijun[i]}:null).filter(Boolean));
+
+        // Chikou Span (vert lime, décalé -26)
+        const chikouS = chartInstance.addLineSeries({
+          color:"rgba(163,230,53,.7)", lineWidth:1, lineStyle:1,
+          priceLineVisible:false, lastValueVisible:false, title:"Chikou"
+        });
+        // Chikou : on trace le close de i à la position temporelle i-26
+        const chikouData = [];
+        const offset = 26;
+        for(let i=offset;i<sorted.length;i++){
+          chikouData.push({time:sorted[i-offset].time, value:sorted[i].close});
+        }
+        if(chikouData.length) chikouS.setData(chikouData);
+
+        // Senkou Span A (limite haute du nuage)
+        const spAData = sorted.map((c,i)=>ichi.senkouA[i]!=null?{time:c.time,value:ichi.senkouA[i]}:null).filter(Boolean);
+        const spBData = sorted.map((c,i)=>ichi.senkouB[i]!=null?{time:c.time,value:ichi.senkouB[i]}:null).filter(Boolean);
+
+        // On trace le nuage via deux lignes + zone remplie simulée
+        // LWC ne supporte pas nativement le remplissage entre deux séries —
+        // on simule via opacity sur les deux lignes Span A et B
+        const spAS = chartInstance.addLineSeries({
+          color:"rgba(0,255,136,.5)", lineWidth:1, priceLineVisible:false,
+          lastValueVisible:false, title:"Span A",
+          // Remplissage natif LWC v4 : topColor / bottomColor via areaSeries
+        });
+        spAS.setData(spAData);
+
+        const spBS = chartInstance.addLineSeries({
+          color:"rgba(255,59,107,.5)", lineWidth:1, priceLineVisible:false,
+          lastValueVisible:false, title:"Span B"
+        });
+        spBS.setData(spBData);
+
+        // Nuage Kumo : Area series entre Span A et B (simulation couleur)
+        // On utilise une série area pour Span A (vers le bas = Span B)
+        // Astuce LWC v4 : addAreaSeries avec topColor/bottomColor
+        const lastClose = sorted[sorted.length-1].close;
+        const lastSpA = ichi.senkouA[sorted.length-1];
+        const lastSpB = ichi.senkouB[sorted.length-1];
+        const cloudBull = lastSpA != null && lastSpB != null && lastSpA >= lastSpB;
+
+        const kumoAreaS = chartInstance.addAreaSeries({
+          topColor:   cloudBull ? "rgba(0,255,136,.12)" : "rgba(255,59,107,.12)",
+          bottomColor:cloudBull ? "rgba(0,255,136,.03)" : "rgba(255,59,107,.03)",
+          lineColor:  "transparent",
+          lineWidth:  0,
+          priceScaleId:"right",
+          priceLineVisible:false,
+          lastValueVisible:false,
+          crosshairMarkerVisible:false
+        });
+        // Area = Span A (haut du nuage dans un contexte haussier)
+        if(spAData.length) kumoAreaS.setData(spAData);
+
+        const kumoAreaB = chartInstance.addAreaSeries({
+          topColor:   cloudBull ? "rgba(255,59,107,.06)" : "rgba(0,255,136,.06)",
+          bottomColor:"rgba(0,0,0,0)",
+          lineColor:  "transparent",
+          lineWidth:  0,
+          priceScaleId:"right",
+          priceLineVisible:false,
+          lastValueVisible:false,
+          crosshairMarkerVisible:false
+        });
+        if(spBData.length) kumoAreaB.setData(spBData);
+
+        // Signal Ichimoku dans les niveaux clés
+        const ichiSignal = document.createElement("div");
+        ichiSignal.style.cssText="background:rgba(255,255,255,.04);border:1px solid rgba(139,92,246,.4);border-radius:10px;padding:6px 10px;font-size:11px;margin-top:8px";
+        const priceVsCloud = lastSpA!=null&&lastSpB!=null
+          ? lastClose > Math.max(lastSpA,lastSpB) ? "✅ Prix AU-DESSUS du nuage — tendance HAUSSIÈRE"
+          : lastClose < Math.min(lastSpA,lastSpB) ? "🔴 Prix EN-DESSOUS du nuage — tendance BAISSIÈRE"
+          : "🟡 Prix DANS le nuage — indécision"
+          : "Nuage non calculable";
+        const tkCross = ichi.tenkan[sorted.length-1]!=null && ichi.kijun[sorted.length-1]!=null
+          ? ichi.tenkan[sorted.length-1] > ichi.kijun[sorted.length-1]
+            ? "Tenkan > Kijun — momentum HAUSSIER"
+            : "Tenkan < Kijun — momentum BAISSIER"
+          : "";
+        ichiSignal.innerHTML=`<div style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:#8b5cf6;margin-bottom:4px">ICHIMOKU</div>
+          <div style="color:var(--txt);font-size:11px">${priceVsCloud}</div>
+          ${tkCross?`<div style="color:var(--muted);font-size:10px;margin-top:2px">${tkCross}</div>`:""}
+          <div style="color:var(--muted);font-size:10px;margin-top:2px">Nuage ${cloudBull?"VERT — support":"ROUGE — résistance"}</div>`;
+        const klc = document.getElementById("keyLevelsContent");
+        const kl  = document.getElementById("keyLevels");
+        if(klc){ klc.appendChild(ichiSignal); }
+        if(kl)  kl.style.display="block";
+      }
+
+      // ── Supports / Résistances ───────────────────
+      if(INDICATORS.sr){
+        const levels=calcSupportResistance(sorted);
+        const lastClose=closes[closes.length-1];
+        levels.forEach(lv=>{
+          const isRes=lv.type==="resistance";
+          const srS=chartInstance.addLineSeries({
+            color:isRes?"rgba(255,59,107,.7)":"rgba(0,255,136,.7)",
+            lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false,
+            title:isRes?"R":"S"
+          });
+          srS.setData([{time:sorted[0].time,value:lv.price},{time:sorted[sorted.length-1].time,value:lv.price}]);
+        });
+        renderKeyLevels(levels, lastClose);
+      } else {
+        const kl=document.getElementById("keyLevels");
+        if(kl) kl.style.display="none";
+      }
+
+      chartInstance.timeScale().fitContent();
+      const ro=new ResizeObserver(()=>{ if(chartInstance) chartInstance.applyOptions({width:container.offsetWidth}); });
+      ro.observe(container);
+
+      // ── RSI sub-chart ─────────────────────────────
+      if(INDICATORS.rsi && closes.length>15){
+        rsiChart=makeSubChart(LWC,"rsiCanvas",110);
+        const rsi=calcRSI(closes,14);
+        const rsiS=rsiChart.addLineSeries({color:"#c084fc",lineWidth:1.5,priceLineVisible:false,lastValueVisible:true,title:"RSI14"});
+        rsiS.setData(times.map((t,i)=>rsi[i]!=null?{time:t,value:rsi[i]}:null).filter(Boolean));
+        // Zones 70/30
+        const ob=rsiChart.addLineSeries({color:"rgba(255,59,107,.4)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+        const os=rsiChart.addLineSeries({color:"rgba(0,255,136,.4)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+        const t0=times[times.findIndex(t=>times.indexOf(t)>=0)||0], t1=times[times.length-1];
+        ob.setData([{time:t0,value:70},{time:t1,value:70}]);
+        os.setData([{time:t0,value:30},{time:t1,value:30}]);
+        rsiChart.timeScale().fitContent();
+      }
+
+      // ── MACD sub-chart ────────────────────────────
+      if(INDICATORS.macd && closes.length>30){
+        macdChart=makeSubChart(LWC,"macdCanvas",110);
+        const {macdLine,sigLine,hist}=calcMACD(closes);
+        const macdS=macdChart.addLineSeries({color:"#00d4ff",lineWidth:1.5,priceLineVisible:false,lastValueVisible:true,title:"MACD"});
+        const sigS=macdChart.addLineSeries({color:"#ff8a00",lineWidth:1,priceLineVisible:false,lastValueVisible:true,title:"Signal"});
+        const histS=macdChart.addHistogramSeries({priceScaleId:"",scaleMargins:{top:.7,bottom:0}});
+        macdS.setData(times.map((t,i)=>macdLine[i]!=null?{time:t,value:macdLine[i]}:null).filter(Boolean));
+        sigS.setData(times.map((t,i)=>sigLine[i]!=null?{time:t,value:sigLine[i]}:null).filter(Boolean));
+        histS.setData(times.map((t,i)=>hist[i]!=null?{time:t,value:hist[i],color:hist[i]>=0?"rgba(0,255,136,.5)":"rgba(255,59,107,.5)"}:null).filter(Boolean));
+        macdChart.timeScale().fitContent();
+      }
+
+      // ── Stochastique sub-chart ────────────────────
+      if(INDICATORS.stoch && sorted.length>15){
+        stochChart=makeSubChart(LWC,"stochCanvas",110);
+        const {kLine,dLine}=calcStoch(sorted);
+        const kS=stochChart.addLineSeries({color:"#00ff88",lineWidth:1.5,priceLineVisible:false,lastValueVisible:true,title:"%K"});
+        const dS=stochChart.addLineSeries({color:"#ff8a00",lineWidth:1,priceLineVisible:false,lastValueVisible:true,title:"%D"});
+        const ob=stochChart.addLineSeries({color:"rgba(255,59,107,.4)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+        const os=stochChart.addLineSeries({color:"rgba(0,255,136,.4)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+        const t0=times[0], t1=times[times.length-1];
+        kS.setData(times.map((t,i)=>kLine[i]!=null?{time:t,value:kLine[i]}:null).filter(Boolean));
+        dS.setData(times.map((t,i)=>dLine[i]!=null?{time:t,value:dLine[i]}:null).filter(Boolean));
+        ob.setData([{time:t0,value:80},{time:t1,value:80}]);
+        os.setData([{time:t0,value:20},{time:t1,value:20}]);
+        stochChart.timeScale().fitContent();
+      }
+
+      resolve();
+    });
+  });
+}
+
+// ── Résumé indicateurs sans IA ──────────────────────
+function showIndicatorSummary(){
+  const el=document.getElementById("chartAIResult");
+  if(!chartCurrentData.length){ el.textContent="Charge d'abord un graphique."; return; }
+  const sorted=chartCurrentData.slice().sort((a,b)=>a.time-b.time);
+  const closes=sorted.map(c=>c.close);
+  const last=closes[closes.length-1];
+  const sma20=calcSMA(closes,20); const v20=sma20[sma20.length-1];
+  const sma50=calcSMA(closes,50); const v50=sma50[sma50.length-1];
+  const ema21=calcEMA(closes,21); const ve21=ema21[ema21.length-1];
+  const rsi=calcRSI(closes,14);   const vrsi=rsi[rsi.length-1];
+  const bb=calcBB(closes,20,2);   const vbb=bb[bb.length-1];
+  const {macdLine,sigLine}=calcMACD(closes);
+  const vm=macdLine[macdLine.length-1], vs=sigLine[sigLine.length-1];
+  const {kLine}=calcStoch(sorted); const vk=kLine[kLine.length-1];
+  const vwap=calcVWAP(sorted); const vv=vwap[vwap.length-1];
+  const ichi=calcIchimoku(sorted);
+  const n=sorted.length;
+  const iTenkan=ichi.tenkan[n-1], iKijun=ichi.kijun[n-1];
+  const iSpA=ichi.senkouA[n-1],   iSpB=ichi.senkouB[n-1];
+  const lastClose=closes[closes.length-1];
+  const cloudTop=iSpA!=null&&iSpB!=null?Math.max(iSpA,iSpB):null;
+  const cloudBot=iSpA!=null&&iSpB!=null?Math.min(iSpA,iSpB):null;
+
+  const signals=[];
+  if(v20!=null){ const ok=last>v20; signals.push({k:"MA20",v:v20?.toFixed(4),sig:ok?"HAUSSIER":"BAISSIER",ok}); }
+  if(v50!=null){ const ok=last>v50; signals.push({k:"MA50",v:v50?.toFixed(4),sig:ok?"HAUSSIER":"BAISSIER",ok}); }
+  if(ve21!=null){ const ok=last>ve21; signals.push({k:"EMA21",v:ve21?.toFixed(4),sig:ok?"AU-DESSUS":"EN-DESSOUS",ok}); }
+  if(vrsi!=null){ const sig=vrsi>70?"SURACHETÉ":vrsi<30?"SURVENDU":"NEUTRE"; signals.push({k:"RSI14",v:vrsi?.toFixed(1),sig,ok:vrsi<70&&vrsi>30}); }
+  if(vbb.upper!=null){ const near=last>vbb.upper*0.99?"Proche bande haute":last<vbb.lower*1.01?"Proche bande basse":"Dans les bandes"; signals.push({k:"Bollinger",v:`${vbb.lower?.toFixed(2)} — ${vbb.upper?.toFixed(2)}`,sig:near,ok:true}); }
+  if(vm!=null&&vs!=null){ const ok=vm>vs; signals.push({k:"MACD",v:vm?.toFixed(4),sig:ok?"CROISEMENT HAUSSIER":"CROISEMENT BAISSIER",ok}); }
+  if(vk!=null){ const sig=vk>80?"SURACHETÉ":vk<20?"SURVENDU":"NEUTRE"; signals.push({k:"Stoch %K",v:vk?.toFixed(1),sig,ok:vk<80&&vk>20}); }
+  if(vv!=null){ const ok=last>vv; signals.push({k:"VWAP",v:vv?.toFixed(4),sig:ok?"AU-DESSUS":"EN-DESSOUS",ok}); }
+
+  // Ichimoku
+  if(iTenkan!=null&&iKijun!=null){
+    const tkOk=iTenkan>iKijun;
+    signals.push({k:"Ichimoku TK",v:`${iTenkan?.toFixed(4)}`,sig:tkOk?"Tenkan>Kijun HAUSSIER":"Tenkan<Kijun BAISSIER",ok:tkOk});
+  }
+  if(cloudTop!=null){
+    const aboveCloud=last>cloudTop, belowCloud=last<cloudBot;
+    const sig=aboveCloud?"Prix AU-DESSUS nuage":belowCloud?"Prix EN-DESSOUS nuage":"Dans le nuage";
+    signals.push({k:"Ichimoku Kumo",v:`${cloudBot?.toFixed(4)}—${cloudTop?.toFixed(4)}`,sig,ok:aboveCloud});
+  }
+  if(iSpA!=null&&iSpB!=null){
+    const greenCloud=iSpA>=iSpB;
+    signals.push({k:"Ichimoku Nuage",v:greenCloud?"Vert":"Rouge",sig:greenCloud?"HAUSSIER":"BAISSIER",ok:greenCloud});
+  }
+
+  const bullish=signals.filter(s=>s.ok).length;
+  const total=signals.length;
+  const verdict=bullish>total*0.65?"ACHAT":bullish<total*0.35?"VENTE":"ATTENTE";
+  const vcolor=verdict==="ACHAT"?"var(--green)":verdict==="VENTE"?"var(--red)":"var(--yellow)";
+
+  el.innerHTML=`<div style="margin-bottom:10px">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:${vcolor}">${verdict}</span>
+    <span style="color:var(--muted);font-size:11px;margin-left:8px">${bullish}/${total} indicateurs haussiers — sans IA, calcul pur</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    ${signals.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(255,255,255,.03);border-radius:8px;border-left:3px solid ${s.ok?"var(--green)":"var(--red)"}">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--soft)">${s.k}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">${s.v}</span>
+      <span style="font-size:10px;font-weight:700;color:${s.ok?"var(--green)":"var(--red)"}">${s.sig}</span>
+    </div>`).join("")}
+  </div>`;
+  el.style.color="var(--txt)";
+}
+
+async function analyzeCurrentChart(){
+  if(!chartCurrentSymbol||!chartCurrentData.length){
+    document.getElementById("chartAIResult").textContent="Charge d'abord un graphique.";
+    return;
+  }
+  const el=document.getElementById("chartAIResult");
+  el.textContent="⏳ Calcul des indicateurs + analyse IA en cours…";
+  el.style.color="var(--muted)";
+  try{
+    const sorted=chartCurrentData.slice().sort((a,b)=>a.time-b.time);
+    const closes=sorted.map(c=>c.close);
+    const last=sorted[sorted.length-1];
+    const prev=sorted[sorted.length-2]||last;
+    const changePct=prev.close?((last.close-prev.close)/prev.close*100):0;
+    const periodHigh=Math.max(...sorted.map(c=>c.high));
+    const periodLow=Math.min(...sorted.map(c=>c.low));
+    const avg=closes.reduce((a,b)=>a+b,0)/closes.length;
+
+    // Calcul de tous les indicateurs
+    const sma20=calcSMA(closes,20),   v20=sma20[sma20.length-1];
+    const sma50=calcSMA(closes,50),   v50=sma50[sma50.length-1];
+    const sma200=calcSMA(closes,200), v200=sma200[sma200.length-1];
+    const ema21=calcEMA(closes,21),   ve21=ema21[ema21.length-1];
+    const rsi=calcRSI(closes,14),     vrsi=rsi[rsi.length-1];
+    const bb=calcBB(closes,20,2),     vbb=bb[bb.length-1];
+    const {macdLine,sigLine,hist}=calcMACD(closes);
+    const vm=macdLine[macdLine.length-1],vs=sigLine[sigLine.length-1],vh=hist[hist.length-1];
+    const {kLine,dLine}=calcStoch(sorted);
+    const vk=kLine[kLine.length-1],vd=dLine[dLine.length-1];
+    const vwap=calcVWAP(sorted), vv=vwap[vwap.length-1];
+    const ichi=calcIchimoku(sorted);
+    const ni=sorted.length;
+    const iTenkan=ichi.tenkan[ni-1], iKijun=ichi.kijun[ni-1];
+    const iSpA=ichi.senkouA[ni-1],   iSpB=ichi.senkouB[ni-1];
+    const cloudTop=iSpA!=null&&iSpB!=null?Math.max(iSpA,iSpB):null;
+    const cloudBot=iSpA!=null&&iSpB!=null?Math.min(iSpA,iSpB):null;
+    const iChikou=ichi.chikou[ni-1]?.value;
+    const levels=calcSupportResistance(sorted,20).slice(0,6);
+
+    const msg=`Analyse technique complète de ${chartCurrentSymbol} — timeframe ${chartCurrentTF} — ${sorted.length} bougies.
+
+PRIX : Last=${last.close?.toFixed(5)} Open=${last.open?.toFixed(5)} High=${last.high?.toFixed(5)} Low=${last.low?.toFixed(5)}
+Variation : ${changePct.toFixed(2)}% | Haut période : ${periodHigh?.toFixed(5)} | Bas période : ${periodLow?.toFixed(5)}
+
+MOYENNES MOBILES :
+MA20=${v20?.toFixed(4)||"N/A"} — Prix ${last.close>v20?"AU-DESSUS":"EN-DESSOUS"} de la MA20
+MA50=${v50?.toFixed(4)||"N/A"} — Prix ${last.close>v50?"AU-DESSUS":"EN-DESSOUS"} de la MA50
+MA200=${v200?.toFixed(4)||"N/A"} — ${last.close>v200?"Tendance HAUSSIÈRE long terme":"Tendance BAISSIÈRE long terme"}
+EMA21=${ve21?.toFixed(4)||"N/A"}
+
+OSCILLATEURS :
+RSI14=${vrsi?.toFixed(1)||"N/A"} — ${vrsi>70?"SURACHETÉ — prudence":vrsi<30?"SURVENDU — opportunité potentielle":"Zone neutre"}
+Stochastique %K=${vk?.toFixed(1)||"N/A"} %D=${vd?.toFixed(1)||"N/A"} — ${vk>80?"SURACHETÉ":vk<20?"SURVENDU":"Neutre"}
+MACD=${vm?.toFixed(5)||"N/A"} Signal=${vs?.toFixed(5)||"N/A"} Histogramme=${vh?.toFixed(5)||"N/A"}
+${vm>vs?"MACD AU-DESSUS du signal — momentum HAUSSIER":"MACD EN-DESSOUS du signal — momentum BAISSIER"}
+
+BANDES DE BOLLINGER (20,2) :
+Bande haute=${vbb.upper?.toFixed(4)||"N/A"} | Milieu=${vbb.mid?.toFixed(4)||"N/A"} | Bande basse=${vbb.lower?.toFixed(4)||"N/A"}
+${last.close>vbb.upper*0.99?"Prix PROCHE de la bande haute — risque de retournement":last.close<vbb.lower*1.01?"Prix PROCHE de la bande basse — possible rebond":"Prix dans les bandes"}
+
+VWAP=${vv?.toFixed(4)||"N/A"} — Prix ${last.close>vv?"AU-DESSUS du VWAP — pression acheteuse":"EN-DESSOUS du VWAP — pression vendeuse"}
+
+ICHIMOKU KINKŌ HYŌ (9,26,52) :
+Tenkan-sen (9)=${iTenkan?.toFixed(5)||"N/A"} | Kijun-sen (26)=${iKijun?.toFixed(5)||"N/A"}
+${iTenkan!=null&&iKijun!=null?(iTenkan>iKijun?"✅ Tenkan AU-DESSUS Kijun — signal HAUSSIER (TK Cross bullish)":"🔴 Tenkan EN-DESSOUS Kijun — signal BAISSIER (TK Cross bearish)"):""}
+Senkou Span A=${iSpA?.toFixed(5)||"N/A"} | Senkou Span B=${iSpB?.toFixed(5)||"N/A"}
+Nuage Kumo : ${iSpA!=null&&iSpB!=null?(iSpA>=iSpB?"VERT (haussier)":"ROUGE (baissier)"):"N/A"}
+${cloudTop!=null?`Limite haute nuage=${cloudTop?.toFixed(5)} | Limite basse=${cloudBot?.toFixed(5)}`:""}
+Position prix / nuage : ${cloudTop!=null?(last.close>cloudTop?"✅ AU-DESSUS — tendance HAUSSIÈRE confirmée":last.close<cloudBot?"🔴 EN-DESSOUS — tendance BAISSIÈRE confirmée":"🟡 DANS le nuage — zone d'indécision"):"N/A"}
+Chikou Span=${iChikou?.toFixed(5)||"N/A"} ${iChikou!=null?(iChikou>last.close?"au-dessus du prix passé — confirmation haussière":"en-dessous du prix passé — confirmation baissière"):""}
+
+Règle Ichimoku globale : ${cloudTop!=null&&iTenkan!=null&&iKijun!=null?(
+  last.close>cloudTop&&iTenkan>iKijun?"TRIPLE SIGNAL HAUSSIER — Prix>Nuage + Tenkan>Kijun":
+  last.close<cloudBot&&iTenkan<iKijun?"TRIPLE SIGNAL BAISSIER — Prix<Nuage + Tenkan<Kijun":
+  "Signal mixte ou neutre — attendre confirmation"
+):"Données insuffisantes"}
+
+NIVEAUX CLÉS (supports/résistances) :
+${levels.map(l=>`${l.type.toUpperCase()} : ${l.price?.toFixed(4)}`).join("\n")||"Pas assez de données pour calculer"}
+
+Donne une conclusion ACHAT, VENTE ou ATTENTE avec :
+1. Le signal principal et sa force (fort/modéré/faible)
+2. Convergence ou divergence des indicateurs
+3. Prix d'entrée, objectif, stop-loss précis
+4. Niveau de risque et ratio R/R
+5. Les 3 raisons principales de ce signal`;
+
+    const d=await api("/chat",{method:"POST",body:JSON.stringify({message:msg,provider:provider(),apiKey:getAiKey()})});
+    el.innerHTML=esc(d.reply||"Aucune réponse").replace(/\n/g,"<br>");
+    el.style.color="var(--txt)";
+  } catch(e){
+    el.textContent="Erreur : "+e.message;
+    el.style.color="var(--red)";
+  }
+}
+
+// Étend SCREENS avec charts
+const _origShowScreen=showScreen;
+// Override showScreen pour gérer charts
+function showScreen(name){
+  const allIds={
+    home:"homeScreen",scanner:"scannerScreen",analyse:"analyseScreen",
+    marches:"marchesScreen",news:"newsScreen",assistant:"assistantScreen",
+    alertes:"alertesScreen",reglages:"reglagesScreen",terminal:"terminalScreen",
+    charts:"chartsScreen"
+  };
+  Object.values(allIds).forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove("active"); });
+  const target=document.getElementById(allIds[name]||allIds.home);
+  if(target){ target.classList.add("active"); window.scrollTo(0,0); }
+  if(name==="alertes") loadAlertStatus();
+  if(name==="terminal") loadTerminal();
+  if(name==="charts" && chartCurrentSymbol) loadChart();
+}
 function init(){
   const wu=document.getElementById("workerUrl");
   const ap=document.getElementById("aiProvider");
