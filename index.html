@@ -47,8 +47,8 @@ a{color:var(--cyan);text-decoration:none}
 .app-title{
   font-family:'Montserrat',sans-serif;
   font-weight:800;
-  font-size:28px;
-  letter-spacing:1.5px;
+  font-size:22px;
+  letter-spacing:1.2px;
   color:#d6f4ff;
   text-shadow:
     0 0 6px rgba(0,212,255,.9),
@@ -92,7 +92,9 @@ a{color:var(--cyan);text-decoration:none}
   gap:0;
   scrollbar-width:none;
   -webkit-overflow-scrolling:touch;
+  cursor:grab;
 }
+.ticker-scroll:active{cursor:grabbing}
 .ticker-scroll::-webkit-scrollbar{display:none}
 .ticker-item{
   display:flex;
@@ -177,7 +179,8 @@ a{color:var(--cyan);text-decoration:none}
   flex-direction:column;
   overflow:hidden;
   position:relative;
-  min-height:236px;
+  height:236px;
+  max-height:236px;
 }
 .news-header{
   display:flex;
@@ -210,9 +213,12 @@ a{color:var(--cyan);text-decoration:none}
   overflow-y:auto;
   padding:0;
   scroll-behavior:smooth;
-  scrollbar-width:none;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(0,212,255,.2) transparent;
+  overscroll-behavior:contain;
 }
-.news-list::-webkit-scrollbar{display:none}
+.news-list::-webkit-scrollbar{width:3px}
+.news-list::-webkit-scrollbar-thumb{background:rgba(0,212,255,.25);border-radius:2px}
 .news-item{
   display:flex;
   align-items:flex-start;
@@ -263,20 +269,22 @@ a{color:var(--cyan);text-decoration:none}
   justify-content:center;
   gap:6px;
   padding:13px 8px;
-  background:rgba(8,13,24,.92);
-  border:1.5px solid color-mix(in srgb, var(--neon) 65%, transparent);
+  background:rgba(4,8,18,.96);
+  border:2px solid var(--neon);
   border-radius:16px;
   color:var(--txt);
   cursor:pointer;
-  font-size:10.5px;
+  font-size:10px;
   font-weight:700;
-  letter-spacing:.4px;
+  letter-spacing:.5px;
   text-transform:uppercase;
-  transition:.18s ease;
+  transition:.2s ease;
   box-shadow:
-    0 0 12px color-mix(in srgb, var(--neon) 28%, transparent),
-    0 0 28px color-mix(in srgb, var(--neon) 12%, transparent),
-    inset 0 0 22px rgba(255,255,255,.02);
+    0 0 6px  var(--neon),
+    0 0 18px color-mix(in srgb, var(--neon) 70%, transparent),
+    0 0 40px color-mix(in srgb, var(--neon) 35%, transparent),
+    0 0 80px color-mix(in srgb, var(--neon) 15%, transparent),
+    inset 0 0 16px color-mix(in srgb, var(--neon) 8%, transparent);
   -webkit-appearance:none;
   position:relative;
   overflow:hidden;
@@ -285,18 +293,30 @@ a{color:var(--cyan);text-decoration:none}
   content:'';
   position:absolute;
   inset:0;
-  background:radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--neon) 16%, transparent), transparent 70%);
+  background:radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--neon) 18%, transparent), transparent 65%);
+  pointer-events:none;
+}
+.nav-btn::after{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--neon) 80%,white),transparent);
   pointer-events:none;
 }
 .nav-btn:hover,.nav-btn:active{
   border-color:var(--neon);
-  transform:scale(.97);
+  transform:scale(.96);
   box-shadow:
-    0 0 20px color-mix(in srgb, var(--neon) 55%, transparent),
-    0 0 45px color-mix(in srgb, var(--neon) 25%, transparent),
-    inset 0 0 20px color-mix(in srgb, var(--neon) 12%, transparent);
+    0 0 8px  var(--neon),
+    0 0 25px color-mix(in srgb, var(--neon) 90%, transparent),
+    0 0 60px color-mix(in srgb, var(--neon) 55%, transparent),
+    0 0 120px color-mix(in srgb, var(--neon) 25%, transparent),
+    inset 0 0 30px color-mix(in srgb, var(--neon) 18%, transparent);
 }
-.nav-btn span{color:color-mix(in srgb, var(--neon) 85%, white)}
+.nav-btn span{
+  color:var(--neon);
+  text-shadow: 0 0 8px var(--neon), 0 0 20px color-mix(in srgb,var(--neon) 60%,transparent);
+}
 .nav-icon{width:22px;height:22px;color:var(--neon)}
 .nav-red{--neon:#ff174d}
 .nav-purple{--neon:#aa45ff}
@@ -613,6 +633,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       <div class="ticker-item"><span class="ticker-label">GOLD</span><span class="ticker-price" id="t-GLD">—</span><span class="ticker-change" id="tc-GLD">—</span></div>
       <div class="ticker-item"><span class="ticker-label">WTI</span><span class="ticker-price" id="t-WTI">—</span><span class="ticker-change" id="tc-WTI">—</span></div>
       <div class="ticker-item"><span class="ticker-label">BTC/USD</span><span class="ticker-price" id="t-BTC">—</span><span class="ticker-change" id="tc-BTC">—</span></div>
+      <div class="ticker-item"><span class="ticker-label">ETH/USD</span><span class="ticker-price" id="t-ETH">—</span><span class="ticker-change" id="tc-ETH">—</span></div>
+      <div class="ticker-item"><span class="ticker-label">Apple</span><span class="ticker-price" id="t-AAPL">—</span><span class="ticker-change" id="tc-AAPL">—</span></div>
+      <div class="ticker-item"><span class="ticker-label">Nvidia</span><span class="ticker-price" id="t-NVDA">—</span><span class="ticker-change" id="tc-NVDA">—</span></div>
+      <div class="ticker-item"><span class="ticker-label">LVMH</span><span class="ticker-price" id="t-LVMH">—</span><span class="ticker-change" id="tc-LVMH">—</span></div>
     </div>
     <button class="ticker-gear" onclick="showScreen('reglages')" title="Réglages">⚙</button>
   </div>
@@ -623,120 +647,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <div class="clocks-row">
       <div class="clock-card" id="clock-paris">
         <span class="clock-city">Paris</span>
-        <svg class="clock-svg-wrap" id="svg-paris" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-paris" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-paris" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-paris" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-paris">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-paris)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-paris)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-paris)" opacity=".6"/>
+        <svg id="svg-paris" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-paris" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-paris)"/>
+          <line id="h-paris" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-paris" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-paris)"/>
+          <line id="m-paris" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-paris" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-paris" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-paris" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-paris">--:--:--</span>
         <span class="clock-status" id="cs-paris">—</span>
@@ -744,120 +741,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       </div>
       <div class="clock-card" id="clock-londres">
         <span class="clock-city">Londres</span>
-        <svg class="clock-svg-wrap" id="svg-londres" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-londres" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-londres" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-londres" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-londres">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-londres)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-londres)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-londres)" opacity=".6"/>
+        <svg id="svg-londres" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-londres" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-londres)"/>
+          <line id="h-londres" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-londres" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-londres)"/>
+          <line id="m-londres" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-londres" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-londres" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-londres" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-londres">--:--:--</span>
         <span class="clock-status" id="cs-londres">—</span>
@@ -865,120 +835,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       </div>
       <div class="clock-card" id="clock-newyork">
         <span class="clock-city">New York</span>
-        <svg class="clock-svg-wrap" id="svg-newyork" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-newyork" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-newyork" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-newyork" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-newyork">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-newyork)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-newyork)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-newyork)" opacity=".6"/>
+        <svg id="svg-newyork" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-newyork" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-newyork)"/>
+          <line id="h-newyork" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-newyork" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-newyork)"/>
+          <line id="m-newyork" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-newyork" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-newyork" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-newyork" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-newyork">--:--:--</span>
         <span class="clock-status" id="cs-newyork">—</span>
@@ -990,120 +933,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <div class="clocks-row">
       <div class="clock-card" id="clock-tokyo">
         <span class="clock-city">Tokyo</span>
-        <svg class="clock-svg-wrap" id="svg-tokyo" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-tokyo" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-tokyo" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-tokyo" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-tokyo">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-tokyo)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-tokyo)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-tokyo)" opacity=".6"/>
+        <svg id="svg-tokyo" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-tokyo" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-tokyo)"/>
+          <line id="h-tokyo" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-tokyo" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-tokyo)"/>
+          <line id="m-tokyo" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-tokyo" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-tokyo" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-tokyo" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-tokyo">--:--:--</span>
         <span class="clock-status" id="cs-tokyo">—</span>
@@ -1111,120 +1027,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       </div>
       <div class="clock-card" id="clock-singapour">
         <span class="clock-city">Singapour</span>
-        <svg class="clock-svg-wrap" id="svg-singapour" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-singapour" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-singapour" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-singapour" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-singapour">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-singapour)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-singapour)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-singapour)" opacity=".6"/>
+        <svg id="svg-singapour" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-singapour" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-singapour)"/>
+          <line id="h-singapour" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-singapour" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-singapour)"/>
+          <line id="m-singapour" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-singapour" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-singapour" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-singapour" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-singapour">--:--:--</span>
         <span class="clock-status" id="cs-singapour">—</span>
@@ -1232,120 +1121,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       </div>
       <div class="clock-card" id="clock-hongkong">
         <span class="clock-city">Hong Kong</span>
-        <svg class="clock-svg-wrap" id="svg-hongkong" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-hongkong" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-hongkong" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-hongkong" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-hongkong">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-hongkong)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-hongkong)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-hongkong)" opacity=".6"/>
+        <svg id="svg-hongkong" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-hongkong" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-hongkong)"/>
+          <line id="h-hongkong" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-hongkong" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-hongkong)"/>
+          <line id="m-hongkong" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-hongkong" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-hongkong" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-hongkong" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-hongkong">--:--:--</span>
         <span class="clock-status" id="cs-hongkong">—</span>
@@ -1357,120 +1219,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <div class="clocks-row-bottom">
       <div class="clock-card" id="clock-sydney">
         <span class="clock-city">Sydney</span>
-        <svg class="clock-svg-wrap" id="svg-sydney" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="face-sydney" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#111d30"/>
-              <stop offset="100%" stop-color="#050912"/>
-            </radialGradient>
-            <radialGradient id="bezel-sydney" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#1e3050"/>
-              <stop offset="60%" stop-color="#0a1525"/>
-              <stop offset="100%" stop-color="#060e1a"/>
-            </radialGradient>
-            <radialGradient id="gloss-sydney" cx="38%" cy="25%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,255,255,.13)"/>
-              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-            <filter id="glow-sydney">
-              <feGaussianBlur stdDeviation="1.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Biseau extérieur -->
-          <circle cx="44" cy="44" r="43" fill="url(#bezel-sydney)" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
-          <!-- Anneau neon -->
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".9"/>
-          <!-- Cadran -->
-          <circle cx="44" cy="44" r="38" fill="url(#face-sydney)"/>
-          <!-- Graduations minutes (60) -->
-          <line x1="47.7" y1="9.2" x2="47.9" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="9.8" x2="51.8" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="10.7" x2="55.6" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="12.0" x2="59.3" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="15.7" x2="66.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="18.0" x2="69.1" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="20.6" x2="71.9" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="23.4" x2="74.3" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="29.8" x2="78.3" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="33.2" x2="79.7" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="36.7" x2="80.7" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="40.3" x2="81.3" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.8" y1="47.7" x2="81.3" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="78.2" y1="51.3" x2="80.7" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="77.3" y1="54.8" x2="79.7" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="76.0" y1="58.2" x2="78.3" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="72.3" y1="64.6" x2="74.3" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="70.0" y1="67.4" x2="71.9" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="67.4" y1="70.0" x2="69.1" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="64.6" y1="72.3" x2="66.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="58.2" y1="76.0" x2="59.3" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="54.8" y1="77.3" x2="55.6" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="51.3" y1="78.2" x2="51.8" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="47.7" y1="78.8" x2="47.9" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="78.8" x2="40.1" y2="81.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="78.2" x2="36.2" y2="80.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="77.3" x2="32.4" y2="79.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="76.0" x2="28.7" y2="78.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="72.3" x2="22.0" y2="74.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="70.0" x2="18.9" y2="71.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="67.4" x2="16.1" y2="69.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="64.6" x2="13.7" y2="66.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="58.2" x2="9.7" y2="59.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="54.8" x2="8.3" y2="55.6" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="51.3" x2="7.3" y2="51.8" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="47.7" x2="6.7" y2="47.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.2" y1="40.3" x2="6.7" y2="40.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="9.8" y1="36.7" x2="7.3" y2="36.2" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="10.7" y1="33.2" x2="8.3" y2="32.4" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="12.0" y1="29.8" x2="9.7" y2="28.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="15.7" y1="23.4" x2="13.7" y2="22.0" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="18.0" y1="20.6" x2="16.1" y2="18.9" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="20.6" y1="18.0" x2="18.9" y2="16.1" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="23.4" y1="15.7" x2="22.0" y2="13.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="29.8" y1="12.0" x2="28.7" y2="9.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="33.2" y1="10.7" x2="32.4" y2="8.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="36.7" y1="9.8" x2="36.2" y2="7.3" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <line x1="40.3" y1="9.2" x2="40.1" y2="6.7" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
-          <!-- Graduations heures (12) -->
-          <line x1="44.0" y1="11.5" x2="44.0" y2="6.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="15.9" x2="62.8" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="27.8" x2="76.5" y2="25.3" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="76.5" y1="44.0" x2="81.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="72.1" y1="60.2" x2="76.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="60.2" y1="72.1" x2="62.8" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="44.0" y1="76.5" x2="44.0" y2="81.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.8" y1="72.1" x2="25.3" y2="76.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="60.2" x2="11.5" y2="62.8" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="11.5" y1="44.0" x2="6.5" y2="44.0" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="15.9" y1="27.7" x2="11.5" y2="25.2" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="27.7" y1="15.9" x2="25.2" y2="11.5" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- Chiffres heures Montserrat -->
-          <text x="44.0" y="17.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">12</text>
-          <text x="57.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">1</text>
-          <text x="67.4" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">2</text>
-          <text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">3</text>
-          <text x="67.4" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">4</text>
-          <text x="57.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">5</text>
-          <text x="44.0" y="71.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">6</text>
-          <text x="30.5" y="67.4" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">7</text>
-          <text x="20.6" y="57.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">8</text>
-          <text x="17.0" y="44.0" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">9</text>
-          <text x="20.6" y="30.5" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">10</text>
-          <text x="30.5" y="20.6" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="rgba(200,220,255,.75)">11</text>
-          <!-- Reflet verre -->
-          <ellipse cx="36" cy="28" rx="18" ry="10" fill="url(#gloss-sydney)" opacity=".6"/>
+        <svg id="svg-sydney" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cadran noir -->
+          <circle cx="44" cy="44" r="43" fill="#0a0a0a" stroke="rgba(255,255,255,.12)" stroke-width=".5"/>
+          <circle cx="44" cy="44" r="41" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <!-- Ticks -->
+          <line x1="44.00" y1="11.00" x2="44.00" y2="6.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="47.71" y1="8.69" x2="47.97" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="9.28" x2="51.90" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="10.24" x2="55.74" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="58.44" y1="11.57" x2="59.46" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="15.42" x2="63.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="64.87" y1="15.28" x2="66.34" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="17.62" x2="69.43" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="20.25" x2="72.24" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.72" y1="23.13" x2="74.74" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="27.50" x2="76.91" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76.43" y1="29.56" x2="78.71" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="33.03" x2="80.14" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="36.62" x2="81.17" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="79.31" y1="40.29" x2="81.79" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.00" y1="44.00" x2="82.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="79.31" y1="47.71" x2="81.79" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="78.72" y1="51.38" x2="81.17" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="77.76" y1="54.97" x2="80.14" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="76.43" y1="58.44" x2="78.71" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="72.58" y1="60.50" x2="76.91" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="72.72" y1="64.87" x2="74.74" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="70.38" y1="67.75" x2="72.24" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="67.75" y1="70.38" x2="69.43" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="64.87" y1="72.72" x2="66.34" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="60.50" y1="72.58" x2="63.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="58.44" y1="76.43" x2="59.46" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="54.97" y1="77.76" x2="55.74" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="51.38" y1="78.72" x2="51.90" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="47.71" y1="79.31" x2="47.97" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="44.00" y1="77.00" x2="44.00" y2="82.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40.29" y1="79.31" x2="40.03" y2="81.79" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="78.72" x2="36.10" y2="81.17" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="77.76" x2="32.26" y2="80.14" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="29.56" y1="76.43" x2="28.54" y2="78.71" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="72.58" x2="25.00" y2="76.91" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="23.13" y1="72.72" x2="21.66" y2="74.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="70.38" x2="18.57" y2="72.24" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="67.75" x2="15.76" y2="69.43" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.28" y1="64.87" x2="13.26" y2="66.34" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="60.50" x2="11.09" y2="63.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11.57" y1="58.44" x2="9.29" y2="59.46" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="54.97" x2="7.86" y2="55.74" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="51.38" x2="6.83" y2="51.90" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="8.69" y1="47.71" x2="6.21" y2="47.97" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.00" y1="44.00" x2="6.00" y2="44.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8.69" y1="40.29" x2="6.21" y2="40.03" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="9.28" y1="36.62" x2="6.83" y2="36.10" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="10.24" y1="33.03" x2="7.86" y2="32.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="11.57" y1="29.56" x2="9.29" y2="28.54" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="15.42" y1="27.50" x2="11.09" y2="25.00" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15.28" y1="23.13" x2="13.26" y2="21.66" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="17.62" y1="20.25" x2="15.76" y2="18.57" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="20.25" y1="17.62" x2="18.57" y2="15.76" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="23.13" y1="15.28" x2="21.66" y2="13.26" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="27.50" y1="15.42" x2="25.00" y2="11.09" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="29.56" y1="11.57" x2="28.54" y2="9.29" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="33.03" y1="10.24" x2="32.26" y2="7.86" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="36.62" y1="9.28" x2="36.10" y2="6.83" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <line x1="40.29" y1="8.69" x2="40.03" y2="6.21" stroke="rgba(255,255,255,.5)" stroke-width="0.7" stroke-linecap="round"/>
+          <!-- Chiffres -->
+          <text x="44.00" y="17.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">12</text>
+          <text x="57.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">1</text>
+          <text x="67.38" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">2</text>
+          <text x="71.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">3</text>
+          <text x="67.38" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">4</text>
+          <text x="57.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">5</text>
+          <text x="44.00" y="71.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">6</text>
+          <text x="30.50" y="67.38" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">7</text>
+          <text x="20.62" y="57.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">8</text>
+          <text x="17.00" y="44.00" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">9</text>
+          <text x="20.62" y="30.50" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">10</text>
+          <text x="30.50" y="20.62" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.5" font-weight="700" fill="white">11</text>
           <!-- Aiguille heures -->
-          <line id="h-sydney" x1="44" y1="44" x2="44" y2="22" stroke="#e8eefa" stroke-width="2.8" stroke-linecap="round" filter="url(#glow-sydney)"/>
+          <line id="h-sydney" x1="44" y1="44" x2="44" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
           <!-- Aiguille minutes -->
-          <line id="m-sydney" x1="44" y1="44" x2="44" y2="16" stroke="#c8e8ff" stroke-width="1.8" stroke-linecap="round" filter="url(#glow-sydney)"/>
+          <line id="m-sydney" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
           <!-- Aiguille secondes -->
-          <line id="s-sydney" x1="44" y1="52" x2="44" y2="13" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity=".95"/>
-          <!-- Contre-poids secondes -->
-          <line id="sb-sydney" x1="44" y1="44" x2="44" y2="52" stroke="#00d4ff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-          <!-- Centre cap -->
-          <circle cx="44" cy="44" r="3.2" fill="#1a2a45" stroke="#00d4ff" stroke-width="1.2"/>
-          <circle cx="44" cy="44" r="1.4" fill="#00d4ff"/>
+          <line id="s-sydney" x1="44" y1="50" x2="44" y2="12" stroke="#ff3b3b" stroke-width="1" stroke-linecap="round"/>
+          <!-- Centre -->
+          <circle cx="44" cy="44" r="3" fill="white"/>
+          <circle cx="44" cy="44" r="1.5" fill="#ff3b3b"/>
         </svg>
         <span class="clock-time-digital" id="ct-sydney">--:--:--</span>
         <span class="clock-status" id="cs-sydney">—</span>
@@ -1500,7 +1335,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
   <!-- Navigation grid -->
   <div class="nav-grid">
     <button class="nav-btn nav-red" onclick="showScreen('scanner')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
         <circle cx="12" cy="12" r="9"/>
         <circle cx="12" cy="12" r="4"/>
         <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
@@ -1536,6 +1371,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
     <button class="nav-btn nav-gold" onclick="showScreen('charts')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,6 13.5,14.5 8.5,9.5 2,16"/><polyline points="16,6 22,6 22,12"/></svg>
       <span>Graphiques</span>
+    </button>
+    <button class="nav-btn" style="--neon:#ffd700" onclick="showScreen('terminal')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M6 9l4 4 4-4M15 13h3M2 17h20M8 21h8"/></svg>
+      <span>Bloomberg</span>
     </button>
   </div>
 
@@ -1928,9 +1767,10 @@ const DEFAULT_SUGGESTIONS = [
   "Explique-moi le Fed simplement",
   "Analyse le Nasdaq avec le contexte macro"
 ];
-const TICKER_SYMBOLS = ["^FCHI","^GDAXI","^NDX","^GSPC","EURUSD=X","GC=F","CL=F","BTC-USD"];
-const TICKER_LABELS  = ["CAC 40","DAX","NASDAQ","S&P 500","EUR/USD","GOLD","WTI","BTC/USD"];
-const TICKER_IDS     = ["CAC","DAX","NDX","SP5","EUR","GLD","WTI","BTC"];
+// Symboles prioritaires + fallbacks Yahoo
+const TICKER_SYMBOLS = ["^FCHI","^GDAXI","^NDX","^GSPC","EURUSD=X","GC=F","CL=F","BTC-USD","ETH-USD","AAPL","NVDA","MC.PA"];
+const TICKER_LABELS  = ["CAC 40","DAX","NASDAQ","S&P 500","EUR/USD","OR","PÉTROLE","BTC/USD","ETH/USD","Apple","Nvidia","LVMH"];
+const TICKER_IDS     = ["CAC","DAX","NDX","SP5","EUR","GLD","WTI","BTC","ETH","AAPL","NVDA","LVMH"];
 
 function W(){ return (localStorage.getItem(LS.worker)||DEFAULT_WORKER).replace(/\/+$/,""); }
 function provider(){ const p=localStorage.getItem(LS.provider)||"groq"; return p==="custom"?(localStorage.getItem(LS.customProviderName)||"custom"):p; }
@@ -2047,7 +1887,7 @@ function getTimeParts(tz){
 // Rotation d'une ligne SVG autour du centre (44,44)
 function rotateLine(el, cx, cy, deg){
   if(!el) return;
-  el.setAttribute("transform", `rotate(${deg},${cx},${cy})`);
+  el.setAttribute("transform", "rotate(" + deg + "," + cx + "," + cy + ")");
 }
 
 function renderSVGClocks(){
@@ -2087,25 +1927,69 @@ renderSVGClocks();
 // ══════════════════════════════════════════════════
 async function loadTicker(){
   try{
-    const d=await api("/market-data?symbols="+encodeURIComponent(TICKER_SYMBOLS.join(",")));
+    const syms=TICKER_SYMBOLS.join(",");
+    const d=await api("/market-data?symbols="+encodeURIComponent(syms));
     const quotes=d.quotes||[];
-    const map=new Map(quotes.map(q=>[q.symbol,q]));
+    // Map par symbol ET par shortName pour tolérance
+    const map=new Map();
+    quotes.forEach(q=>{ if(q.symbol) map.set(q.symbol,q); });
     TICKER_SYMBOLS.forEach((sym,i)=>{
       const q=map.get(sym);
       const priceEl=document.getElementById("t-"+TICKER_IDS[i]);
       const changeEl=document.getElementById("tc-"+TICKER_IDS[i]);
-      if(!priceEl||!q) return;
+      if(!priceEl) return;
+      if(!q||q.regularMarketPrice==null){
+        // Garder le tiret mais signaler
+        priceEl.style.opacity=".4";
+        return;
+      }
+      priceEl.style.opacity="1";
       const p=q.regularMarketPrice, pct=q.regularMarketChangePercent;
       priceEl.textContent=money(p);
       const up=Number(pct)>=0;
       const flat=Number(pct)===0;
-      changeEl.textContent=(up&&!flat?"▲ ":"▼ ")+cpct(pct);
-      changeEl.className="ticker-change "+(flat?"flat":up?"up":"down");
+      if(changeEl){
+        changeEl.textContent=(up&&!flat?"▲ ":"▼ ")+cpct(pct);
+        changeEl.className="ticker-change "+(flat?"flat":up?"up":"down");
+      }
     });
   } catch(e){ console.warn("Ticker:",e.message); }
 }
 loadTicker();
 setInterval(loadTicker, 60000);
+
+// Auto-scroll infini du ticker
+(function(){
+  const ticker=document.getElementById("tickerScroll");
+  if(!ticker) return;
+  // Clone les items pour effet infini
+  function cloneItems(){
+    const items=ticker.querySelectorAll(".ticker-item:not(.clone)");
+    ticker.querySelectorAll(".ticker-item.clone").forEach(el=>el.remove());
+    items.forEach(item=>{
+      const clone=item.cloneNode(true);
+      clone.classList.add("clone");
+      // Update clone IDs to avoid duplicates
+      clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+      ticker.appendChild(clone);
+    });
+  }
+  cloneItems();
+  let scrolling=true, pos=0, paused=false;
+  function step(){
+    if(paused){ requestAnimationFrame(step); return; }
+    if(scrolling) pos+=0.5;
+    const half=ticker.scrollWidth/2;
+    if(pos>=half) pos=0;
+    ticker.scrollLeft=pos;
+    requestAnimationFrame(step);
+  }
+  ticker.addEventListener("mouseenter",()=>paused=true);
+  ticker.addEventListener("mouseleave",()=>paused=false);
+  ticker.addEventListener("touchstart",()=>paused=true,{passive:true});
+  ticker.addEventListener("touchend",()=>setTimeout(()=>paused=false,3000),{passive:true});
+  step();
+})();
 
 // ══════════════════════════════════════════════════
 // NEWS PANEL
@@ -2150,6 +2034,22 @@ function startNewsAutoScroll(){
   },40);
 }
 
+// Traduction simple via MyMemory API (gratuit, 1000 req/jour, aucune clé)
+async function translateToFR(text){
+  try{
+    if(!text||text.length<5) return text;
+    // Detect if already French (common French words)
+    const frWords=/\b(le|la|les|un|une|des|du|au|aux|et|ou|en|dans|sur|avec|pour|par|une|qui|que|mais|donc|car|est|sont|ont|être|avoir|fait|plus|très|tout|aussi|après|avant|lors|selon|après|entre|sans|vers|sous|contre|depuis|pendant)\b/i;
+    if(frWords.test(text)) return text;
+    const url="https://api.mymemory.translated.net/get?q="+encodeURIComponent(text.slice(0,400))+"&langpair=en|fr";
+    const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
+    if(!r.ok) return text;
+    const d=await r.json();
+    const tr=d?.responseData?.translatedText;
+    return tr&&d?.responseStatus===200?tr:text;
+  } catch{ return text; }
+}
+
 async function loadNewsPanel(){
   const list=document.getElementById("newsList");
   if(!list) return;
@@ -2157,16 +2057,27 @@ async function loadNewsPanel(){
     const d=await api("/news");
     const articles=d.articles||[];
     if(!articles.length){ list.innerHTML="<div class='loading'>Aucune news disponible</div>"; return; }
-    list.innerHTML=articles.map(a=>`
-      <div class="news-item" onclick="window.open('${esc(a.link||"")}','_blank')">
+    // Affichage immédiat avec titres originaux
+    list.innerHTML=articles.map((a,i)=>`
+      <div class="news-item" id="ni-${i}" onclick="window.open('${esc(a.link||"")}','_blank')">
         <div class="news-item-icon">${newsIcon(a.title)}</div>
         <div class="news-item-body">
-          <div class="news-item-title">${esc(a.title||"")}</div>
-          <div class="news-item-time">${esc(timeAgo(a.pub))}</div>
+          <div class="news-item-title" id="nt-${i}">${esc(a.title||"")}</div>
+          <div class="news-item-time">${esc(a.source||"")} · ${esc(timeAgo(a.pub))}</div>
         </div>
         <div class="news-item-arrow">›</div>
       </div>`).join("");
     startNewsAutoScroll();
+    // Traduction progressive en arrière-plan
+    const toTranslate=articles.slice(0,20);
+    for(let i=0;i<toTranslate.length;i++){
+      const a=toTranslate[i];
+      translateToFR(a.title||"").then(tr=>{
+        const el=document.getElementById("nt-"+i);
+        if(el&&tr&&tr!==a.title) el.textContent=tr;
+      });
+      if(i%5===4) await new Promise(r=>setTimeout(r,300)); // pause par batch
+    }
   } catch(e){
     list.innerHTML=`<div class='loading'>News non disponibles<br><span class='small'>${esc(e.message)}</span></div>`;
   }
