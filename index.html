@@ -144,8 +144,8 @@ a{color:var(--cyan);text-decoration:none}
   box-shadow:var(--glow-cyan),0 0 0 1px rgba(0,212,255,.1) inset;
 }
 .clock-card.is-closed{
-  border-color:rgba(255,59,107,.85);
-  box-shadow:var(--glow-red),0 0 0 1px rgba(255,59,107,.08) inset;
+  border-color:rgba(255,59,107,.55);
+  box-shadow:0 0 8px rgba(255,59,107,.5),0 0 20px rgba(255,59,107,.2),0 0 0 1px rgba(255,59,107,.05) inset;
 }
 .clock-city{
   font-family:'Montserrat',sans-serif;font-size:9.5px;font-weight:700;
@@ -625,20 +625,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
   <!-- Ticker bar -->
   <div class="ticker-wrapper">
     <div class="ticker-scroll" id="tickerScroll">
-      <div class="ticker-item"><span class="ticker-label">CAC 40</span><span class="ticker-price" id="t-CAC">—</span><span class="ticker-change" id="tc-CAC">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">DAX</span><span class="ticker-price" id="t-DAX">—</span><span class="ticker-change" id="tc-DAX">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">NASDAQ</span><span class="ticker-price" id="t-NDX">—</span><span class="ticker-change" id="tc-NDX">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">S&amp;P 500</span><span class="ticker-price" id="t-SP5">—</span><span class="ticker-change" id="tc-SP5">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">EUR/USD</span><span class="ticker-price" id="t-EUR">—</span><span class="ticker-change" id="tc-EUR">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">GOLD</span><span class="ticker-price" id="t-GLD">—</span><span class="ticker-change" id="tc-GLD">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">WTI</span><span class="ticker-price" id="t-WTI">—</span><span class="ticker-change" id="tc-WTI">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">BTC/USD</span><span class="ticker-price" id="t-BTC">—</span><span class="ticker-change" id="tc-BTC">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">ETH/USD</span><span class="ticker-price" id="t-ETH">—</span><span class="ticker-change" id="tc-ETH">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">Apple</span><span class="ticker-price" id="t-AAPL">—</span><span class="ticker-change" id="tc-AAPL">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">Nvidia</span><span class="ticker-price" id="t-NVDA">—</span><span class="ticker-change" id="tc-NVDA">—</span></div>
-      <div class="ticker-item"><span class="ticker-label">LVMH</span><span class="ticker-price" id="t-LVMH">—</span><span class="ticker-change" id="tc-LVMH">—</span></div>
+      <!-- Généré dynamiquement par buildTickerHTML() -->
     </div>
-    <button class="ticker-gear" onclick="showScreen('reglages')" title="Réglages">⚙</button>
+    <button class="ticker-gear" onclick="showTickerConfig()" title="Configurer le ticker">⚙</button>
   </div>
 
   <!-- Clocks -->
@@ -1368,11 +1357,11 @@ input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.5" fill="currentColor" stroke="none"/><path d="M8 7V5M16 7V5M12 19v2" stroke-linecap="round"/><circle cx="12" cy="22" r="1" fill="currentColor" stroke="none"/></svg>
       <span>Assistant IA</span>
     </button>
-    <button class="nav-btn nav-gold" onclick="showScreen('charts')">
+    <button class="nav-btn" style="--neon:#ff2d78" onclick="showScreen('charts')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,6 13.5,14.5 8.5,9.5 2,16"/><polyline points="16,6 22,6 22,12"/></svg>
       <span>Graphiques</span>
     </button>
-    <button class="nav-btn" style="--neon:#ffd700" onclick="showScreen('terminal')">
+    <button class="nav-btn" style="--neon:#ff6a00" onclick="showScreen('terminal')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M6 9l4 4 4-4M15 13h3M2 17h20M8 21h8"/></svg>
       <span>Bloomberg</span>
     </button>
@@ -1627,16 +1616,23 @@ eur usd</textarea>
       <button class="btn btn-cyan" onclick="loadChart()" style="white-space:nowrap;padding:10px 14px">Charger</button>
     </div>
     <!-- Raccourcis instruments -->
-    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px" id="chartShortcuts">
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px" id="chartShortcuts">
       <button class="pill" onclick="chartQuick('BTC-USD')">₿ Bitcoin</button>
       <button class="pill" onclick="chartQuick('GC=F')">🥇 Or</button>
       <button class="pill" onclick="chartQuick('CL=F')">🛢 Pétrole</button>
+      <button class="pill" onclick="chartQuick('NG=F')">🔥 Gaz Naturel</button>
+      <button class="pill" onclick="chartQuick('SI=F')">🪙 Argent</button>
+      <button class="pill" onclick="chartQuick('PA=F')">⚗️ Palladium</button>
+      <button class="pill" onclick="chartQuick('HG=F')">🔶 Cuivre</button>
+      <button class="pill" onclick="chartQuick('CT=F')">🌿 Coton</button>
+      <button class="pill" onclick="chartQuick('CC=F')">🍫 Cacao</button>
+      <button class="pill" onclick="chartQuick('USDJPY=X')">💴 USD/JPY</button>
+      <button class="pill" onclick="chartQuick('XLM-USD')">🌟 Stellar</button>
       <button class="pill" onclick="chartQuick('^FCHI')">📊 CAC 40</button>
       <button class="pill" onclick="chartQuick('^NDX')">📊 Nasdaq</button>
-      <button class="pill" onclick="chartQuick('^GSPC')">📊 S&amp;P 500</button>
+      <button class="pill" onclick="chartQuick('^GSPC')">📊 S&P 500</button>
       <button class="pill" onclick="chartQuick('EURUSD=X')">💱 EUR/USD</button>
       <button class="pill" onclick="chartQuick('NVDA')">🖥 Nvidia</button>
-      <button class="pill" onclick="chartQuick('TSLA')">⚡ Tesla</button>
       <button class="pill" onclick="chartQuick('ETH-USD')">⬡ ETH</button>
     </div>
   </div>
@@ -1764,13 +1760,28 @@ const DEFAULT_SUGGESTIONS = [
   "Analyse EUR/USD maintenant",
   "Faut-il acheter l'or aujourd'hui ?",
   "Quels marchés surveiller cette semaine ?",
-  "Explique-moi le Fed simplement",
-  "Analyse le Nasdaq avec le contexte macro"
+  "Analyse le Nasdaq avec le contexte macro",
+  "Analyse gaz naturel",
+  "Analyse palladium",
+  "Analyse argent",
+  "Analyse USD/JPY",
+  "Faut-il acheter du gaz naturel aujourd'hui ?",
+  "Faut-il acheter USD/JPY aujourd'hui ?"
 ];
-// Symboles prioritaires + fallbacks Yahoo
-const TICKER_SYMBOLS = ["^FCHI","^GDAXI","^NDX","^GSPC","EURUSD=X","GC=F","CL=F","BTC-USD","ETH-USD","AAPL","NVDA","MC.PA"];
-const TICKER_LABELS  = ["CAC 40","DAX","NASDAQ","S&P 500","EUR/USD","OR","PÉTROLE","BTC/USD","ETH/USD","Apple","Nvidia","LVMH"];
-const TICKER_IDS     = ["CAC","DAX","NDX","SP5","EUR","GLD","WTI","BTC","ETH","AAPL","NVDA","LVMH"];
+// Symboles ticker — configurables par l'utilisateur
+const TICKER_DEFAULT = {
+  symbols:["^FCHI","^GDAXI","^NDX","^GSPC","EURUSD=X","GC=F","CL=F","BTC-USD","ETH-USD","NG=F","SI=F","USDJPY=X"],
+  labels:["CAC 40","DAX","NASDAQ","S&P 500","EUR/USD","OR","PÉTROLE","BTC/USD","ETH/USD","GAZ NAT.","ARGENT","USD/JPY"]
+};
+function loadTickerConfig(){
+  const saved=localStorage.getItem("pgi_ticker_config");
+  if(saved){ try{ return JSON.parse(saved); }catch{} }
+  return TICKER_DEFAULT;
+}
+let TICKER_CONFIG = loadTickerConfig();
+let TICKER_SYMBOLS = TICKER_CONFIG.symbols;
+let TICKER_LABELS  = TICKER_CONFIG.labels;
+let TICKER_IDS     = TICKER_SYMBOLS.map((_,i)=>"T"+i);
 
 function W(){ return (localStorage.getItem(LS.worker)||DEFAULT_WORKER).replace(/\/+$/,""); }
 function provider(){ const p=localStorage.getItem(LS.provider)||"groq"; return p==="custom"?(localStorage.getItem(LS.customProviderName)||"custom"):p; }
@@ -1927,68 +1938,139 @@ renderSVGClocks();
 // ══════════════════════════════════════════════════
 async function loadTicker(){
   try{
-    const syms=TICKER_SYMBOLS.join(",");
-    const d=await api("/market-data?symbols="+encodeURIComponent(syms));
+    // Utilise /ticker — route dédiée avec multi-source (Yahoo + Twelve + Finnhub)
+    const d=await api("/ticker?symbols="+encodeURIComponent(TICKER_SYMBOLS.join(",")));
     const quotes=d.quotes||[];
-    // Map par symbol ET par shortName pour tolérance
-    const map=new Map();
-    quotes.forEach(q=>{ if(q.symbol) map.set(q.symbol,q); });
+    const map=new Map(quotes.map(q=>[q.symbol,q]));
     TICKER_SYMBOLS.forEach((sym,i)=>{
       const q=map.get(sym);
       const priceEl=document.getElementById("t-"+TICKER_IDS[i]);
       const changeEl=document.getElementById("tc-"+TICKER_IDS[i]);
       if(!priceEl) return;
-      if(!q||q.regularMarketPrice==null){
-        // Garder le tiret mais signaler
-        priceEl.style.opacity=".4";
-        return;
-      }
+      if(!q||q.price==null){ priceEl.style.opacity=".35"; return; }
       priceEl.style.opacity="1";
-      const p=q.regularMarketPrice, pct=q.regularMarketChangePercent;
-      priceEl.textContent=money(p);
-      const up=Number(pct)>=0;
-      const flat=Number(pct)===0;
+      priceEl.textContent=money(q.price);
       if(changeEl){
-        changeEl.textContent=(up&&!flat?"▲ ":"▼ ")+cpct(pct);
+        const up=Number(q.changePct)>=0;
+        const flat=Math.abs(Number(q.changePct))<0.001;
+        changeEl.textContent=(up&&!flat?"▲ ":"▼ ")+cpct(q.changePct);
         changeEl.className="ticker-change "+(flat?"flat":up?"up":"down");
       }
     });
   } catch(e){ console.warn("Ticker:",e.message); }
 }
+// ══════════════════════════════════════════════════
+// TICKER DYNAMIQUE — build + config
+// ══════════════════════════════════════════════════
+function buildTickerHTML(){
+  const scroll=document.getElementById("tickerScroll");
+  if(!scroll) return;
+  // Supprimer les clones et items existants
+  scroll.innerHTML=TICKER_SYMBOLS.map((sym,i)=>`
+    <div class="ticker-item">
+      <span class="ticker-label">${esc(TICKER_LABELS[i]||sym)}</span>
+      <span class="ticker-price" id="t-${TICKER_IDS[i]}">—</span>
+      <span class="ticker-change" id="tc-${TICKER_IDS[i]}">—</span>
+    </div>`).join("");
+}
+
+function showTickerConfig(){
+  const current=TICKER_SYMBOLS.map((s,i)=>TICKER_LABELS[i]+"="+s).join("
+");
+  const modal=document.createElement("div");
+  modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px";
+  modal.innerHTML=`
+    <div style="background:#0f1828;border:1.5px solid #00d4ff;border-radius:18px;padding:20px;width:100%;max-width:400px;box-shadow:0 0 30px rgba(0,212,255,.2)">
+      <h3 style="font-family:Montserrat,sans-serif;font-size:15px;font-weight:800;color:#e8eefc;margin-bottom:6px">⚙ Configurer le Ticker</h3>
+      <p style="font-size:11px;color:#6b7a99;margin-bottom:12px">Une ligne par instrument : <code style="color:#00d4ff">NOM=SYMBOLE</code><br>Ex: BTC/USD=BTC-USD | Or=GC=F | CAC 40=^FCHI</p>
+      <textarea id="tickerConfigInput" style="width:100%;height:220px;background:#060810;color:#e8eefc;border:1px solid #1c2d48;border-radius:10px;padding:10px;font-size:12px;font-family:JetBrains Mono,monospace;resize:vertical">${esc(current)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="saveTickerConfig()" style="flex:1;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.5);border-radius:10px;color:#00d4ff;padding:10px;font-family:Montserrat,sans-serif;font-weight:700;font-size:13px;cursor:pointer">Appliquer</button>
+        <button onclick="resetTickerConfig()" style="background:rgba(255,255,255,.05);border:1px solid #1c2d48;border-radius:10px;color:#6b7a99;padding:10px 14px;font-size:13px;cursor:pointer">Reset</button>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.3);border-radius:10px;color:#ff3b6b;padding:10px 14px;font-size:13px;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveTickerConfig(){
+  const input=document.getElementById("tickerConfigInput");
+  if(!input) return;
+  const lines=input.value.split("
+").map(l=>l.trim()).filter(Boolean);
+  const syms=[], labels=[];
+  for(const line of lines){
+    const eq=line.lastIndexOf("=");
+    if(eq<1) continue;
+    labels.push(line.slice(0,eq).trim());
+    syms.push(line.slice(eq+1).trim());
+  }
+  if(!syms.length) return;
+  TICKER_CONFIG={symbols:syms,labels};
+  TICKER_SYMBOLS=[...syms];
+  TICKER_LABELS=[...labels];
+  TICKER_IDS=syms.map((_,i)=>"T"+i);
+  localStorage.setItem("pgi_ticker_config",JSON.stringify(TICKER_CONFIG));
+  document.querySelector("[style*=fixed]")?.remove();
+  buildTickerHTML();
+  loadTicker();
+  initTickerScroll();
+}
+
+function resetTickerConfig(){
+  localStorage.removeItem("pgi_ticker_config");
+  TICKER_CONFIG=loadTickerConfig();
+  TICKER_SYMBOLS=TICKER_CONFIG.symbols;
+  TICKER_LABELS=TICKER_CONFIG.labels;
+  TICKER_IDS=TICKER_SYMBOLS.map((_,i)=>"T"+i);
+  document.getElementById("tickerConfigInput").value=TICKER_SYMBOLS.map((s,i)=>TICKER_LABELS[i]+"="+s).join("
+");
+  buildTickerHTML();
+  loadTicker();
+  initTickerScroll();
+}
+
+function initTickerScroll(){
+  const ticker=document.getElementById("tickerScroll");
+  if(!ticker) return;
+  // Clone les items pour boucle infinie
+  ticker.querySelectorAll(".ticker-item.clone").forEach(el=>el.remove());
+  const items=ticker.querySelectorAll(".ticker-item:not(.clone)");
+  items.forEach(item=>{
+    const clone=item.cloneNode(true);
+    clone.classList.add("clone");
+    clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+    ticker.appendChild(clone);
+  });
+}
+
+buildTickerHTML();
 loadTicker();
 setInterval(loadTicker, 60000);
 
 // Auto-scroll infini du ticker
 (function(){
-  const ticker=document.getElementById("tickerScroll");
-  if(!ticker) return;
-  // Clone les items pour effet infini
-  function cloneItems(){
-    const items=ticker.querySelectorAll(".ticker-item:not(.clone)");
-    ticker.querySelectorAll(".ticker-item.clone").forEach(el=>el.remove());
-    items.forEach(item=>{
-      const clone=item.cloneNode(true);
-      clone.classList.add("clone");
-      // Update clone IDs to avoid duplicates
-      clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
-      ticker.appendChild(clone);
-    });
+  function startScroll(){
+    const ticker=document.getElementById("tickerScroll");
+    if(!ticker) return;
+    initTickerScroll();
+    let paused=false, pos=0;
+    function step(){
+      if(!paused){
+        pos+=0.5;
+        const half=ticker.scrollWidth/2;
+        if(half>0 && pos>=half) pos=0;
+        ticker.scrollLeft=pos;
+      }
+      requestAnimationFrame(step);
+    }
+    ticker.addEventListener("mouseenter",()=>paused=true);
+    ticker.addEventListener("mouseleave",()=>paused=false);
+    ticker.addEventListener("touchstart",()=>paused=true,{passive:true});
+    ticker.addEventListener("touchend",()=>setTimeout(()=>paused=false,3000),{passive:true});
+    step();
   }
-  cloneItems();
-  let scrolling=true, pos=0, paused=false;
-  function step(){
-    if(paused){ requestAnimationFrame(step); return; }
-    if(scrolling) pos+=0.5;
-    const half=ticker.scrollWidth/2;
-    if(pos>=half) pos=0;
-    ticker.scrollLeft=pos;
-    requestAnimationFrame(step);
-  }
-  ticker.addEventListener("mouseenter",()=>paused=true);
-  ticker.addEventListener("mouseleave",()=>paused=false);
-  ticker.addEventListener("touchstart",()=>paused=true,{passive:true});
-  ticker.addEventListener("touchend",()=>setTimeout(()=>paused=false,3000),{passive:true});
-  step();
+  setTimeout(startScroll, 300);
 })();
 
 // ══════════════════════════════════════════════════
@@ -2342,22 +2424,29 @@ async function loadTerminal(){
 function renderTerminal(d){
   const yc=d.yieldCurve||{}, heat=d.sectorHeatmap||{}, corr=d.correlations||{},
         eco=d.economicCalendar||{}, earn=d.earnings||{}, rates=d.centralRates||{},
-        gn=d.globalNews||{}, risk=gn.risk||{};
+        gn=d.globalNews||{}, risk=gn.risk||{}, themes=gn.themes||{};
+  const spread=yc.spread10y2y;
+  const spreadColor=spread==null?"var(--muted)":spread<0?"var(--red)":spread<0.3?"var(--yellow)":"var(--green)";
+  const riskColor=risk.level==="Élevé"?"var(--red)":risk.level==="Modéré"?"var(--yellow)":"var(--green)";
+  const ecoHigh=(eco.items||[]).filter(x=>x.impact==="fort").length;
+  const topSector=(heat.items||[]).sort((a,b)=>Math.abs(b.changePct||0)-Math.abs(a.changePct||0))[0];
   return `
-  <div class="metric-grid">
-    <div class="metric"><div class="metric-k">Spread US 10Y-2Y</div><div class="metric-v">${esc(yc.spread10y2y??"—")}</div><div class="small">${esc(yc.interpretation||"")}</div></div>
-    <div class="metric"><div class="metric-k">Macro agenda</div><div class="metric-v">${(eco.items||[]).length}</div><div class="small">${esc(eco.source||eco.note||"")}</div></div>
-    <div class="metric"><div class="metric-k">Résultats</div><div class="metric-v">${(earn.items||[]).length}</div></div>
-    <div class="metric"><div class="metric-k">Risque mondial</div><div class="metric-v">${esc(risk.level||"—")}</div><div class="small">${esc(risk.summary||"")}</div></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">
+    <div class="metric"><div class="metric-k">Spread 10Y-2Y</div><div class="metric-v" style="color:${spreadColor};font-size:20px">${spread!=null?spread+"%":"N/A"}</div><div class="small">${esc(yc.interpretation||"FRED requis")}</div></div>
+    <div class="metric"><div class="metric-k">Risque mondial</div><div class="metric-v" style="color:${riskColor};font-size:20px">${esc(risk.level||"—")}</div><div class="small">${esc((risk.topThemes||[]).slice(0,2).join(", ")||"")}</div></div>
+    <div class="metric"><div class="metric-k">Évén. forts</div><div class="metric-v" style="font-size:20px">${ecoHigh||0}</div><div class="small">${esc(eco.source||"Finnhub requis")}</div></div>
+    <div class="metric"><div class="metric-k">Secteur leader</div><div class="metric-v ${topSector?clsPct(topSector.changePct):""}" style="font-size:15px">${esc(topSector?.sector||"—")}</div><div class="small ${topSector?clsPct(topSector.changePct):""}">${topSector?cpct(topSector.changePct):""}</div></div>
+    <div class="metric"><div class="metric-k">News</div><div class="metric-v" style="font-size:20px">${(gn.articles||[]).length}</div><div class="small">Score moy. : ${esc(risk.avgRisk||"—")}</div></div>
+    <div class="metric"><div class="metric-k">Résultats</div><div class="metric-v" style="font-size:20px">${(earn.items||[]).length}</div><div class="small">14 prochains jours</div></div>
   </div>
-  <div class="card"><h3>Risque géopolitique / macro mondial</h3>${mkTable(["Source","Score","Impacts","Titre"],(gn.articles||[]).slice(0,12).map(x=>[x.source,x.riskScore??"—",(x.impacted||[]).join(", "),x.title]))}</div>
-  <div class="card"><h3>Heatmap sectorielle</h3><div class="heat-grid" style="margin-top:10px">${(heat.items||[]).map(x=>`<div class="heat-tile ${clsPct(x.changePct)}"><b>${esc(x.sector)}</b><div class="mono ${clsPct(x.changePct)}">${x.changePct==null?"—":cpct(x.changePct)}</div><div class="small">${esc(x.conclusion)}</div></div>`).join("")}</div></div>
-  <div class="card"><h3>Corrélations</h3>${mkTable(["Couple","Corrélation","Lecture"],(corr.items||[]).map(x=>[x.pair,x.correlation??"—",x.label+" — "+x.interpretation]))}</div>
-  <div class="card"><h3>Courbe des taux</h3>${mkTable(["Point","Taux","Date"],(yc.points||[]).map(x=>[x.label,x.value==null?"—":x.value+"%",x.date]))}</div>
-  <div class="card"><h3>Taux banques centrales</h3>${mkTable(["Banque","Zone","Taux","Source"],(rates.rates||[]).map(x=>[x.bank,x.area,x.rate==null?"—":x.rate+"%",x.source]))}</div>
-  <div class="card"><h3>Calendrier économique</h3>${mkTable(["Date","Pays","Impact","Événement","Réel/Consensus"],(eco.items||[]).slice(0,30).map(x=>[x.date+" "+(x.time||""),x.country,x.impact,x.event,(x.actual||"—")+" / "+(x.consensus||"—")]))}</div>
-  <div class="card"><h3>Résultats entreprises</h3>${mkTable(["Date","Ticker","Société","EPS"],(earn.items||[]).slice(0,30).map(x=>[x.date,x.symbol,x.company,(x.epsActual||"—")+" / "+(x.epsEstimate||"—")]))}</div>`;
-}
+  ${Object.keys(themes).length?`<div class="card" style="margin-bottom:10px"><h3>Thèmes géopolitiques détectés</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${Object.entries(themes).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const cols={geopolitics:"#ff3b6b",sanctions:"#ff8a00",energy:"#ffd700",inflation:"#ff34d2",centralBanks:"#00d4ff",recession:"#ff3b6b",financialStress:"#8b5cf6"};const labs={geopolitics:"Géopolitique",sanctions:"Sanctions",energy:"Énergie",inflation:"Inflation",centralBanks:"Banques centrales",recession:"Récession",financialStress:"Stress financier"};const c=cols[k]||"#6b7a99";return `<div style="background:${c}18;border:1px solid ${c}44;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:${c}">${labs[k]||k} <span style="opacity:.7">(${v})</span></div>`;}).join("")}</div></div>`:""}
+  <div class="card" style="margin-bottom:10px"><h3>🏦 Taux directeurs</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px">${(rates.rates||[]).map(r=>`<div style="background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase">${esc(r.bank)}</div><div style="font-size:9px;color:var(--muted);margin-bottom:4px">${esc(r.area)}</div><div style="font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:${r.rate!=null?"var(--cyan)":"var(--muted)"}">${r.rate!=null?r.rate+"%":"N/A"}</div></div>`).join("")||"<div class='small'>FRED_API_KEY requis.</div>"}</div></div>
+  <div class="card" style="margin-bottom:10px"><h3>📈 Courbe des taux US</h3>${yc.points?.length?`<div style="margin-top:10px">${(yc.points||[]).map(p=>{const pw=p.value!=null?Math.min(100,Math.round(p.value*15)):0;return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="width:45px;font-size:11px;color:var(--muted);font-weight:700;flex-shrink:0">${esc(p.label)}</div><div style="flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:14px;overflow:hidden"><div style="width:${pw}%;height:100%;background:linear-gradient(90deg,var(--cyan),rgba(0,212,255,.4));border-radius:4px"></div></div><div style="width:48px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:${p.value!=null?"var(--txt)":"var(--muted)"}">${p.value!=null?p.value+"%":"—"}</div></div>`;}).join("")}<div style="margin-top:8px;padding:8px 10px;background:${spread<0?"rgba(255,59,107,.08)":spread<0.3?"rgba(255,242,0,.06)":"rgba(0,255,136,.06)"};border-radius:8px;font-size:12px;color:${spreadColor}">${esc(yc.interpretation||"")}</div></div>`:"<div class='small'>FRED_API_KEY requis.</div>"}</div>
+  <div class="card" style="margin-bottom:10px"><h3>🌡 Heatmap sectorielle</h3><div class="heat-grid" style="margin-top:10px">${(heat.items||[]).map(x=>{const pv=Number(x.changePct||0);const int=Math.min(1,Math.abs(pv)/2);const bg=pv>0?`rgba(0,255,136,${0.06+int*0.14})`:pv<0?`rgba(255,59,107,${0.06+int*0.14})`:"rgba(255,255,255,.04)";const brd=pv>0?`rgba(0,255,136,${0.2+int*0.3})`:pv<0?`rgba(255,59,107,${0.2+int*0.3})`:"var(--bd)";return `<div style="background:${bg};border:1px solid ${brd};border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:11px;font-weight:700;color:var(--txt);margin-bottom:4px">${esc(x.sector)}</div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:${pv>0?"var(--green)":pv<0?"var(--red)":"var(--muted)"}">${x.changePct!=null?cpct(x.changePct):"—"}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${esc(x.conclusion)}</div></div>`;}).join("")||"<div class='small'>Non disponible.</div>"}</div></div>
+  <div class="card" style="margin-bottom:10px"><h3>🔗 Corrélations (3 mois)</h3><div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">${(corr.items||[]).map(x=>{const v=Number(x.correlation||0);const pw=Math.round((v+1)/2*100);const c=v>0.4?"var(--green)":v<-0.4?"var(--red)":"var(--yellow)";return `<div style="background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:10px 12px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;font-weight:700">${esc(x.pair)}</span><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:${c}">${x.correlation??""}</span></div><div style="background:rgba(255,255,255,.06);border-radius:3px;height:5px;overflow:hidden;margin-bottom:5px"><div style="width:${pw}%;height:100%;background:${c};border-radius:3px"></div></div><div style="font-size:10px;color:var(--muted)">${esc(x.label)} — ${esc(x.interpretation)}</div></div>`;}).join("")||"<div class='small'>Non disponible (données Yahoo historiques).</div>"}</div></div>
+  <div class="card" style="margin-bottom:10px"><h3>🌍 Risque géopolitique</h3><div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">${(gn.articles||[]).slice(0,15).map(a=>{const sc=Number(a.riskScore||0);const c=sc>=65?"var(--red)":sc>=35?"var(--yellow)":"var(--green)";return `<div style="background:rgba(255,255,255,.025);border:1px solid var(--bd);border-left:3px solid ${c};border-radius:0 10px 10px 0;padding:8px 12px;cursor:pointer" onclick="window.open('${esc(a.link||"")}','_blank')"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:3px"><span style="font-size:11px;font-weight:700;color:var(--txt);flex:1">${esc(a.title)}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:${c};flex-shrink:0">${sc}</span></div><div style="font-size:10px;color:var(--muted)">${esc(a.source||"")} · ${esc(timeAgo(a.pub))} · ${esc((a.impacted||[]).slice(0,3).join(", ")||"—")}</div></div>`;}).join("")||"<div class='small'>Configure NEWSAPI_KEY ou FINNHUB_API_KEY.</div>"}</div></div>
+  <div class="card" style="margin-bottom:10px"><h3>📅 Calendrier économique</h3>${(eco.items||[]).length?`<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">${(eco.items||[]).slice(0,30).map(e=>{const ic=e.impact==="fort"?"var(--red)":e.impact==="moyen"?"var(--yellow)":"var(--muted)";return `<div style="background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;display:flex;gap:8px;align-items:center"><div style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:${ic}"></div><div style="width:78px;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">${esc(e.date)} ${esc(e.time||"")}</div><div style="font-size:11px;font-weight:700;color:var(--txt);flex:1">${esc(e.event)}</div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:4px">${esc(e.country)}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${e.actual?"var(--cyan)":"var(--muted)"};flex-shrink:0">${esc(e.actual||e.consensus||"—")}</div></div>`;}).join("")}</div>`:"<div class='small'>FINNHUB_API_KEY ou FMP_API_KEY requis.</div>"}</div>
+  <div class="card"><h3>🏢 Résultats d'entreprises</h3>${(earn.items||[]).length?`<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">${(earn.items||[]).slice(0,25).map(e=>{const beat=e.epsActual!=null&&e.epsEstimate!=null&&Number(e.epsActual)>=Number(e.epsEstimate);return `<div style="background:rgba(255,255,255,.025);border:1px solid var(--bd);border-left:3px solid ${e.epsActual?(beat?"var(--green)":"var(--red)"):"var(--bd)"};border-radius:0 10px 10px 0;padding:8px 12px;display:flex;gap:8px;align-items:center"><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:73px;flex-shrink:0">${esc(e.date)}</div><div style="font-weight:800;font-size:12px;color:var(--cyan);width:52px;flex-shrink:0">${esc(e.symbol)}</div><div style="font-size:11px;color:var(--txt);flex:1">${esc(e.company)}</div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${e.epsActual?(beat?"var(--green)":"var(--red)"):"var(--muted)"};flex-shrink:0">${esc(e.epsActual!=null?e.epsActual:"—")} / ${esc(e.epsEstimate!=null?e.epsEstimate:"—")}</div></div>`;}).join("")}</div>`:"<div class='small'>FINNHUB_API_KEY ou FMP_API_KEY requis.</div>"}</div>`;}
 
 function mkTable(head,rows){
   if(!rows||!rows.length) return "<div class='small'>Non disponible avec les APIs configurées.</div>";
