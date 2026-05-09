@@ -93,19 +93,23 @@ a{color:#00d4ff;text-decoration:none}
 .clock-card{
   position:relative;border-radius:12px;padding:8px 6px 7px;overflow:hidden;
   min-height:182px;height:182px;display:flex;flex-direction:column;align-items:center;
-  border:1.5px solid #1c2d48;background:#070b14;transition:.3s;
+  border:1.5px solid #1c2d48;
+  background:linear-gradient(160deg,#0e1828 0%,#0a1020 100%);
+  transition:.3s;
 }
 .clock-card.is-open{
-  border-color:rgba(0,212,255,.7);
-  box-shadow:0 0 10px rgba(0,212,255,.35),0 0 25px rgba(0,212,255,.15),0 0 0 1px rgba(0,212,255,.08) inset;
+  border-color:rgba(0,212,255,.65);
+  box-shadow:0 0 8px rgba(0,212,255,.28),0 0 20px rgba(0,212,255,.1);
+  background:linear-gradient(160deg,#0e1828 0%,#091521 100%);
 }
 .clock-card.is-closed{
-  border-color:rgba(255,59,107,.45);
-  box-shadow:0 0 8px rgba(255,59,107,.22),0 0 18px rgba(255,59,107,.08);
+  border-color:rgba(255,59,107,.38);
+  box-shadow:0 0 6px rgba(255,59,107,.18),0 0 14px rgba(255,59,107,.06);
+  background:linear-gradient(160deg,#130e10 0%,#0a0910 100%);
 }
 .clock-city{
   font-family:'Montserrat',sans-serif;font-size:9px;font-weight:800;
-  color:#e8eefc;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:5px;
+  color:#c8d8f0;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:5px;
 }
 .clock-time-digital{
   font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
@@ -880,6 +884,7 @@ function initTickerScroll(){
 function showTickerConfig(){
   const current = TICKER_CFG.symbols.map((s,i)=>(TICKER_CFG.labels[i]||s)+"="+s).join("\n");
   const modal = document.createElement("div");
+  modal.id="tickerModal";
   modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px";
   modal.innerHTML=`
     <div style="background:#0a1020;border:1.5px solid #00d4ff;border-radius:16px;padding:18px;width:100%;max-width:390px;box-shadow:0 0 28px rgba(0,212,255,.18)">
@@ -889,7 +894,7 @@ function showTickerConfig(){
       <div style="display:flex;gap:7px;margin-top:11px">
         <button onclick="applyTickerConfig()" style="flex:1;background:rgba(0,212,255,.14);border:1px solid rgba(0,212,255,.48);border-radius:9px;color:#00d4ff;padding:10px;font-family:Montserrat,sans-serif;font-weight:700;font-size:12.5px;cursor:pointer">✓ Appliquer</button>
         <button onclick="resetTickerConfig()" style="background:rgba(255,255,255,.04);border:1px solid #1c2d48;border-radius:9px;color:#6b7a99;padding:10px 13px;font-size:12px;cursor:pointer">Reset</button>
-        <button onclick="this.closest('[style*=fixed]').remove()" style="background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.28);border-radius:9px;color:#ff3b6b;padding:10px 13px;font-size:12px;cursor:pointer">✕</button>
+        <button onclick="document.getElementById('tickerModal').remove()" style="background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.28);border-radius:9px;color:#ff3b6b;padding:10px 13px;font-size:12px;cursor:pointer">✕</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -909,7 +914,7 @@ function applyTickerConfig(){
   if(!syms.length) return;
   TICKER_CFG = {symbols:syms, labels};
   localStorage.setItem(LS.ticker, JSON.stringify(TICKER_CFG));
-  document.querySelector("[style*='z-index:9999']")?.remove();
+  document.getElementById("tickerModal")?.remove();
   buildTickerHTML();
   loadTicker();
   setTimeout(initTickerScroll, 200);
@@ -936,41 +941,50 @@ const CLOCKS_DATA = [
 ];
 
 function makeClock80s(c){
-  // SVG horloge style années 80 : noir et blanc, épuré, chiffres, sans fioriture
-  let ticks="";
+  // Horloges réalistes style salle de marché : cadran blanc, biseau argenté, Montserrat
+  const ticks=[];
   for(let i=0;i<60;i++){
-    const a=i*6-90, rad=a*Math.PI/180;
-    const isMaj=(i%5===0);
-    const r1=isMaj?30.5:33, r2=36.5, sw=isMaj?2:0.8, col=isMaj?"#ffffff":"rgba(255,255,255,.45)";
-    const x1=44+r1*Math.cos(rad), y1=44+r1*Math.sin(rad);
-    const x2=44+r2*Math.cos(rad), y2=44+r2*Math.sin(rad);
-    ticks+=`<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
+    const a=i*6-90,rad=a*Math.PI/180;
+    const isMaj=(i%5===0),r1=isMaj?31:34,r2=38,sw=isMaj?2.2:0.9,col=isMaj?"#222":"#999";
+    const x1=(44+r1*Math.cos(rad)).toFixed(2),y1=(44+r1*Math.sin(rad)).toFixed(2);
+    const x2=(44+r2*Math.cos(rad)).toFixed(2),y2=(44+r2*Math.sin(rad)).toFixed(2);
+    ticks.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`);
   }
-  let nums="";
   const labels=["12","1","2","3","4","5","6","7","8","9","10","11"];
-  for(let i=0;i<12;i++){
-    const a=i*30-90, rad=a*Math.PI/180, r=24.5;
-    const x=44+r*Math.cos(rad), y=44+r*Math.sin(rad);
-    nums+=`<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="6.2" font-weight="800" fill="white">${labels[i]}</text>`;
-  }
-  return `<div class="clock-card" id="clock-${c.id}">
+  const nums=labels.map((label,i)=>{
+    const a=(i*30-90)*Math.PI/180,r=27.5;
+    const x=(44+r*Math.cos(a)).toFixed(2),y=(44+r*Math.sin(a)).toFixed(2);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="Montserrat,sans-serif" font-size="7" font-weight="600" fill="#111">${label}</text>`;
+  });
+  const id=c.id;
+  const svg=`<svg id="svgclock-${id}" width="90" height="90" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="bz-${id}" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#e8e8e8"/><stop offset="45%" stop-color="#c0c0c0"/><stop offset="100%" stop-color="#888"/></radialGradient>
+      <radialGradient id="fc-${id}" cx="38%" cy="32%" r="65%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f0f0f0"/></radialGradient>
+      <radialGradient id="gl-${id}" cx="35%" cy="28%" r="55%"><stop offset="0%" stop-color="rgba(255,255,255,.5)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient>
+      <filter id="sh-${id}"><feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="rgba(0,0,0,.32)"/></filter>
+    </defs>
+    <circle cx="44" cy="45.5" r="42" fill="rgba(0,0,0,.2)" filter="url(#sh-${id})"/>
+    <circle cx="44" cy="44" r="43" fill="url(#bz-${id})"/>
+    <circle cx="44" cy="44" r="40" fill="#b8b8b8" stroke="#999" stroke-width=".5"/>
+    <circle cx="44" cy="44" r="38.5" fill="url(#fc-${id})"/>
+    <circle cx="44" cy="44" r="38.5" fill="none" stroke="#ddd" stroke-width=".5"/>
+    ${ticks.join("")}
+    ${nums.join("")}
+    <line id="hh-${id}" x1="44" y1="44" x2="44" y2="25" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+    <line id="mm-${id}" x1="44" y1="44" x2="44" y2="14" stroke="#111" stroke-width="2.2" stroke-linecap="round"/>
+    <line id="ss-${id}" x1="44" y1="51" x2="44" y2="11" stroke="#e81010" stroke-width="1" stroke-linecap="round"/>
+    <line id="ssb-${id}" x1="44" y1="44" x2="44" y2="51" stroke="#e81010" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="44" cy="44" r="3.5" fill="#333" stroke="#555" stroke-width=".8"/>
+    <circle cx="44" cy="44" r="1.5" fill="#e81010"/>
+    <ellipse cx="36" cy="30" rx="16" ry="9" fill="url(#gl-${id})" opacity=".65"/>
+  </svg>`;
+  return `<div class="clock-card" id="clock-${id}">
     <span class="clock-city">${c.name}</span>
-    <svg id="svgclock-${c.id}" width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="44" cy="44" r="43" fill="#0c0c0c" stroke="rgba(255,255,255,.15)" stroke-width=".8"/>
-      <circle cx="44" cy="44" r="40" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/>
-      <circle cx="44" cy="44" r="38" fill="#080808"/>
-      ${ticks}
-      ${nums}
-      <line id="hh-${c.id}" x1="44" y1="44" x2="44" y2="23" stroke="white" stroke-width="3.2" stroke-linecap="round"/>
-      <line id="mm-${c.id}" x1="44" y1="44" x2="44" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-      <line id="ss-${c.id}" x1="44" y1="50" x2="44" y2="11" stroke="#ff2d2d" stroke-width="0.95" stroke-linecap="round"/>
-      <line id="ssb-${c.id}" x1="44" y1="44" x2="44" y2="50" stroke="#ff2d2d" stroke-width="2.8" stroke-linecap="round"/>
-      <circle cx="44" cy="44" r="2.8" fill="#1a1a1a" stroke="white" stroke-width="1.2"/>
-      <circle cx="44" cy="44" r="1.2" fill="white"/>
-    </svg>
-    <span class="clock-time-digital" id="ct-${c.id}">--:--:--</span>
-    <span class="clock-status" id="cs-${c.id}">—</span>
-    <span class="clock-count" id="cc-${c.id}"></span>
+    ${svg}
+    <span class="clock-time-digital" id="ct-${id}">--:--:--</span>
+    <span class="clock-status" id="cs-${id}">—</span>
+    <span class="clock-count" id="cc-${id}"></span>
   </div>`;
 }
 
@@ -1064,17 +1078,31 @@ let newsScrollPaused=false, newsScrollInterval=null;
 function toggleNewsScroll(){ newsScrollPaused=!newsScrollPaused; const btn=document.getElementById("newsPauseBtn"); if(btn) btn.textContent=newsScrollPaused?"▶":"⏸"; }
 function startNewsAutoScroll(){ clearInterval(newsScrollInterval); newsScrollInterval=setInterval(()=>{ if(newsScrollPaused) return; const el=document.getElementById("newsList"); if(!el) return; el.scrollTop+=1; if(el.scrollTop+el.clientHeight>=el.scrollHeight-4) el.scrollTop=0; },40); }
 
+// Cache traduction pour éviter requêtes répétées
+const TRANS_CACHE = new Map();
 async function translateToFR(text){
+  if(!text||text.length<5) return text;
+  if(TRANS_CACHE.has(text)) return TRANS_CACHE.get(text);
   try{
-    if(!text||text.length<5) return text;
-    const frWords=/\b(le|la|les|un|une|des|du|au|aux|et|ou|en|dans|sur|avec|pour|par|qui|que|est|sont|ont|très|tout|aussi|après|avant|lors|selon|entre|sans|vers|depuis|pendant)\b/i;
-    if(frWords.test(text)) return text;
-    const r=await fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(text.slice(0,400))+"&langpair=en|fr",{signal:AbortSignal.timeout(4000)});
-    if(!r.ok) return text;
+    const frWords=/\b(le|la|les|un|une|des|du|au|aux|et|ou|en|dans|sur|avec|pour|par|qui|que|est|sont|ont|très|tout|aussi|après|avant|lors|selon|entre|sans|vers|depuis|pendant|lors|cette|nouveau|nouvelles|hausse|baisse|marché|marchés)\b/i;
+    if(frWords.test(text)){ TRANS_CACHE.set(text,text); return text; }
+    const r=await fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(text.slice(0,400))+"&langpair=en|fr",{signal:AbortSignal.timeout(5000)});
+    if(!r.ok){ TRANS_CACHE.set(text,text); return text; }
     const d=await r.json();
     const tr=d?.responseData?.translatedText;
-    return tr&&d?.responseStatus===200?tr:text;
-  }catch{ return text; }
+    const result=(tr&&d?.responseStatus===200)?tr:text;
+    TRANS_CACHE.set(text,result);
+    return result;
+  }catch{ TRANS_CACHE.set(text,text); return text; }
+}
+
+// Traduit un tableau de textes en batch avec pause
+async function translateBatch(texts, onEach){
+  for(let i=0;i<texts.length;i++){
+    const tr=await translateToFR(texts[i]);
+    onEach(i, tr);
+    if(i%4===3) await new Promise(r=>setTimeout(r,200));
+  }
 }
 
 async function loadNewsPanel(){
@@ -1084,15 +1112,20 @@ async function loadNewsPanel(){
     const d=await api("/news");
     const articles=d.articles||[];
     if(!articles.length){ list.innerHTML="<div class='loading'>Aucune news disponible</div>"; return; }
-    list.innerHTML=articles.map((a,i)=>`
-      <div class="news-item" id="ni-${i}" onclick="window.open('${esc(a.link||"")}','_blank')">
+    list.innerHTML=articles.map((a,i)=>{
+      const {dir,prob}=newsDirObj(a.riskScore||0,a.title);
+      const dc=dir==="ACHAT"?"#00ff88":dir==="VENTE"?"#ff3b6b":"#fff200";
+      return `<div class="news-item" id="ni-${i}" onclick="window.open('${esc(a.link||"")}','_blank')">
         <div class="news-item-icon">${newsIcon(a.title)}</div>
         <div class="news-item-body">
           <div class="news-item-title" id="nt-${i}">${esc(a.title||"")}</div>
-          <div class="news-item-time">${esc(a.source||"")} · ${esc(timeAgo(a.pub))}</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+            <span style="font-size:9.5px;color:#6b7a99">${esc(a.source||"")} · ${esc(timeAgo(a.pub))}</span>
+            <span style="font-size:9px;font-weight:800;color:${dc};font-family:'JetBrains Mono',monospace;background:${dc}18;padding:1px 5px;border-radius:4px">${dir} ${prob}%</span>
+          </div>
         </div>
         <div class="news-item-arrow">›</div>
-      </div>`).join("");
+      </div>`;}).join("");
     startNewsAutoScroll();
     for(let i=0;i<Math.min(20,articles.length);i++){
       translateToFR(articles[i].title||"").then(tr=>{
@@ -1102,6 +1135,76 @@ async function loadNewsPanel(){
       if(i%5===4) await new Promise(r=>setTimeout(r,250));
     }
   }catch(e){ list.innerHTML=`<div class='loading'>${esc(e.message)}</div>`; }
+}
+
+// ══════════════════════════════════════════════════
+// DIRECTION HELPER — signal sur chaque info
+// ══════════════════════════════════════════════════
+function getEventDirection(event="", impact="", actual="", consensus="", country=""){
+  const txt=(event+" "+country+" "+actual+" "+consensus).toLowerCase();
+  let score=50, prob=62;
+  // Inflation / CPI / PPI
+  if(txt.includes("cpi")||txt.includes("inflation")||txt.includes("pce")){
+    if(actual&&consensus&&Number(actual)>Number(consensus)){ score=35; prob=71; } // inflation > attente → baissier actions
+    else if(actual&&consensus&&Number(actual)<Number(consensus)){ score=65; prob=68; }
+    else { score=50; prob=58; }
+  }
+  // NFP / emploi
+  if(txt.includes("nfp")||txt.includes("non-farm")||txt.includes("employment")||txt.includes("chomage")||txt.includes("chômage")){
+    if(actual&&consensus&&Number(actual)>Number(consensus)){ score=65; prob=70; }
+    else if(actual&&consensus){ score=38; prob=66; }
+  }
+  // PIB / GDP
+  if(txt.includes("gdp")||txt.includes("pib")||txt.includes("croissance")){
+    if(actual&&consensus&&Number(actual)>Number(consensus)){ score=68; prob=67; }
+    else if(actual&&consensus){ score=35; prob=64; }
+  }
+  // Taux / Fed / BCE
+  if(txt.includes("rate")||txt.includes("taux")||txt.includes("fed")||txt.includes("bce")||txt.includes("ecb")){
+    if(txt.includes("hike")||txt.includes("hausse")||txt.includes("relèvement")){ score=32; prob=72; }
+    else if(txt.includes("cut")||txt.includes("baisse")||txt.includes("réduction")){ score=70; prob=74; }
+    else { score=50; prob=60; }
+  }
+  // PMI / ISM
+  if(txt.includes("pmi")||txt.includes("ism")){
+    if(actual&&Number(actual)>50){ score=65; prob=64; }
+    else if(actual&&Number(actual)<50){ score=35; prob=66; }
+  }
+  // Force du signal
+  if(impact==="fort") prob=Math.min(85,prob+10);
+  else if(impact==="moyen") prob=Math.min(78,prob+4);
+  // Direction
+  let dir="ATTENTE";
+  if(score>=60) dir="ACHAT";
+  else if(score<=40) dir="VENTE";
+  return {dir, prob:Math.round(prob)};
+}
+
+function dirBadge(dir, prob){
+  const c=dir==="ACHAT"?"#00ff88":dir==="VENTE"?"#ff3b6b":"#fff200";
+  const bg=dir==="ACHAT"?"rgba(0,255,136,.13)":dir==="VENTE"?"rgba(255,59,107,.13)":"rgba(255,242,0,.1)";
+  const border=dir==="ACHAT"?"rgba(0,255,136,.3)":dir==="VENTE"?"rgba(255,59,107,.3)":"rgba(255,242,0,.25)";
+  return `<span style="display:inline-flex;align-items:center;gap:4px;background:${bg};border:1px solid ${border};border-radius:5px;padding:2px 7px;font-size:10px;font-weight:800;color:${c};font-family:'JetBrains Mono',monospace;white-space:nowrap">${dir} <span style="opacity:.8">${prob}%</span></span>`;
+}
+
+function newsDirObj(riskScore, title){
+  const txt=(title||"").toLowerCase();
+  let dir="ATTENTE", prob=58;
+  if(riskScore>=65){ dir="VENTE"; prob=70+Math.min(15,Math.round((riskScore-65)/2)); }
+  else if(riskScore<35){ dir="ACHAT"; prob=62+Math.round((35-riskScore)/4); }
+  if(txt.includes("hausse")||txt.includes("rise")||txt.includes("rally")||txt.includes("surge")){ dir="ACHAT"; prob=Math.max(prob,65); }
+  if(txt.includes("baisse")||txt.includes("fall")||txt.includes("drop")||txt.includes("crash")){ dir="VENTE"; prob=Math.max(prob,68); }
+  return {dir, prob:Math.min(88,Math.round(prob))};
+}
+function newsDirBadge(riskScore, title){
+  const txt=(title||"").toLowerCase();
+  let dir="ATTENTE", prob=58;
+  if(riskScore>=65){ dir="VENTE"; prob=70+Math.min(15,Math.round((riskScore-65)/2)); }
+  else if(riskScore>=35){ dir="ATTENTE"; prob=58; }
+  else { dir="ACHAT"; prob=62+Math.round((35-riskScore)/4); }
+  if(txt.includes("hausse")||txt.includes("rise")||txt.includes("rally")||txt.includes("surge")){ dir="ACHAT"; prob=Math.max(prob,65); }
+  if(txt.includes("baisse")||txt.includes("fall")||txt.includes("drop")||txt.includes("crash")||txt.includes("crisis")){ dir="VENTE"; prob=Math.max(prob,68); }
+  return dirBadge(dir, prob);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1263,19 +1366,39 @@ async function loadNewsPage(){
   res.innerHTML="<div class='loading'>Chargement…</div>";
   try{
     const d=await api("/news");
-    res.innerHTML=(d.risk?`<div class="card"><b>Risque mondial : ${esc(d.risk.level||"—")}</b><div class="small" style="margin-top:5px">${esc(d.risk.summary||"")}</div></div>`:"")
-      +(d.articles||[]).map(a=>`<div class="card">
-        <div style="display:flex;gap:7px;align-items:flex-start">
-          <span style="font-size:18px">${newsIcon(a.title)}</span>
-          <div>
-            <b>${esc(a.title)}</b>
-            <div class="small" style="margin-top:3px">${esc(a.source||"")} · ${esc(timeAgo(a.pub))} · risque ${esc(a.riskScore||"—")}</div>
-            ${a.desc?`<p class="small" style="margin-top:5px">${esc(a.desc)}</p>`:""}
-            ${(a.impacted||[]).length?`<div class="small">Impacts : ${esc(a.impacted.join(", "))}</div>`:""}
-            ${a.link?`<a href="${esc(a.link)}" target="_blank" style="font-size:11px;color:#00d4ff;margin-top:3px;display:inline-block">Lire ↗</a>`:""}
+    const articles=d.articles||[];
+    // Affichage immédiat
+    const riskHTML=d.risk?`<div class="card" style="border-color:rgba(255,106,0,.3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <b>Risque mondial : <span style="color:${d.risk.level==='Élevé'?'#ff3b6b':d.risk.level==='Modéré'?'#fff200':'#00ff88'}">${esc(d.risk.level||"—")}</span></b>
+        ${newsDirBadge(d.risk.avgRisk||30,"risque")}
+      </div>
+      <div class="small">${esc(d.risk.summary||"")}</div>
+    </div>`:"";
+    res.innerHTML=riskHTML+articles.map((a,i)=>`<div class="card" id="npc-${i}">
+      <div style="display:flex;gap:7px;align-items:flex-start">
+        <span style="font-size:17px;flex-shrink:0">${newsIcon(a.title)}</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <b style="flex:1;min-width:0;font-size:12.5px" id="npct-${i}">${esc(a.title)}</b>
+            ${newsDirBadge(a.riskScore||0,a.title)}
           </div>
+          <div class="small">${esc(a.source||"")} · ${esc(timeAgo(a.pub))} · Score risque : ${esc(a.riskScore||"—")}</div>
+          ${a.desc?`<p class="small" style="margin-top:4px" id="npcd-${i}">${esc(a.desc)}</p>`:""}
+          ${(a.impacted||[]).length?`<div class="small" style="margin-top:3px">Marchés impactés : ${esc(a.impacted.join(", "))}</div>`:""}
+          ${a.link?`<a href="${esc(a.link)}" target="_blank" style="font-size:11px;color:#00d4ff;margin-top:4px;display:inline-block">Lire l'article ↗</a>`:""}
         </div>
-      </div>`).join("");
+      </div>
+    </div>`).join("");
+    // Traduction progressive
+    translateBatch(articles.map(a=>a.title), (i,tr)=>{
+      const el=document.getElementById("npct-"+i);
+      if(el&&tr) el.textContent=tr;
+    });
+    translateBatch(articles.map(a=>a.desc||""), (i,tr)=>{
+      const el=document.getElementById("npcd-"+i);
+      if(el&&tr&&tr.length>5) el.textContent=tr;
+    });
   }catch(e){ res.innerHTML=`<div class='card'><div class='error'>${esc(e.message)}</div></div>`; }
 }
 
@@ -1531,10 +1654,14 @@ function renderTerminal(d){
         const int=Math.min(1,Math.abs(pv)/2);
         const bg=pv>0?`rgba(0,255,136,${0.05+int*0.13})`:pv<0?`rgba(255,59,107,${0.05+int*0.13})`:"rgba(255,255,255,.03)";
         const brd=pv>0?`rgba(0,255,136,${0.18+int*0.28})`:pv<0?`rgba(255,59,107,${0.18+int*0.28})`:"#1c2d48";
-        return `<div style="background:${bg};border:1px solid ${brd};border-radius:11px;padding:11px 9px;text-align:center">
-          <div style="font-size:10.5px;font-weight:700;color:#e8eefc;margin-bottom:3px">${esc(x.sector)}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:800;color:${pv>0?"#00ff88":pv<0?"#ff3b6b":"#6b7a99"}">${x.changePct!=null?cpct(x.changePct):"—"}</div>
-          <div style="font-size:9.5px;color:#6b7a99;margin-top:2px">${esc(x.conclusion)}</div>
+        const sDir=pv>0.3?"ACHAT":pv<-0.3?"VENTE":"ATTENTE";
+        const sProb=pv>0?Math.min(82,58+Math.round(Math.abs(pv)*8)):pv<0?Math.min(82,58+Math.round(Math.abs(pv)*8)):55;
+        const sDc=sDir==="ACHAT"?"#00ff88":sDir==="VENTE"?"#ff3b6b":"#fff200";
+        return `<div style="background:${bg};border:1px solid ${brd};border-radius:11px;padding:10px 8px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#e8eefc;margin-bottom:3px">${esc(x.sector)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:${pv>0?"#00ff88":pv<0?"#ff3b6b":"#6b7a99"}">${x.changePct!=null?cpct(x.changePct):"—"}</div>
+          <div style="font-size:9px;color:#6b7a99;margin-top:2px">${esc(x.conclusion)}</div>
+          <div style="margin-top:4px;font-size:9.5px;font-weight:800;color:${sDc};font-family:'JetBrains Mono',monospace">${sDir} ${sProb}%</div>
         </div>`;
       }).join("")||"<div class='small'>Données sectorielles non disponibles.</div>"}
     </div>
@@ -1569,10 +1696,15 @@ function renderTerminal(d){
       ${(gn.articles||[]).slice(0,15).map(a=>{
         const sc=Number(a.riskScore||0);
         const c=sc>=65?"#ff3b6b":sc>=35?"#fff200":"#00ff88";
+        const {dir:nd,prob:np}=newsDirObj(sc,a.title);
+        const ndc=nd==="ACHAT"?"#00ff88":nd==="VENTE"?"#ff3b6b":"#fff200";
         return `<div style="background:rgba(255,255,255,.022);border:1px solid #1c2d48;border-left:2.5px solid ${c};border-radius:0 9px 9px 0;padding:7px 11px;cursor:pointer" onclick="window.open('${esc(a.link||"")}','_blank')">
-          <div style="display:flex;justify-content:space-between;gap:7px;margin-bottom:2px">
+          <div style="display:flex;justify-content:space-between;gap:7px;align-items:flex-start;margin-bottom:3px">
             <span style="font-size:10.5px;font-weight:700;color:#e8eefc;flex:1;line-height:1.35">${esc(a.title)}</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;color:${c};flex-shrink:0">${sc}</span>
+            <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;color:${c}">${sc}</span>
+              <span style="font-size:9.5px;font-weight:800;color:${ndc};background:${ndc}18;border-radius:4px;padding:1px 5px;font-family:'JetBrains Mono',monospace">${nd} ${np}%</span>
+            </div>
           </div>
           <div style="font-size:9.5px;color:#6b7a99">${esc(a.source||"")} · ${esc(timeAgo(a.pub))} · ${esc((a.impacted||[]).slice(0,3).join(", ")||"—")}</div>
         </div>`;
@@ -1582,16 +1714,29 @@ function renderTerminal(d){
 
   const ecoSection=`<div class="card" style="margin-bottom:10px">
     <h3>📅 Calendrier économique</h3>
-    <p class="small" style="margin-bottom:7px">Prochains événements macro. 🔴 Fort impact = volatilité attendue. NFP, CPI, décisions Fed/BCE sont les plus importants.</p>
-    ${(eco.items||[]).length?`<div style="display:flex;flex-direction:column;gap:4px">
-      ${(eco.items||[]).slice(0,30).map(e=>{
+    <p class="small" style="margin-bottom:7px">🔴 Fort impact = forte volatilité. Pour chaque événement, la <b>direction suggérée</b> et la probabilité sont calculées à partir de l'écart réel/estimé.</p>
+    ${(eco.items||[]).length?`<div style="display:flex;flex-direction:column;gap:5px">
+      ${(eco.items||[]).slice(0,35).map(e=>{
         const ic=e.impact==="fort"?"#ff3b6b":e.impact==="moyen"?"#fff200":"#6b7a99";
-        return `<div style="background:rgba(255,255,255,.022);border:1px solid #1c2d48;border-radius:9px;padding:7px 11px;display:flex;gap:7px;align-items:center">
-          <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${ic}"></div>
-          <div style="width:76px;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#6b7a99">${esc(e.date)} ${esc(e.time||"")}</div>
-          <div style="font-size:10.5px;font-weight:700;color:#e8eefc;flex:1;line-height:1.3">${esc(e.event)}</div>
-          <div style="font-size:9.5px;color:#6b7a99;flex-shrink:0">${esc(e.country)}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:${e.actual?"#00d4ff":"#6b7a99"};flex-shrink:0">${esc(e.actual||e.consensus||"—")}</div>
+        const dir=e.direction||getEventDirection(e.event,e.impact,e.actual,e.consensus,e.country).dir;
+        const prob=e.probability||getEventDirection(e.event,e.impact,e.actual,e.consensus,e.country).prob;
+        const dc=dir==="ACHAT"?"#00ff88":dir==="VENTE"?"#ff3b6b":"#fff200";
+        const dbg=dir==="ACHAT"?"rgba(0,255,136,.12)":dir==="VENTE"?"rgba(255,59,107,.12)":"rgba(255,242,0,.08)";
+        return `<div style="background:rgba(255,255,255,.022);border:1px solid #1c2d48;border-radius:10px;padding:8px 11px">
+          <div style="display:flex;gap:7px;align-items:center;margin-bottom:4px">
+            <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${ic}"></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b7a99;flex-shrink:0;width:72px">${esc(e.date)} ${esc(e.time||"")}</div>
+            <div style="font-size:10.5px;font-weight:700;color:#e8eefc;flex:1;line-height:1.3">${esc(e.event)}</div>
+            <div style="font-size:9px;color:#6b7a99;flex-shrink:0">${esc(e.country)}</div>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center;margin-left:14px">
+            <div style="display:flex;gap:5px;font-size:9.5px;flex:1">
+              ${e.consensus?`<span style="color:#6b7a99">Estimé: <span style="font-family:'JetBrains Mono',monospace;color:#a8b8d8">${esc(e.consensus)}</span></span>`:""}
+              ${e.actual?`<span style="color:#6b7a99">Réel: <span style="font-family:'JetBrains Mono',monospace;color:#00d4ff;font-weight:700">${esc(e.actual)}</span></span>`:""}
+              ${e.previous?`<span style="color:#6b7a99">Précédent: <span style="font-family:'JetBrains Mono',monospace">${esc(e.previous)}</span></span>`:""}
+            </div>
+            <div style="display:inline-flex;align-items:center;gap:4px;background:${dbg};border:1px solid ${dc}44;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;color:${dc};font-family:'JetBrains Mono',monospace;flex-shrink:0">${dir} ${prob}%</div>
+          </div>
         </div>`;
       }).join("")}
     </div>`:"<div class='small'>Ajoute FINNHUB_API_KEY ou FMP_API_KEY pour le calendrier économique.</div>"}
