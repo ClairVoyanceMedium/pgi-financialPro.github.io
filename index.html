@@ -823,6 +823,7 @@ function showScreen(name){
   if(name==="alertes") loadAlertStatus();
   if(name==="terminal") loadTerminal();
   if(name==="charts" && chartCurrentSymbol) loadChart();
+  if(name==="home") loadOppBand(); // refresh band when returning home
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1210,46 +1211,64 @@ function newsDirBadge(riskScore, title){
 // ═══════════════════════════════════════════════════════════
 // OPPORTUNITIES BAND — Bande défilante signaux intraday
 // ═══════════════════════════════════════════════════════════
-let oppBandLoaded=false;
-async function loadOppBand(){
-  if(oppBandLoaded) return;
+let oppBandLastLoad=0;
+async function loadOppBand(force=false){
+  const now=Date.now();
+  // Refresh max toutes les 5 min (sauf force)
+  if(!force && now - oppBandLastLoad < 300000 && oppBandLastLoad > 0) return;
   const inner=document.getElementById("oppBandInner");
   if(!inner) return;
+  inner.innerHTML='<div class="opp-loading">⚡ Calcul des signaux en cours…</div>';
   try{
-    // Scan rapide des instruments clés pour l'intraday
+    // Récupère d'abord les prix live pour avoir de vraies données
+    const MARKETS = [
+      {s:"EURUSD=X",n:"EUR/USD",c:"Forex"},{s:"GC=F",n:"Or",c:"Commodité"},
+      {s:"CL=F",n:"Pétrole WTI",c:"Commodité"},{s:"NG=F",n:"Gaz Naturel",c:"Commodité"},
+      {s:"BTC-USD",n:"Bitcoin",c:"Crypto"},{s:"ETH-USD",n:"Ethereum",c:"Crypto"},
+      {s:"^NDX",n:"Nasdaq 100",c:"Indice"},{s:"^GSPC",n:"S&P 500",c:"Indice"},
+      {s:"^FCHI",n:"CAC 40",c:"Indice"},{s:"^GDAXI",n:"DAX",c:"Indice"},
+      {s:"SI=F",n:"Argent",c:"Commodité"},{s:"PA=F",n:"Palladium",c:"Commodité"},
+      {s:"HG=F",n:"Cuivre",c:"Commodité"},{s:"USDJPY=X",n:"USD/JPY",c:"Forex"},
+      {s:"GBPUSD=X",n:"GBP/USD",c:"Forex"},{s:"XLM-USD",n:"Stellar",c:"Crypto"},
+      {s:"^VIX",n:"VIX",c:"Indice"},{s:"MC.PA",n:"LVMH",c:"Action"},
+      {s:"CT=F",n:"Coton",c:"Commodité"},{s:"CC=F",n:"Cacao",c:"Commodité"}
+    ];
     const d=await api("/scan",{method:"POST",body:JSON.stringify({
-      markets:[
-        {s:"EURUSD=X",n:"EUR/USD",c:"Forex"},{s:"GC=F",n:"Or",c:"Commodité"},
-        {s:"CL=F",n:"Pétrole WTI",c:"Commodité"},{s:"NG=F",n:"Gaz Naturel",c:"Commodité"},
-        {s:"BTC-USD",n:"Bitcoin",c:"Crypto"},{s:"^NDX",n:"Nasdaq 100",c:"Indice"},
-        {s:"^GSPC",n:"S&P 500",c:"Indice"},{s:"^FCHI",n:"CAC 40",c:"Indice"},
-        {s:"SI=F",n:"Argent",c:"Commodité"},{s:"PA=F",n:"Palladium",c:"Commodité"},
-        {s:"USDJPY=X",n:"USD/JPY",c:"Forex"},{s:"ETH-USD",n:"Ethereum",c:"Crypto"},
-        {s:"GBPUSD=X",n:"GBP/USD",c:"Forex"},{s:"NVDA",n:"Nvidia",c:"Action"},
-        {s:"HG=F",n:"Cuivre",c:"Commodité"}
-      ],
-      limit:12, horizon:"Intraday",
+      markets:MARKETS, limit:15, horizon:"Intraday",
       provider:aiProvider(), apiKey:getAiKey()
     })});
-    const opps=(d.opportunities||[]).filter(o=>o.direction!=="ATTENTE");
-    if(!opps.length){ inner.innerHTML='<div class="opp-loading">Aucun signal intraday fort pour le moment</div>'; return; }
-    oppBandLoaded=true;
-    // Build 2 copies for infinite scroll
-    const html=opps.map(o=>`
-      <div class="opp-item">
+    const opps=(d.opportunities||[]).filter(o=>o.direction!=="ATTENTE")
+      .sort((a,b)=>Number(b.probabilite||0)-Number(a.probabilite||0));
+    
+    if(!opps.length){
+      inner.innerHTML='<div class="opp-loading">Aucun signal intraday fort — marché calme</div>';
+      oppBandLastLoad=now;
+      setTimeout(()=>loadOppBand(true), 180000); // retry 3 min
+      return;
+    }
+    
+    oppBandLastLoad=now;
+    const html=opps.map(o=>{
+      const dir=String(o.direction||"ATTENTE").toUpperCase();
+      return `<div class="opp-item" title="${esc(o.entree?'Entrée: '+o.entree:'')}" onclick="showScreen('scanner')">
         <span class="opp-item-name">${esc(o.display||o.instrument||o.symbol||"—")}</span>
-        <span class="opp-item-dir ${o.direction}">${esc(o.direction)}</span>
+        <span class="opp-item-dir ${dir}">${esc(dir)}</span>
         <span class="opp-item-prob">${esc(o.probabilite||"—")}%</span>
-      </div>`).join("");
-    inner.innerHTML=html+html; // Duplicate for infinite loop
-    // Adjust animation duration based on content width
-    const totalWidth=inner.scrollWidth/2;
-    const duration=Math.max(20, totalWidth/60);
-    inner.style.animation=`oppScroll ${duration}s linear infinite`;
-    // Refresh every 5 minutes
-    setTimeout(()=>{ oppBandLoaded=false; loadOppBand(); }, 300000);
+        ${o.entree?`<span style="font-size:9.5px;color:#6b7a99;font-family:'JetBrains Mono',monospace">${esc(o.entree)}</span>`:""}
+      </div>`;
+    }).join("");
+    inner.style.animation="none"; // reset
+    inner.innerHTML=html+html; // duplicate pour boucle infinie
+    requestAnimationFrame(()=>{
+      const totalWidth=inner.scrollWidth/2;
+      const dur=Math.max(25,Math.round(totalWidth/55));
+      inner.style.animation=`oppScroll ${dur}s linear infinite`;
+    });
+    // Refresh automatique toutes les 5 min
+    setTimeout(()=>loadOppBand(true), 300000);
   }catch(e){
-    inner.innerHTML=`<div class="opp-loading">Signaux non disponibles — ${esc(e.message)}</div>`;
+    inner.innerHTML=`<div class="opp-loading">Signaux : ${esc(e.message)}</div>`;
+    oppBandLastLoad=now;
   }
 }
 
@@ -1555,6 +1574,12 @@ async function loadTerminal(){
     const st=document.getElementById("stTerminal");
     if(st){st.textContent="Terminal OK";st.className="pill ok";}
     res.innerHTML=renderTerminal(d);
+    // Translate news article titles in terminal after render
+    const articles=(d.globalNews?.articles||[]).slice(0,15);
+    translateBatch(articles.map(a=>a.title||""), (i,tr)=>{
+      const el=document.getElementById("tna-"+i);
+      if(el&&tr&&tr.length>5) el.textContent=tr;
+    });
   }catch(e){
     const st=document.getElementById("stTerminal");
     if(st){st.textContent="Terminal erreur";st.className="pill err";}
@@ -1617,14 +1642,24 @@ function renderTerminal(d){
 
   const ratesSection=`<div class="card" style="margin-bottom:10px">
     <h3>🏦 Taux directeurs banques centrales</h3>
-    <p class="small" style="margin-bottom:8px">Les taux directeurs des principales banques centrales. Un taux élevé = politique restrictive = pression sur les marchés actions.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:7px">
-      ${(rates.rates||[]).map(r=>`<div style="background:rgba(255,255,255,.025);border:1px solid #1c2d48;border-radius:9px;padding:9px;text-align:center">
-        <div style="font-size:9px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${esc(r.bank)}</div>
-        <div style="font-size:8.5px;color:#6b7a99;margin-bottom:3px">${esc(r.area)}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:${r.rate!=null?"#00d4ff":"#6b7a99"}">${r.rate!=null?r.rate+"%":"N/A"}</div>
-        ${r.date?`<div style="font-size:8.5px;color:#6b7a99;margin-top:2px">${esc(r.date)}</div>`:""}
-      </div>`).join("")||"<div class='small'>FRED_API_KEY requis pour le taux Fed.</div>"}
+    <p class="small" style="margin-bottom:8px">Taux directeurs live (Fed via FRED) + taux de référence connus pour les autres banques. Un taux élevé = politique restrictive = pression baissière sur les actions.</p>
+    ${rates.note?`<div style="font-size:9.5px;color:#fff200;background:rgba(255,242,0,.06);border:1px solid rgba(255,242,0,.2);border-radius:7px;padding:5px 9px;margin-bottom:8px">${esc(rates.note)}</div>`:""}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:7px">
+      ${(rates.rates||[]).map(r=>{
+        const noteHasHike=r.note&&(r.note.includes("Hausse")||r.note.includes("hausse"));
+        const noteHasCut=r.note&&(r.note.includes("Baisse")||r.note.includes("baisse"));
+        const rateColor=r.rate!=null?(r.rate>=4.5?"#ff3b6b":r.rate>=2?"#fff200":"#00ff88"):"#6b7a99";
+        const trend=noteHasHike?"↑":noteHasCut?"↓":"→";
+        const trendC=noteHasHike?"#ff3b6b":noteHasCut?"#00ff88":"#6b7a99";
+        const isLive=r.source&&r.source.includes("live");
+        return `<div style="background:rgba(255,255,255,.025);border:1px solid ${isLive?"rgba(0,212,255,.25)":"#1c2d48"};border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:9px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${esc(r.bank)}${isLive?` <span style="color:#00d4ff;font-size:7px">LIVE</span>`:""}</div>
+          <div style="font-size:8px;color:#6b7a99;margin-bottom:3px">${esc(r.area)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:${rateColor}">${r.rate!=null?r.rate+"%":"N/A"} <span style="font-size:13px;color:${trendC}">${trend}</span></div>
+          ${r.date?`<div style="font-size:8px;color:#6b7a99;margin-top:2px">${esc(r.date)}</div>`:""}
+          ${r.note?`<div style="font-size:8px;color:#6b7a99;margin-top:2px;line-height:1.3">${esc(r.note)}</div>`:""}
+        </div>`;
+      }).join("")||"<div class='small'>Aucun taux disponible.</div>"}
     </div>
   </div>`;
 
@@ -1693,14 +1728,14 @@ function renderTerminal(d){
     <h3>🌍 Flux géopolitique & macro</h3>
     <p class="small" style="margin-bottom:7px">Articles classés par score de risque (0-100). Score > 65 = impact potentiel fort sur les marchés.</p>
     <div style="display:flex;flex-direction:column;gap:5px">
-      ${(gn.articles||[]).slice(0,15).map(a=>{
+      ${(gn.articles||[]).slice(0,15).map((a,ai)=>{
         const sc=Number(a.riskScore||0);
         const c=sc>=65?"#ff3b6b":sc>=35?"#fff200":"#00ff88";
         const {dir:nd,prob:np}=newsDirObj(sc,a.title);
         const ndc=nd==="ACHAT"?"#00ff88":nd==="VENTE"?"#ff3b6b":"#fff200";
         return `<div style="background:rgba(255,255,255,.022);border:1px solid #1c2d48;border-left:2.5px solid ${c};border-radius:0 9px 9px 0;padding:7px 11px;cursor:pointer" onclick="window.open('${esc(a.link||"")}','_blank')">
           <div style="display:flex;justify-content:space-between;gap:7px;align-items:flex-start;margin-bottom:3px">
-            <span style="font-size:10.5px;font-weight:700;color:#e8eefc;flex:1;line-height:1.35">${esc(a.title)}</span>
+            <span id="tna-${ai}" style="font-size:10.5px;font-weight:700;color:#e8eefc;flex:1;line-height:1.35">${esc(a.title)}</span>
             <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
               <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;color:${c}">${sc}</span>
               <span style="font-size:9.5px;font-weight:800;color:${ndc};background:${ndc}18;border-radius:4px;padding:1px 5px;font-family:'JetBrains Mono',monospace">${nd} ${np}%</span>
@@ -1713,9 +1748,40 @@ function renderTerminal(d){
   </div>`;
 
   const ecoSection=`<div class="card" style="margin-bottom:10px">
-    <h3>📅 Calendrier économique</h3>
-    <p class="small" style="margin-bottom:7px">🔴 Fort impact = forte volatilité. Pour chaque événement, la <b>direction suggérée</b> et la probabilité sont calculées à partir de l'écart réel/estimé.</p>
-    ${(eco.items||[]).length?`<div style="display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+      <h3 style="margin-bottom:0">📅 Calendrier économique</h3>
+      <div style="display:flex;gap:5px;flex-wrap:wrap" id="calFilters">
+        <select id="calImpact" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
+          <option value="all">Tous impacts</option>
+          <option value="fort">🔴 Fort</option>
+          <option value="moyen">🟡 Moyen</option>
+          <option value="faible">🟢 Faible</option>
+        </select>
+        <select id="calPeriod" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
+          <option value="all">Toutes dates</option>
+          <option value="today">Aujourd'hui</option>
+          <option value="week">Cette semaine</option>
+          <option value="next">Semaine prochaine</option>
+        </select>
+        <select id="calCountry" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
+          <option value="all">Tous pays</option>
+          <option value="US">🇺🇸 USA</option>
+          <option value="EU">🇪🇺 Zone Euro</option>
+          <option value="GB">🇬🇧 UK</option>
+          <option value="JP">🇯🇵 Japon</option>
+          <option value="FR">🇫🇷 France</option>
+          <option value="DE">🇩🇪 Allemagne</option>
+        </select>
+        <select id="calDir" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
+          <option value="all">Toutes directions</option>
+          <option value="ACHAT">✅ ACHAT</option>
+          <option value="VENTE">🔴 VENTE</option>
+          <option value="ATTENTE">🟡 ATTENTE</option>
+        </select>
+      </div>
+    </div>
+    <p class="small" style="margin-bottom:7px">🔴 Fort impact = forte volatilité. Direction calculée automatiquement réel vs estimé.</p>
+    ${(eco.items||[]).length?`<div style="display:flex;flex-direction:column;gap:5px" id="calList" data-items="${esc(JSON.stringify((eco.items||[]).slice(0,60)))}">
       ${(eco.items||[]).slice(0,35).map(e=>{
         const ic=e.impact==="fort"?"#ff3b6b":e.impact==="moyen"?"#fff200":"#6b7a99";
         const dir=e.direction||getEventDirection(e.event,e.impact,e.actual,e.consensus,e.country).dir;
@@ -1759,7 +1825,65 @@ function renderTerminal(d){
     </div>`:"<div class='small'>Ajoute FINNHUB_API_KEY ou FMP_API_KEY pour les résultats d'entreprises.</div>"}
   </div>`;
 
+  // Store calendar items globally for filters
+  if(eco.items?.length) _calItems = eco.items.slice(0,60);
   return kpiSection+themesSection+ratesSection+yieldSection+heatSection+corrSection+newsSection+ecoSection+earnSection;
+}
+
+// ══════════════════════════════════════════════════
+// CALENDAR FILTER
+// ══════════════════════════════════════════════════
+let _calItems = [];
+function filterCalendar(){
+  const calList=document.getElementById("calList");
+  if(!calList) return;
+  // Try to load items from data attribute if not cached
+  if(!_calItems.length){
+    try{ _calItems=JSON.parse(calList.dataset.items||"[]"); }catch{ return; }
+  }
+  const impact=document.getElementById("calImpact")?.value||"all";
+  const period=document.getElementById("calPeriod")?.value||"all";
+  const country=document.getElementById("calCountry")?.value||"all";
+  const dir=document.getElementById("calDir")?.value||"all";
+  const now=new Date();
+  const today=now.toISOString().slice(0,10);
+  const weekEnd=new Date(now.getTime()+7*86400000).toISOString().slice(0,10);
+  const nextWeekStart=new Date(now.getTime()+7*86400000).toISOString().slice(0,10);
+  const nextWeekEnd=new Date(now.getTime()+14*86400000).toISOString().slice(0,10);
+  const filtered=_calItems.filter(e=>{
+    if(impact!=="all" && e.impact!==impact) return false;
+    if(period==="today" && e.date!==today) return false;
+    if(period==="week" && (e.date<today||e.date>weekEnd)) return false;
+    if(period==="next" && (e.date<nextWeekStart||e.date>nextWeekEnd)) return false;
+    if(country!=="all" && !(e.country||"").toUpperCase().includes(country)) return false;
+    const eDir=e.direction||getEventDirection(e.event,e.impact,e.actual,e.consensus,e.country).dir;
+    if(dir!=="all" && eDir!==dir) return false;
+    return true;
+  });
+  // Re-render filtered items
+  calList.innerHTML=filtered.length?filtered.slice(0,40).map(e=>{
+    const ic=e.impact==="fort"?"#ff3b6b":e.impact==="moyen"?"#fff200":"#6b7a99";
+    const eDir=e.direction||getEventDirection(e.event,e.impact,e.actual,e.consensus,e.country).dir;
+    const eProb=e.probability||getEventDirection(e.event,e.impact,e.actual,e.consensus,e.country).prob;
+    const dc=eDir==="ACHAT"?"#00ff88":eDir==="VENTE"?"#ff3b6b":"#fff200";
+    const dbg=eDir==="ACHAT"?"rgba(0,255,136,.12)":eDir==="VENTE"?"rgba(255,59,107,.12)":"rgba(255,242,0,.08)";
+    return `<div style="background:rgba(255,255,255,.022);border:1px solid #1c2d48;border-radius:10px;padding:8px 11px">
+      <div style="display:flex;gap:7px;align-items:center;margin-bottom:4px">
+        <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${ic}"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b7a99;flex-shrink:0;width:72px">${esc(e.date)} ${esc(e.time||"")}</div>
+        <div style="font-size:10.5px;font-weight:700;color:#e8eefc;flex:1">${esc(e.event)}</div>
+        <div style="font-size:9px;color:#6b7a99;flex-shrink:0">${esc(e.country)}</div>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center;margin-left:14px">
+        <div style="display:flex;gap:5px;font-size:9.5px;flex:1;flex-wrap:wrap">
+          ${e.consensus?`<span style="color:#6b7a99">Estimé: <span style="font-family:'JetBrains Mono',monospace;color:#a8b8d8">${esc(e.consensus)}</span></span>`:""}
+          ${e.actual?`<span style="color:#6b7a99">Réel: <span style="font-family:'JetBrains Mono',monospace;color:#00d4ff;font-weight:700">${esc(e.actual)}</span></span>`:""}
+          ${e.previous?`<span style="color:#6b7a99">Préc: <span style="font-family:'JetBrains Mono',monospace">${esc(e.previous)}</span></span>`:""}
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:4px;background:${dbg};border:1px solid ${dc}44;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;color:${dc};font-family:'JetBrains Mono',monospace;flex-shrink:0">${eDir} ${eProb}%</div>
+      </div>
+    </div>`;
+  }).join(""):`<div class="small" style="padding:10px 0">Aucun événement pour ces filtres.</div>`;
 }
 
 // ═══════════════════════════════════════════════════════════
