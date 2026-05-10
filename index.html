@@ -52,6 +52,27 @@ a{color:#00d4ff;text-decoration:none}
 }
 .app-title .dot{color:#00d4ff}
 .app-subtitle{font-size:9px;color:#6b7a99;letter-spacing:3px;margin-top:5px;text-transform:uppercase;font-weight:600}
+.api-status-bar{
+  display:flex;flex-wrap:wrap;gap:5px;justify-content:center;
+  padding:6px 16px 0;
+}
+.api-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:8.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  padding:3px 8px;border-radius:12px;border:1px solid;
+  font-family:'Montserrat',sans-serif;transition:.3s;cursor:default;
+}
+.api-pill.ok{
+  color:#00ff88;border-color:rgba(0,255,136,.5);background:rgba(0,255,136,.06);
+  box-shadow:0 0 6px rgba(0,255,136,.28),0 0 14px rgba(0,255,136,.1);
+}
+.api-pill.err{
+  color:#ff3b6b;border-color:rgba(255,59,107,.45);background:rgba(255,59,107,.05);
+  box-shadow:0 0 6px rgba(255,59,107,.25),0 0 12px rgba(255,59,107,.08);
+}
+.api-pill.wait{color:#6b7a99;border-color:#1c2d48;background:transparent}
+.api-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;
+  background:currentColor;box-shadow:0 0 4px currentColor;}
 
 /* ═══════════════════════════════════════
    TICKER BAR
@@ -128,15 +149,23 @@ a{color:#00d4ff;text-decoration:none}
 ═══════════════════════════════════════ */
 .opp-band-wrap{
   margin:8px 10px 6px;
-  background:rgba(4,8,18,.95);
-  border:1px solid #1c2d48;border-radius:10px;
-  overflow:hidden;height:38px;display:flex;align-items:center;position:relative;
+  background:rgba(4,8,18,.97);
+  border:2px solid #00ff88;
+  border-radius:10px;
+  overflow:hidden;height:40px;display:flex;align-items:center;position:relative;
+  box-shadow:0 0 8px rgba(0,255,136,.35),0 0 22px rgba(0,255,136,.15),0 0 40px rgba(0,255,136,.07);
+  animation:oppNeon 3s ease-in-out infinite;
+}
+@keyframes oppNeon{
+  0%,100%{box-shadow:0 0 8px rgba(0,255,136,.35),0 0 22px rgba(0,255,136,.15),0 0 40px rgba(0,255,136,.07);}
+  50%{box-shadow:0 0 12px rgba(0,255,136,.6),0 0 32px rgba(0,255,136,.28),0 0 60px rgba(0,255,136,.12);}
 }
 .opp-band-label{
-  flex-shrink:0;padding:0 10px;
+  flex-shrink:0;padding:0 12px;
   font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-  color:#00d4ff;border-right:1px solid #1c2d48;height:100%;display:flex;align-items:center;
-  white-space:nowrap;background:rgba(0,212,255,.06);
+  color:#00ff88;border-right:1.5px solid rgba(0,255,136,.3);height:100%;display:flex;align-items:center;
+  white-space:nowrap;background:rgba(0,255,136,.08);
+  text-shadow:0 0 8px rgba(0,255,136,.7);
 }
 .opp-band-track{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}
 .opp-band-inner{
@@ -349,6 +378,13 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
 .terminal-kpi-v{font-family:'JetBrains Mono',monospace;font-size:19px;margin-top:4px;font-weight:700}
 .terminal-kpi-sub{font-size:9.5px;color:#6b7a99;margin-top:2px;line-height:1.35}
 
+.cal-date-btn{
+  background:rgba(255,255,255,.04);border:1px solid #1c2d48;border-radius:8px;
+  color:#6b7a99;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;
+  transition:.14s;font-family:'Montserrat',sans-serif;white-space:nowrap;
+}
+.cal-date-btn:hover{border-color:#00d4ff;color:#00d4ff}
+.cal-date-btn.active{background:rgba(0,212,255,.13);border-color:#00d4ff;color:#00d4ff}
 @media(min-width:600px){body{display:flex;justify-content:center}#app{max-width:420px;width:100%;min-height:100vh}}
 </style>
 </head>
@@ -362,6 +398,14 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
   <header class="app-header">
     <h1 class="app-title">PGI <span class="dot">•</span> Financial Pro</h1>
     <p class="app-subtitle">Places de Marchés · Macroéconomie · Actualités Mondiales</p>
+    <div class="api-status-bar" id="apiStatusBar">
+      <span class="api-pill wait" id="apis-worker"><span class="api-dot"></span>Worker</span>
+      <span class="api-pill wait" id="apis-market"><span class="api-dot"></span>Marchés</span>
+      <span class="api-pill wait" id="apis-news"><span class="api-dot"></span>News</span>
+      <span class="api-pill wait" id="apis-ai"><span class="api-dot"></span>IA</span>
+      <span class="api-pill wait" id="apis-email"><span class="api-dot"></span>Alertes</span>
+      <span class="api-pill wait" id="apis-terminal"><span class="api-dot"></span>Terminal</span>
+    </div>
   </header>
 
   <!-- TICKER -->
@@ -754,9 +798,16 @@ argent</textarea>
     <button class="back-btn" onclick="showScreen('home')">‹ Accueil</button>
     <span class="section-screen-title" style="color:#ff6a00">📺 Bloomberg Terminal</span>
   </div>
-  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-    <button class="btn btn-orange btn-block" onclick="loadTerminal()" style="flex:1;min-width:120px">🔄 Rafraîchir</button>
-    <button class="btn" style="--btn-neon:#ff6a00;flex:1;min-width:120px" onclick="loadTerminalAISummary()">🤖 Résumé IA</button>
+  <!-- Terminal Quick Nav -->
+  <div style="display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">
+    <button class="tf-btn" onclick="loadTerminal()" style="white-space:nowrap">🔄 Tout rafraîchir</button>
+    <button class="tf-btn" onclick="loadTerminalAISummary()" style="white-space:nowrap">🤖 Résumé IA</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-rates')" style="white-space:nowrap">🏦 Taux</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-yield')" style="white-space:nowrap">📈 Courbe</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-heat')" style="white-space:nowrap">🌡 Secteurs</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-cal')" style="white-space:nowrap">📅 Calendrier</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-news')" style="white-space:nowrap">🌍 News</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-earn')" style="white-space:nowrap">🏢 Résultats</button>
   </div>
   <div id="terminalContent"></div>
 </div>
@@ -776,9 +827,9 @@ const LS = {
 const DEFAULT_WORKER = "https://pgi-financial-pro.clairvoyance1998.workers.dev";
 const DEFAULT_SUGGESTIONS = [
   "Analyse EUR/USD maintenant",
-  "Faut-il acheter l'or aujourd'hui ?",
+  "Faut-il acheter du palladium aujourd'hui ?",
   "Quels marchés surveiller cette semaine ?",
-  "Analyse le Nasdaq avec le contexte macro",
+  "Analyse le pétrole WTI",
   "Analyse gaz naturel",
   "Analyse palladium",
   "Analyse argent",
@@ -787,8 +838,8 @@ const DEFAULT_SUGGESTIONS = [
   "Faut-il acheter USD/JPY aujourd'hui ?"
 ];
 const TICKER_DEFAULT = {
-  symbols:["^FCHI","^GDAXI","^NDX","^GSPC","EURUSD=X","GC=F","CL=F","NG=F","BTC-USD","ETH-USD","SI=F","USDJPY=X"],
-  labels: ["CAC 40","DAX","NASDAQ","S&P 500","EUR/USD","OR","PÉTROLE","GAZ","BTC/USD","ETH/USD","ARGENT","USD/JPY"]
+  symbols:["NG=F","BZ=F","CL=F","USDJPY=X","EURUSD=X","PA=F","SI=F","XLM-USD","BTC-USD","NVDA","CC=F","ZW=F","ZC=F"],
+  labels: ["GAZ NATUREL","PÉTROLE BRENT","PÉTROLE WTI","USD/JPY","EUR/USD","PALLADIUM","ARGENT","STELLAR","BITCOIN","NVIDIA","CACAO","BLÉ","MAÏS"]
 };
 
 function W(){ return (localStorage.getItem(LS.worker)||DEFAULT_WORKER).replace(/\/+$/,""); }
@@ -823,7 +874,10 @@ function showScreen(name){
   if(name==="alertes") loadAlertStatus();
   if(name==="terminal") loadTerminal();
   if(name==="charts" && chartCurrentSymbol) loadChart();
-  if(name==="home") loadOppBand(); // refresh band when returning home
+  if(name==="home"){ 
+    // Refresh only if stale (> 5min since last load)
+    if(Date.now()-oppBandLastLoad>300000) loadOppBand(true);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -839,34 +893,80 @@ function buildTickerHTML(){
   const scroll = document.getElementById("tickerScroll");
   if(!scroll) return;
   scroll.innerHTML = TICKER_CFG.symbols.map((sym,i)=>`
-    <div class="ticker-item">
+    <div class="ticker-item" style="min-width:90px;padding:6px 12px;cursor:pointer" onclick="document.getElementById('chartSymbolInput').value='${sym}';showScreen('charts');loadChart()">
       <span class="ticker-label">${esc(TICKER_CFG.labels[i]||sym)}</span>
       <span class="ticker-price" id="tk-p-${i}">—</span>
-      <span class="ticker-change" id="tk-c-${i}">—</span>
+      <div style="display:flex;align-items:center;gap:5px;justify-content:center">
+        <span class="ticker-change" id="tk-c-${i}">—</span>
+        <span class="ticker-dir" id="tk-d-${i}" style="font-size:8.5px;font-weight:800;font-family:'Montserrat',sans-serif;letter-spacing:.3px"></span>
+      </div>
     </div>`).join("");
 }
 
+const _tickerLastValues = {};
+
 async function loadTicker(){
   try{
-    const d = await api("/ticker?symbols="+encodeURIComponent(TICKER_CFG.symbols.join(",")));
-    const quotes = d.quotes||[];
+    const syms = TICKER_CFG.symbols.join(",");
+    const ts = Math.floor(Date.now()/60000);
+    let quotes = [];
+    try{
+      const d = await api("/ticker?symbols="+encodeURIComponent(syms)+"&_t="+ts);
+      quotes = d.quotes||[];
+    }catch(e1){
+      try{
+        const d2 = await api("/market-data?symbols="+encodeURIComponent(syms));
+        quotes = (d2.quotes||[]).map(q=>({
+          symbol:q.symbol, price:q.regularMarketPrice,
+          changePct:q.regularMarketChangePercent
+        }));
+      }catch(e2){ console.warn("Ticker fallback:", e2.message); }
+    }
+    if(!quotes.length) return;
     const map = new Map(quotes.map(q=>[q.symbol,q]));
     TICKER_CFG.symbols.forEach((sym,i)=>{
       const q = map.get(sym);
       const pEl = document.getElementById("tk-p-"+i);
       const cEl = document.getElementById("tk-c-"+i);
+      const dEl = document.getElementById("tk-d-"+i);
       if(!pEl) return;
       if(!q||q.price==null){ pEl.style.opacity=".3"; return; }
+      const lastVal = _tickerLastValues[sym];
+      const isSame = lastVal && Math.abs(lastVal - q.price) < 0.0001;
+      _tickerLastValues[sym] = q.price;
       pEl.style.opacity="1";
       pEl.textContent = money(q.price);
+      if(!isSame && lastVal){ pEl.style.color="#fff200"; setTimeout(()=>{ pEl.style.color=""; },800); }
       if(cEl){
         const up = Number(q.changePct)>=0;
-        const flat = Math.abs(Number(q.changePct))<0.001;
+        const flat = Math.abs(Number(q.changePct||0))<0.001;
         cEl.textContent = (up&&!flat?"▲ ":"▼ ")+cpct(q.changePct);
         cEl.className = "ticker-change "+(flat?"flat":up?"up":"down");
       }
+      if(dEl){
+        const pct = Number(q.changePct||0);
+        let dir="ATTENTE", dc="#fff200";
+        if(pct>0.3){ dir="ACHAT"; dc="#00ff88"; }
+        else if(pct<-0.3){ dir="VENTE"; dc="#ff3b6b"; }
+        dEl.textContent=dir;
+        dEl.style.color=dc;
+        dEl.style.textShadow="0 0 6px "+dc;
+      }
     });
+    rebuildTickerClones();
   }catch(e){ console.warn("Ticker:", e.message); }
+}
+
+function rebuildTickerClones(){
+  const scroll = document.getElementById("tickerScroll");
+  if(!scroll) return;
+  scroll.querySelectorAll(".ticker-item.clone").forEach(el=>el.remove());
+  scroll.querySelectorAll(".ticker-item:not(.clone)").forEach(item=>{
+    const clone = item.cloneNode(true);
+    clone.classList.add("clone");
+    clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+    scroll.appendChild(clone);
+  });
 }
 
 function initTickerScroll(){
@@ -880,6 +980,36 @@ function initTickerScroll(){
     clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
     ticker.appendChild(clone);
   });
+}
+
+let _tickerScrollPaused = false;
+let _tickerScrollPos = 0;
+let _tickerRAF = null;
+
+function startTickerScroll(){
+  const ticker = document.getElementById("tickerScroll");
+  if(!ticker) return;
+  if(_tickerRAF) cancelAnimationFrame(_tickerRAF);
+  
+  // Event listeners (once only)
+  if(!ticker._scrollEventsAdded){
+    ticker._scrollEventsAdded = true;
+    ticker.addEventListener("mouseenter",()=>_tickerScrollPaused=true);
+    ticker.addEventListener("mouseleave",()=>_tickerScrollPaused=false);
+    ticker.addEventListener("touchstart",()=>_tickerScrollPaused=true,{passive:true});
+    ticker.addEventListener("touchend",()=>setTimeout(()=>_tickerScrollPaused=false,2500),{passive:true});
+  }
+  
+  function step(){
+    if(!_tickerScrollPaused){
+      _tickerScrollPos += 0.5;
+      const half = ticker.scrollWidth / 2;
+      if(half > 0 && _tickerScrollPos >= half) _tickerScrollPos = 0;
+      ticker.scrollLeft = _tickerScrollPos;
+    }
+    _tickerRAF = requestAnimationFrame(step);
+  }
+  step();
 }
 
 function showTickerConfig(){
@@ -1275,16 +1405,49 @@ async function loadOppBand(force=false){
 // ═══════════════════════════════════════════════════════════
 // HEALTH CHECK
 // ═══════════════════════════════════════════════════════════
+function setApiPill(id, status, label){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.className="api-pill "+(status==="ok"?"ok":status==="err"?"err":"wait");
+  el.innerHTML=`<span class="api-dot"></span>${label}`;
+}
+
 async function health(){
   const sw=document.getElementById("stWorker");
   const sm=document.getElementById("stMarket");
   try{
-    await api("/health");
+    const h = await api("/health");
     if(sw){sw.textContent="Worker OK";sw.className="pill ok";}
-    if(sm){sm.textContent="Market Data OK";sm.className="pill ok";}
+    setApiPill("apis-worker","ok","Worker ✓");
+    // Check providers
+    try{
+      const ps = await api("/providers/status");
+      const cfg = ps.configured||{};
+      const hasMarket = cfg.TWELVE_DATA_API_KEY||cfg.POLYGON_API_KEY||cfg.EODHD_API_KEY;
+      const hasNews   = cfg.NEWSAPI_KEY||cfg.GNEWS_API_KEY||cfg.MEDIASTACK_API_KEY;
+      const hasAI     = cfg.GROQ_API_KEY||cfg.OPENAI_API_KEY||cfg.MISTRAL_API_KEY;
+      const hasEmail  = cfg.RESEND_API_KEY;
+      const hasFred   = cfg.FRED_API_KEY||cfg.FINNHUB_API_KEY;
+      if(sm){sm.textContent=hasMarket?"Market Data OK":"Market Data";sm.className="pill "+(hasMarket?"ok":"warn");}
+      setApiPill("apis-market", hasMarket?"ok":"err", hasMarket?"Marchés ✓":"Marchés ✗");
+      setApiPill("apis-news",   hasNews?"ok":"err",   hasNews?"News ✓":"News ✗");
+      setApiPill("apis-ai",     hasAI?"ok":"err",     hasAI?"IA ✓":"IA ✗");
+      setApiPill("apis-email",  hasEmail?"ok":"err",  hasEmail?"Alertes ✓":"Alertes ✗");
+      setApiPill("apis-terminal",hasFred?"ok":"err",  hasFred?"Terminal ✓":"Terminal ✗");
+    }catch{
+      setApiPill("apis-market","err","Marchés ?");
+      setApiPill("apis-news","err","News ?");
+      setApiPill("apis-ai","err","IA ?");
+    }
   }catch(e){
     if(sw){sw.textContent="Worker hors ligne";sw.className="pill err";}
-    if(sm){sm.textContent="Market Data";sm.className="pill warn";}
+    if(sm){sw.textContent="Market Data";sm.className="pill warn";}
+    setApiPill("apis-worker","err","Worker ✗");
+    setApiPill("apis-market","err","Marchés ✗");
+    setApiPill("apis-news","err","News ✗");
+    setApiPill("apis-ai","err","IA ✗");
+    setApiPill("apis-email","err","Alertes ✗");
+    setApiPill("apis-terminal","err","Terminal ✗");
   }
 }
 
@@ -1552,7 +1715,7 @@ function renderSuggestions(){
   const homeChips=document.getElementById("quickChipsHome");
   if(homeChips){
     homeChips.innerHTML=list.slice(0,5).map((s,i)=>`
-      <button class="chip${i===4?" chip-full":""}" onclick="document.getElementById('chatInputHome').value=${JSON.stringify(s)};document.getElementById('chatInputHome').focus()">
+      <button class="chip${i===4?" chip-full":""}" onclick="(function(){const inp=document.getElementById('chatInputHome');if(inp){inp.value=${JSON.stringify(s)};inp.focus();inp.dispatchEvent(new Event('input'));}})()">
         <span>${esc(s)}</span><span class="chip-arrow">›</span>
       </button>`).join("");
   }
@@ -1565,6 +1728,12 @@ function renderSuggestions(){
 // ═══════════════════════════════════════════════════════════
 // BLOOMBERG TERMINAL — Rendu amélioré
 // ═══════════════════════════════════════════════════════════
+function scrollTerminalTo(id){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  else if(!document.getElementById("terminalContent")?.children.length) loadTerminal();
+}
+
 async function loadTerminal(){
   const res=document.getElementById("terminalContent");
   if(!res) return;
@@ -1640,7 +1809,7 @@ function renderTerminal(d){
     </div>
   </div>`:"";
 
-  const ratesSection=`<div class="card" style="margin-bottom:10px">
+  const ratesSection=`<div class="card" style="margin-bottom:10px" id="sec-rates">
     <h3>🏦 Taux directeurs banques centrales</h3>
     <p class="small" style="margin-bottom:8px">Taux directeurs live (Fed via FRED) + taux de référence connus pour les autres banques. Un taux élevé = politique restrictive = pression baissière sur les actions.</p>
     ${rates.note?`<div style="font-size:9.5px;color:#fff200;background:rgba(255,242,0,.06);border:1px solid rgba(255,242,0,.2);border-radius:7px;padding:5px 9px;margin-bottom:8px">${esc(rates.note)}</div>`:""}
@@ -1663,7 +1832,7 @@ function renderTerminal(d){
     </div>
   </div>`;
 
-  const yieldSection=`<div class="card" style="margin-bottom:10px">
+  const yieldSection=`<div class="card" style="margin-bottom:10px" id="sec-yield">
     <h3>📈 Courbe des taux US (Treasury)</h3>
     <p class="small" style="margin-bottom:9px">La courbe des taux montre le rendement des obligations US selon leur maturité. Une courbe <b style="color:#ff3b6b">inversée</b> (taux court > taux long) est un signal historique de récession.</p>
     ${yc.points?.length?`<div>${(yc.points||[]).map(p=>{
@@ -1680,7 +1849,7 @@ function renderTerminal(d){
     </div>`:"<div class='small'>Ajoute FRED_API_KEY pour la courbe des taux US.</div>"}
   </div>`;
 
-  const heatSection=`<div class="card" style="margin-bottom:10px">
+  const heatSection=`<div class="card" style="margin-bottom:10px" id="sec-heat">
     <h3>🌡 Heatmap sectorielle</h3>
     <p class="small" style="margin-bottom:8px">Performance des grands secteurs boursiers. Vert = secteur en hausse, rouge = en baisse. Intensité proportionnelle à la variation.</p>
     <div class="heat-grid">
@@ -1724,7 +1893,7 @@ function renderTerminal(d){
     </div>
   </div>`;
 
-  const newsSection=`<div class="card" style="margin-bottom:10px">
+  const newsSection=`<div class="card" style="margin-bottom:10px" id="sec-news">
     <h3>🌍 Flux géopolitique & macro</h3>
     <p class="small" style="margin-bottom:7px">Articles classés par score de risque (0-100). Score > 65 = impact potentiel fort sur les marchés.</p>
     <div style="display:flex;flex-direction:column;gap:5px">
@@ -1748,39 +1917,54 @@ function renderTerminal(d){
   </div>`;
 
   const ecoSection=`<div class="card" style="margin-bottom:10px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
-      <h3 style="margin-bottom:0">📅 Calendrier économique</h3>
-      <div style="display:flex;gap:5px;flex-wrap:wrap" id="calFilters">
-        <select id="calImpact" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
+    <div style="margin-bottom:10px" id="sec-cal">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+        <h3 style="margin-bottom:0">📅 Calendrier économique</h3>
+        <div style="display:flex;gap:5px;align-items:center">
+          <span style="font-size:9px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Résultats :</span>
+          <span id="calCount" style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#00d4ff">—</span>
+        </div>
+      </div>
+      <!-- DATE PICKER RAPIDE -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="calDateBtns">
+        <button onclick="setCalDate('all')" id="cbd-all" class="cal-date-btn active">📅 Tout</button>
+        <button onclick="setCalDate('today')" id="cbd-today" class="cal-date-btn">Aujourd'hui</button>
+        <button onclick="setCalDate('tomorrow')" id="cbd-tomorrow" class="cal-date-btn">Demain</button>
+        <button onclick="setCalDate('week')" id="cbd-week" class="cal-date-btn">Cette semaine</button>
+        <button onclick="setCalDate('next')" id="cbd-next" class="cal-date-btn">Sem. prochaine</button>
+        <input type="date" id="calDatePicker" onchange="setCalDate('custom',this.value)"
+          style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:3px 8px;font-size:11px;font-family:Montserrat,sans-serif;cursor:pointer"
+          title="Choisir une date spécifique">
+      </div>
+      <!-- FILTRES AVANCÉS -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <select id="calImpact" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif;flex:1;min-width:90px">
           <option value="all">Tous impacts</option>
-          <option value="fort">🔴 Fort</option>
-          <option value="moyen">🟡 Moyen</option>
-          <option value="faible">🟢 Faible</option>
+          <option value="fort">🔴 Fort uniquement</option>
+          <option value="moyen">🟡 Moyen+</option>
+          <option value="faible">🟢 Tous niveaux</option>
         </select>
-        <select id="calPeriod" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
-          <option value="all">Toutes dates</option>
-          <option value="today">Aujourd'hui</option>
-          <option value="week">Cette semaine</option>
-          <option value="next">Semaine prochaine</option>
-        </select>
-        <select id="calCountry" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
-          <option value="all">Tous pays</option>
+        <select id="calCountry" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif;flex:1;min-width:90px">
+          <option value="all">🌍 Tous pays</option>
           <option value="US">🇺🇸 USA</option>
           <option value="EU">🇪🇺 Zone Euro</option>
           <option value="GB">🇬🇧 UK</option>
           <option value="JP">🇯🇵 Japon</option>
           <option value="FR">🇫🇷 France</option>
           <option value="DE">🇩🇪 Allemagne</option>
+          <option value="CN">🇨🇳 Chine</option>
+          <option value="CA">🇨🇦 Canada</option>
+          <option value="AU">🇦🇺 Australie</option>
         </select>
-        <select id="calDir" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif">
+        <select id="calDir" onchange="filterCalendar()" style="background:#0a1020;color:#e8eefc;border:1px solid #1c2d48;border-radius:8px;padding:4px 8px;font-size:11px;font-family:Montserrat,sans-serif;flex:1;min-width:90px">
           <option value="all">Toutes directions</option>
           <option value="ACHAT">✅ ACHAT</option>
           <option value="VENTE">🔴 VENTE</option>
           <option value="ATTENTE">🟡 ATTENTE</option>
         </select>
       </div>
+      <p class="small" style="margin-top:6px">🔴 Fort = forte volatilité attendue. Direction calculée automatiquement depuis l'écart réel/estimé.</p>
     </div>
-    <p class="small" style="margin-bottom:7px">🔴 Fort impact = forte volatilité. Direction calculée automatiquement réel vs estimé.</p>
     ${(eco.items||[]).length?`<div style="display:flex;flex-direction:column;gap:5px" id="calList" data-items="${esc(JSON.stringify((eco.items||[]).slice(0,60)))}">
       ${(eco.items||[]).slice(0,35).map(e=>{
         const ic=e.impact==="fort"?"#ff3b6b":e.impact==="moyen"?"#fff200":"#6b7a99";
@@ -1808,7 +1992,7 @@ function renderTerminal(d){
     </div>`:"<div class='small'>Ajoute FINNHUB_API_KEY ou FMP_API_KEY pour le calendrier économique.</div>"}
   </div>`;
 
-  const earnSection=`<div class="card">
+  const earnSection=`<div class="card" id="sec-earn">
     <h3>🏢 Résultats d'entreprises</h3>
     <p class="small" style="margin-bottom:7px">EPS réel vs estimé. Vert = beat (résultat > estimation), rouge = miss. Un fort beat peut propulser l'action, un miss la plonger.</p>
     ${(earn.items||[]).length?`<div style="display:flex;flex-direction:column;gap:4px">
@@ -2109,6 +2293,11 @@ function init(){
   buildClocks();
   // Build ticker
   buildTickerHTML();
+  // Init ticker scroll immediately after building HTML
+  setTimeout(()=>{
+    initTickerScroll();
+    startTickerScroll();
+  }, 100);
   // Init settings UI
   const wu=document.getElementById("workerUrl");
   const ap=document.getElementById("aiProvider");
@@ -2127,21 +2316,7 @@ function init(){
   setInterval(loadTicker, 60000);
   loadNewsPanel();
   // Ticker infinite scroll
-  setTimeout(()=>{
-    initTickerScroll();
-    const ticker=document.getElementById("tickerScroll");
-    if(!ticker) return;
-    let paused=false, pos=0;
-    function step(){
-      if(!paused){ pos+=0.5; const half=ticker.scrollWidth/2; if(half>0&&pos>=half) pos=0; ticker.scrollLeft=pos; }
-      requestAnimationFrame(step);
-    }
-    ticker.addEventListener("mouseenter",()=>paused=true);
-    ticker.addEventListener("mouseleave",()=>paused=false);
-    ticker.addEventListener("touchstart",()=>paused=true,{passive:true});
-    ticker.addEventListener("touchend",()=>setTimeout(()=>paused=false,3000),{passive:true});
-    step();
-  }, 400);
+  // Ticker scroll managed by startTickerScroll()
   // Clocks
   setInterval(renderClocks, 1000);
   renderClocks();
