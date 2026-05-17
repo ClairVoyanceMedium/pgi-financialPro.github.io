@@ -1896,7 +1896,33 @@ async function loadOppBand(force=false){
       .slice(0,15);
     
     if(!signals.length){
-      inner.innerHTML='<div class="opp-loading">📊 Marchés calmes — signaux faibles</div>';
+      // Show top movers anyway (all directions) for info
+      const movers = BAND_MARKETS.map(m=>{
+        const q=quotes.find(q=>q.symbol===m.s);
+        if(!q||!q.regularMarketPrice) return null;
+        const sig=quantScorePro(q,30,null);
+        return {...sig, symbol:m.s, name:m.n, price:q.regularMarketPrice};
+      }).filter(Boolean)
+        .sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct))
+        .slice(0,8);
+      if(movers.length){
+        const mhtml=movers.map(o=>{
+          const dc=o.pct>=0?"#00ff88":"#ff3b6b";
+          return `<div class="opp-item">
+            <span class="opp-item-name">${esc(o.name)}</span>
+            <span style="font-size:9.5px;font-family:'JetBrains Mono',monospace;color:${dc}">${o.pct>=0?"+":""}${o.pct.toFixed(1)}%</span>
+            <span style="font-size:8.5px;color:#6b7a99">WATCH</span>
+          </div>`;
+        }).join("");
+        inner.style.animation="none";
+        inner.innerHTML=mhtml+mhtml;
+        requestAnimationFrame(()=>{
+          const w=inner.scrollWidth/2;
+          inner.style.animation=`oppScroll ${Math.max(20,w/45)}s linear infinite`;
+        });
+      } else {
+        inner.innerHTML='<div class="opp-loading">📊 Marchés en attente de données…</div>';
+      }
       oppBandLastLoad=now;
       setTimeout(()=>loadOppBand(true),180000);
       return;
@@ -2050,19 +2076,42 @@ async function runAnalyze(){
 // ═══════════════════════════════════════════════════════════
 async function loadMarkets(){
   const res=document.getElementById("mktResults");
-  res.innerHTML="<div class='loading'>Chargement…</div>";
+  res.innerHTML="<div class='loading'>⏳ Chargement des cours live…</div>";
   try{
-    const d=await api("/market-data?symbols="+encodeURIComponent(document.getElementById("mktSymbols").value));
+    const syms = document.getElementById("mktSymbols").value.trim();
+    if(!syms){ res.innerHTML="<div class='loading'>Entre des symboles ci-dessus.</div>"; return; }
+    // Cache buster pour forcer fraîcheur
+    const ts = Date.now();
+    const d=await api("/market-data?symbols="+encodeURIComponent(syms)+"&_t="+ts);
     if(!(d.quotes||[]).length){ res.innerHTML="<div class='loading'>Aucune donnée.</div>"; return; }
-    res.innerHTML=`<div class="card"><div class="table-wrap"><table class="table">
-      <thead><tr><th>Symbole</th><th>Nom</th><th>Prix</th><th>Variation</th><th>Haut</th><th>Bas</th></tr></thead>
-      <tbody>${(d.quotes||[]).map(q=>`<tr>
-        <td class="mono">${esc(q.symbol)}</td><td>${esc(q.shortName||q.longName||"")}</td>
-        <td class="mono">${money(q.regularMarketPrice)}</td>
-        <td class="mono ${clsPct(q.regularMarketChangePercent)}">${cpct(q.regularMarketChangePercent)}</td>
-        <td class="mono">${money(q.regularMarketDayHigh)}</td>
-        <td class="mono">${money(q.regularMarketDayLow)}</td>
-      </tr>`).join("")}</tbody></table></div></div>`;
+    const quotes = d.quotes||[];
+    if(!quotes.length){
+      res.innerHTML=`<div class="card"><div class="error">Aucune donnée reçue pour ces symboles. Vérifie les symboles (ex: GC=F, BTC-USD, EURUSD=X, ^FCHI, NVDA) et que les APIs marchés sont configurées.</div></div>`;
+      return;
+    }
+    res.innerHTML=`<div style="font-size:10px;color:#6b7a99;margin-bottom:7px;text-align:right">${quotes.length} cours chargés · ${new Date().toLocaleTimeString("fr-FR")}</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+    ${quotes.map(q=>{
+      const pct=Number(q.regularMarketChangePercent||0);
+      const up=pct>=0;
+      const dc=up?"#00ff88":"#ff3b6b";
+      const pr=q.regularMarketPrice;
+      const dir=pct>0.3?"ACHAT":pct<-0.3?"VENTE":"ATTENTE";
+      const ddc=dir==="ACHAT"?"#00ff88":dir==="VENTE"?"#ff3b6b":"#fff200";
+      return `<div style="display:flex;align-items:center;gap:8px;padding:10px 13px;background:rgba(255,255,255,.025);border:1px solid #1c2d48;border-left:3px solid ${dc};border-radius:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:700;color:#e8eefc">${esc(q.shortName||q.longName||q.symbol)}</div>
+          <div style="font-size:10px;color:#6b7a99;font-family:'JetBrains Mono',monospace">${esc(q.symbol)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#e8eefc">${money(pr)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${dc}">${up?"▲":"▼"} ${cpct(pct)}</div>
+        </div>
+        <div style="flex-shrink:0;font-size:10px;font-weight:800;color:${ddc};background:${ddc}15;border:1px solid ${ddc}44;border-radius:5px;padding:3px 7px;font-family:'JetBrains Mono',monospace">${dir}</div>
+        <button onclick="document.getElementById('chartSymbolInput').value='${esc(q.symbol)}';showScreen('charts');loadChart()" style="background:none;border:1px solid #1c2d48;border-radius:7px;color:#6b7a99;padding:5px 8px;font-size:11px;cursor:pointer">📈</button>
+      </div>`;
+    }).join("")}
+    </div>`;
   }catch(e){ res.innerHTML=`<div class='card'><div class='error'>${esc(e.message)}</div></div>`; }
 }
 
