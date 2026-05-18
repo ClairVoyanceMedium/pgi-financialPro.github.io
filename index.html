@@ -936,6 +936,103 @@ argent</textarea>
 
 <script>
 "use strict";
+
+// ══════════════════════════════════════════════════════════════
+// YAHOO FINANCE CLIENT — Browser-side, jamais bloqué par Yahoo
+// Le Worker IP (Cloudflare datacenter) est bloqué par Yahoo.
+// Le browser IP (mobile/résidentiel) ne l'est JAMAIS.
+// ══════════════════════════════════════════════════════════════
+
+async function yahooBatch(symbols) {
+  if (!symbols || !symbols.length) return [];
+  const out = new Map();
+
+  async function tryBatch(endpoint, syms) {
+    try {
+      const fields = "regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,regularMarketOpen,regularMarketPreviousClose,fiftyTwoWeekHigh,fiftyTwoWeekLow,averageVolume,shortName,longName,currency";
+      const url = `${endpoint}?symbols=${encodeURIComponent(syms.join(","))}&fields=${encodeURIComponent(fields)}&lang=en-US&region=US`;
+      const r = await fetch(url, { headers:{"Accept":"application/json"}, signal:AbortSignal.timeout(12000) });
+      if (!r.ok) return [];
+      const d = await r.json();
+      return d?.quoteResponse?.result || [];
+    } catch { return []; }
+  }
+
+  async function fetchChart(sym) {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=5d`;
+      const r = await fetch(url, { headers:{"Accept":"application/json"}, signal:AbortSignal.timeout(10000) });
+      if (!r.ok) return null;
+      const d = await r.json();
+      const res = d?.chart?.result?.[0];
+      const meta = res?.meta;
+      if (!meta?.regularMarketPrice) return null;
+      const prev = meta.chartPreviousClose || meta.regularMarketPreviousClose || meta.regularMarketPrice;
+      const price = meta.regularMarketPrice;
+      const chg = price - prev;
+      const pct  = prev ? (chg/prev)*100 : 0;
+      return {
+        symbol:sym, shortName:meta.shortName||sym, longName:meta.longName||sym,
+        regularMarketPrice:price, regularMarketChange:chg, regularMarketChangePercent:pct,
+        regularMarketVolume:meta.regularMarketVolume||0,
+        regularMarketDayHigh:meta.regularMarketDayHigh||price,
+        regularMarketDayLow:meta.regularMarketDayLow||price,
+        regularMarketOpen:meta.regularMarketOpen||price,
+        regularMarketPreviousClose:prev,
+        fiftyTwoWeekHigh:meta.fiftyTwoWeekHigh||price,
+        fiftyTwoWeekLow:meta.fiftyTwoWeekLow||price,
+        averageVolume:meta.regularMarketVolume||0,
+        currency:meta.currency||""
+      };
+    } catch { return null; }
+  }
+
+  // Step 1: batch requests (groups of 10 for reliability)
+  for (let i = 0; i < symbols.length; i += 10) {
+    const batch = symbols.slice(i, i+10);
+    // Try two Yahoo endpoints
+    const r1 = await tryBatch("https://query1.finance.yahoo.com/v8/finance/quote", batch);
+    for (const q of r1) if (q?.symbol && q?.regularMarketPrice > 0) out.set(q.symbol, q);
+    const missing = batch.filter(s => !out.has(s));
+    if (missing.length) {
+      const r2 = await tryBatch("https://query2.finance.yahoo.com/v7/finance/quote", missing);
+      for (const q of r2) if (q?.symbol && q?.regularMarketPrice > 0) out.set(q.symbol, q);
+    }
+  }
+
+  // Step 2: individual chart fetch for any still missing
+  const stillMissing = symbols.filter(s => !out.has(s));
+  if (stillMissing.length) {
+    const results = await Promise.allSettled(stillMissing.map(fetchChart));
+    results.forEach((r,i) => { if (r.status==="fulfilled" && r.value) out.set(stillMissing[i], r.value); });
+  }
+
+  return symbols.map(s => out.get(s)).filter(Boolean);
+}
+
+// Quote cache 30s — évite requêtes répétées
+const _quoteCache = new Map();
+async function getQuotes(symbols) {
+  const now = Date.now();
+  const fresh = [], cached = [];
+  for (const sym of symbols) {
+    const c = _quoteCache.get(sym);
+    if (c && now - c.ts < 30000) cached.push(c.q);
+    else fresh.push(sym);
+  }
+  if (fresh.length) {
+    const fetched = await yahooBatch(fresh);
+    for (const q of fetched) _quoteCache.set(q.symbol, {q, ts:now});
+    return [...cached, ...fetched];
+  }
+  return cached;
+}
+
+// Force-refresh specific symbols (invalidate cache)
+function invalidateQuotes(symbols) {
+  for (const s of symbols) _quoteCache.delete(s);
+}
+
 // ═══════════════════════════════════════════════════════════
 // CONSTANTS & CONFIG
 // ═══════════════════════════════════════════════════════════
@@ -1024,21 +1121,8 @@ const _tickerLastValues = {};
 
 async function loadTicker(){
   try{
-    const syms = TICKER_CFG.symbols.join(",");
-    const ts = Math.floor(Date.now()/60000);
-    let quotes = [];
-    try{
-      const d = await api("/ticker?symbols="+encodeURIComponent(syms)+"&_t="+ts);
-      quotes = d.quotes||[];
-    }catch(e1){
-      try{
-        const d2 = await api("/market-data?symbols="+encodeURIComponent(syms));
-        quotes = (d2.quotes||[]).map(q=>({
-          symbol:q.symbol, price:q.regularMarketPrice,
-          changePct:q.regularMarketChangePercent
-        }));
-      }catch(e2){ console.warn("Ticker fallback:", e2.message); }
-    }
+    // Fetch directement depuis le browser — Yahoo ne bloque jamais les IPs browser
+    const quotes = await getQuotes(TICKER_CFG.symbols);
     if(!quotes.length) return;
     const map = new Map(quotes.map(q=>[q.symbol,q]));
     TICKER_CFG.symbols.forEach((sym,i)=>{
@@ -1713,30 +1797,35 @@ async function runScanPro(){
     } else {
       markets = SCAN_UNIVERSES[_scanFilter] || SCAN_UNIVERSES.all;
     }
-    document.getElementById("scanProgress").textContent = `Analyse de ${markets.length} instruments…`;
+    if(progEl) progEl.textContent = `Calcul des signaux sur ${quotes.length} cours reçus…`;
 
-    // Fetch prices + terminal context in parallel
-    const [pricesRes, termCtx] = await Promise.allSettled([
-      api("/market-data?symbols="+encodeURIComponent(markets.map(m=>m.s).join(","))),
-      api("/terminal").catch(()=>null)
+    // Fetch prices DIRECTEMENT depuis le browser (jamais bloqué)
+    // + terminal context en parallèle depuis le worker
+    const progEl = document.getElementById("scanProgress");
+    if(progEl) progEl.textContent = `Fetching ${markets.length} instruments depuis Yahoo Finance…`;
+
+    const [quotesResult, termCtx] = await Promise.allSettled([
+      getQuotes(markets.map(m=>m.s)),          // ← BROWSER direct, jamais bloqué
+      api("/terminal").catch(()=>null)          // ← Worker pour contexte macro
     ]);
 
-    const quotes = (pricesRes.status==="fulfilled" ? pricesRes.value?.quotes : []) || [];
+    const quotes = (quotesResult.status==="fulfilled" ? quotesResult.value : []) || [];
     const term = termCtx.status==="fulfilled" ? termCtx.value : null;
-    const newsRisk = Number(term?.globalNews?.risk?.avgRisk || 30);
-    const yieldSpread = term?.yieldCurve?.spread10y2y ?? null;
-
-    document.getElementById("scanProgress").textContent = `Calcul des signaux…`;
 
     if(!quotes.length){
-      res.innerHTML = `<div class="card"><div class="error">❌ Aucun prix reçu. Vérifie que le Worker est bien déployé et que les clés API marchés sont configurées dans Cloudflare.</div></div>`;
+      res.innerHTML = `<div class="card">
+        <div style="color:#ff3b6b;font-size:13px;font-weight:700;margin-bottom:8px">❌ Impossible de récupérer les prix</div>
+        <div class="small" style="margin-bottom:10px">Yahoo Finance répond parfois lentement. Vérifie ta connexion internet puis réessaie.</div>
+        <button class="btn btn-cyan" onclick="runScanPro()" style="padding:8px 16px">↻ Réessayer</button>
+        <button class="btn" style="--btn-neon:#ff8a00;padding:8px 16px" onclick="document.getElementById('scanThreshold').value='60';setScanFilter(document.querySelector('[data-filter=forex]'));runScanPro()">Essayer Forex uniquement</button>
+      </div>`;
       return;
     }
 
     // Score every instrument
     const scored = markets.map(m => {
-      const q = quotes.find(q => q.symbol === m.s);
-      if(!q || !q.regularMarketPrice) return null;
+      const q = quotes.find(qq => qq.symbol === m.s || qq.symbol === m.s.toUpperCase());
+      if(!q || !(q.regularMarketPrice > 0)) return null;
       const sig = quantScorePro(q, newsRisk, yieldSpread);
       return {
         symbol:m.s, name:m.n, category:m.c,
@@ -1878,15 +1967,14 @@ async function loadOppBand(force=false){
       {s:"ZW=F",n:"Blé",c:"Commodité"},{s:"XLM-USD",n:"Stellar",c:"Crypto"},
       {s:"MC.PA",n:"LVMH",c:"Action"},{s:"BZ=F",n:"Brent",c:"Commodité"}
     ];
-    const syms = BAND_MARKETS.map(m=>m.s).join(",");
-    const pricesRes = await api("/market-data?symbols="+encodeURIComponent(syms));
-    const quotes = pricesRes.quotes||[];
+    // Fetch directement depuis le navigateur — jamais bloqué par Yahoo
+    const quotes = await getQuotes(BAND_MARKETS.map(m=>m.s));
     
     if(!quotes.length){ inner.innerHTML='<div class="opp-loading">Signaux en attente…</div>'; return; }
     
     // Score avec moteur quantitatif pro
     const signals = BAND_MARKETS.map(m=>{
-      const q=quotes.find(q=>q.symbol===m.s);
+      const q=quotes.find(qq=>qq.symbol===m.s || qq.symbol===m.s.toUpperCase());
       if(!q||!q.regularMarketPrice) return null;
       const sig=quantScorePro(q,30,null);
       return {...sig, symbol:m.s, name:m.n, price:q.regularMarketPrice};
@@ -1898,7 +1986,7 @@ async function loadOppBand(force=false){
     if(!signals.length){
       // Show top movers anyway (all directions) for info
       const movers = BAND_MARKETS.map(m=>{
-        const q=quotes.find(q=>q.symbol===m.s);
+        const q=quotes.find(qq=>qq.symbol===m.s || qq.symbol===m.s.toUpperCase());
         if(!q||!q.regularMarketPrice) return null;
         const sig=quantScorePro(q,30,null);
         return {...sig, symbol:m.s, name:m.n, price:q.regularMarketPrice};
@@ -2029,15 +2117,26 @@ async function runAnalyze(){
     const val=await api("/symbols/validate",{method:"POST",body:JSON.stringify({text:document.getElementById("anSymbolText").value})});
     if(!val.valid.length){ if(vEl) vEl.innerHTML="Instrument non reconnu — essaie: or, pétrole, bitcoin, EUR/USD, gaz naturel, palladium, NVDA..."; res.innerHTML=""; return; }
     const s=val.valid[0];
-    if(vEl) vEl.innerHTML="⏳ Analyse de "+esc(s.name)+" en cours…";
-    // Force fraîcheur: cache buster
+    if(vEl) vEl.innerHTML="⏳ Récupération du prix live de "+esc(s.name)+"…";
+    // Fetch price DIRECTLY from browser (never blocked by Yahoo)
+    let livePrice=null, liveChangePct=null;
+    try{
+      const lq=(await getQuotes([s.symbol]))[0];
+      if(lq && lq.regularMarketPrice>0){
+        livePrice=lq.regularMarketPrice;
+        liveChangePct=lq.regularMarketChangePercent;
+        if(vEl) vEl.innerHTML="<span style='color:#00ff88'>✓</span> "+esc(s.name)
+          +" — Prix live : <b style='color:#e8eefc'>"+money(livePrice)+"</b>"
+          +" <span class='"+clsPct(liveChangePct)+"'>"+cpct(liveChangePct)+"</span>";
+      }
+    }catch(ep){ console.warn("live price:",ep); }
     const ts=Date.now();
     const d=await api("/analyze",{method:"POST",body:JSON.stringify({
       symbol:s.symbol, name:s.name,
       amount:+document.getElementById("anAmount").value,
       leverage:+document.getElementById("anLeverage").value,
       provider:aiProvider(), apiKey:getAiKey(),
-      _fresh:ts
+      _fresh:ts, livePrice, liveChangePct
     })});
     const a=d.analysis||{};
     const dir=a.direction||"ATTENTE";
@@ -2048,7 +2147,7 @@ async function runAnalyze(){
       <!-- SIGNAL PRINCIPAL -->
       <div style="background:${dirBg};border:1.5px solid ${dirColor}55;border-radius:12px;padding:14px;text-align:center;margin-bottom:12px">
         <div style="font-size:11px;color:#6b7a99;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">${esc(s.name)} (${esc(s.symbol)})</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6b7a99;margin-bottom:6px">Prix : <span style="color:#e8eefc;font-size:18px;font-weight:700">${money(d.price)}</span> <span class="${clsPct(d.changePct)}" style="font-size:12px">${cpct(d.changePct)}</span></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6b7a99;margin-bottom:6px">Prix live : <span style="color:#e8eefc;font-size:18px;font-weight:700">${money(livePrice||d.price)}</span> <span class="${clsPct(liveChangePct??d.changePct)}" style="font-size:12px">${cpct(liveChangePct??d.changePct)}</span></div>
         <div style="font-size:26px;font-weight:800;color:${dirColor};font-family:'Montserrat',sans-serif;text-shadow:0 0 16px ${dirColor}">${dir}</div>
         <div style="font-size:13px;font-weight:700;color:#a8b8d8;margin-top:4px">Probabilité : <span style="color:${dirColor}">${esc(a.probabilite||"—")}%</span></div>
       </div>
@@ -2080,11 +2179,10 @@ async function loadMarkets(){
   try{
     const syms = document.getElementById("mktSymbols").value.trim();
     if(!syms){ res.innerHTML="<div class='loading'>Entre des symboles ci-dessus.</div>"; return; }
-    // Cache buster pour forcer fraîcheur
-    const ts = Date.now();
-    const d=await api("/market-data?symbols="+encodeURIComponent(syms)+"&_t="+ts);
+    // Fetch directement depuis le browser (jamais bloqué par Yahoo)
+    const symArr = syms.split(",").map(s=>s.trim()).filter(Boolean);
     if(!(d.quotes||[]).length){ res.innerHTML="<div class='loading'>Aucune donnée.</div>"; return; }
-    const quotes = d.quotes||[];
+    const quotes = await getQuotes(symArr);
     if(!quotes.length){
       res.innerHTML=`<div class="card"><div class="error">Aucune donnée reçue pour ces symboles. Vérifie les symboles (ex: GC=F, BTC-USD, EURUSD=X, ^FCHI, NVDA) et que les APIs marchés sont configurées.</div></div>`;
       return;
