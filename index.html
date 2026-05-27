@@ -12,7 +12,7 @@
    RESET & BASE
 ═══════════════════════════════════════ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:#06080f;color:#e8eefc;font-family:'Montserrat',system-ui,sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+html{background:#06080f;color:#e8eefc;font-family:'Montserrat',system-ui,sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;overscroll-behavior:none}
 body{
   background:
     radial-gradient(ellipse at 15% 0%,rgba(0,212,255,.1) 0%,transparent 40%),
@@ -672,6 +672,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
   <div class="section-header-bar">
     <button class="back-btn" onclick="showScreen('home')">‹ Accueil</button>
     <span class="section-screen-title">🤖 Assistant IA</span>
+    <div id="voiceBtnAssistant" style="margin-left:auto"></div>
   </div>
   <div class="card">
     <div id="quickSuggestionsPage" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px"></div>
@@ -883,7 +884,10 @@ argent</textarea>
   <div id="keyLevels" style="display:none" class="card"><div style="display:flex;align-items:center;gap:7px;margin-bottom:7px"><b style="font-family:'Montserrat',sans-serif;font-size:12.5px">Niveaux clés</b><span style="font-size:9.5px;color:#6b7a99">calculés sur les données</span></div><div id="keyLevelsContent" style="display:flex;flex-wrap:wrap;gap:7px"></div></div>
   <div class="card" style="margin-top:7px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-      <b style="font-family:'Montserrat',sans-serif;font-size:13.5px">Analyse IA</b>
+      <div style="display:flex;align-items:center;gap:8px">
+        <b style="font-family:'Montserrat',sans-serif;font-size:13.5px">Analyse IA</b>
+        <div id="voiceBtnCharts"></div>
+      </div>
       <div style="display:flex;gap:5px">
         <button class="btn btn-cyan" onclick="showIndicatorSummary()" style="padding:6px 11px;font-size:11.5px">Résumé indicateurs</button>
         <button class="btn btn-purple" onclick="analyzeCurrentChart()" style="padding:6px 11px;font-size:11.5px">Analyse complète ↗</button>
@@ -1010,27 +1014,99 @@ async function yahooBatch(symbols) {
   return symbols.map(s => out.get(s)).filter(Boolean);
 }
 
-// Quote cache 30s — évite requêtes répétées
+// ══════════════════════════════════════════════════════════════
+// QUOTE ENGINE — 3 sources, zéro CORS
+// 1. Worker /prices (Twelve Data + Yahoo + Finnhub côté serveur)
+// 2. Yahoo Finance direct browser (parfois passe)
+// 3. CoinGecko pour crypto (API publique CORS-friendly)
+// ══════════════════════════════════════════════════════════════
 const _quoteCache = new Map();
+
 async function getQuotes(symbols) {
+  if (!symbols || !symbols.length) return [];
   const now = Date.now();
-  const fresh = [], cached = [];
-  for (const sym of symbols) {
-    const c = _quoteCache.get(sym);
-    if (c && now - c.ts < 30000) cached.push(c.q);
-    else fresh.push(sym);
+  const toFetch = [], fromCache = [];
+  for (const s of symbols) {
+    const c = _quoteCache.get(s);
+    if (c && now - c.ts < 28000) fromCache.push(c.q);
+    else toFetch.push(s);
   }
-  if (fresh.length) {
-    const fetched = await yahooBatch(fresh);
-    for (const q of fetched) _quoteCache.set(q.symbol, {q, ts:now});
-    return [...cached, ...fetched];
+  if (!toFetch.length) return fromCache;
+
+  const fetched = [];
+
+  // ── SOURCE 1: Worker /prices (server-side — Twelve Data/Yahoo/Finnhub) ──
+  try {
+    const d = await fetch(W()+"/prices?symbols="+encodeURIComponent(toFetch.join(",")),
+      {signal:AbortSignal.timeout(18000)});
+    if (d.ok) {
+      const j = await d.json();
+      for (const q of (j.quotes||[])) if (q?.regularMarketPrice>0) fetched.push(q);
+    }
+  } catch(e){ console.warn("Worker /prices:", e.message); }
+
+  // ── SOURCE 2: CoinGecko for crypto still missing (free, CORS OK) ──
+  const cryptoMap = {
+    "BTC-USD":"bitcoin","ETH-USD":"ethereum","SOL-USD":"solana",
+    "XRP-USD":"ripple","XLM-USD":"stellar","BNB-USD":"binancecoin",
+    "ADA-USD":"cardano","DOT-USD":"polkadot"
+  };
+  const missingCrypto = toFetch.filter(s => cryptoMap[s] && !fetched.find(q=>q.symbol===s));
+  if (missingCrypto.length) {
+    try {
+      const ids = missingCrypto.map(s=>cryptoMap[s]).join(",");
+      const r = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
+        {signal:AbortSignal.timeout(10000)}
+      );
+      if (r.ok) {
+        const d = await r.json();
+        for (const sym of missingCrypto) {
+          const id = cryptoMap[sym];
+          const data = d[id];
+          if (data?.usd) {
+            const price = data.usd;
+            const pct   = data.usd_24h_change||0;
+            const chg   = price * pct / 100;
+            const prev  = price - chg;
+            fetched.push({
+              symbol:sym, shortName:id.charAt(0).toUpperCase()+id.slice(1),
+              regularMarketPrice:price, regularMarketChange:chg,
+              regularMarketChangePercent:pct, regularMarketVolume:0,
+              regularMarketDayHigh:price*1.01, regularMarketDayLow:price*0.99,
+              regularMarketOpen:prev, regularMarketPreviousClose:prev,
+              fiftyTwoWeekHigh:price, fiftyTwoWeekLow:price,
+              averageVolume:0, currency:"USD"
+            });
+          }
+        }
+      }
+    } catch(e){ console.warn("CoinGecko:", e.message); }
   }
-  return cached;
+
+  // ── SOURCE 3: Yahoo Finance direct (may work depending on network) ──
+  const stillMissing = toFetch.filter(s=>!fetched.find(q=>q.symbol===s));
+  if (stillMissing.length) {
+    try {
+      const r = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/quote?symbols=${encodeURIComponent(stillMissing.join(","))}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketVolume,regularMarketDayHigh,regularMarketDayLow,regularMarketPreviousClose,shortName&lang=en-US&region=US`,
+        {headers:{"Accept":"application/json"}, signal:AbortSignal.timeout(8000)}
+      );
+      if (r.ok) {
+        const d = await r.json();
+        for (const q of (d?.quoteResponse?.result||[])) {
+          if (q?.symbol && q?.regularMarketPrice>0) fetched.push(q);
+        }
+      }
+    } catch {}
+  }
+
+  for (const q of fetched) _quoteCache.set(q.symbol, {q, ts:now});
+  return [...fromCache, ...fetched];
 }
 
-// Force-refresh specific symbols (invalidate cache)
-function invalidateQuotes(symbols) {
-  for (const s of symbols) _quoteCache.delete(s);
+function invalidateQuotes(symbols){
+  for (const s of (symbols||[])) _quoteCache.delete(s);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1574,6 +1650,89 @@ function newsDirBadge(riskScore, title){
 // ═══════════════════════════════════════════════════════════
 // OPPORTUNITIES BAND — Bande défilante signaux intraday
 // ═══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// VOICE SYSTEM — Web Speech API (built-in, no API key needed)
+// Male voice, slightly deep, reads all AI responses when enabled
+// ══════════════════════════════════════════════════════════════
+let _voiceEnabled = localStorage.getItem("pgi_voice") === "1";
+let _voiceSpeaking = false;
+let _voiceQueue = [];
+
+function initVoice(){
+  if(!window.speechSynthesis) return false;
+  return true;
+}
+
+function getBestVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  // Priority: French male → English male deep → any male → any
+  const fr_male = voices.find(v=>v.lang.startsWith("fr")&&v.name.toLowerCase().includes("male"));
+  const fr = voices.find(v=>v.lang.startsWith("fr"));
+  const en_male = voices.filter(v=>v.lang.startsWith("en")).find(v=>
+    v.name.toLowerCase().match(/male|man|guy|david|james|richard|mark|daniel|george|thomas/)
+  );
+  const en = voices.find(v=>v.lang.startsWith("en"));
+  return fr_male || fr || en_male || en || voices[0] || null;
+}
+
+function speak(text, force=false){
+  if(!_voiceEnabled && !force) return;
+  if(!window.speechSynthesis) return;
+  // Clean text: remove markdown, HTML, special chars
+  const clean = text
+    .replace(/\*\*(.+?)\*\*/g,"$1")
+    .replace(/\*(.+?)\*/g,"$1")
+    .replace(/<[^>]+>/g," ")
+    .replace(/[#►→←↑↓✅❌⚠️🔴🟢🟡⚡🎯📈📊]/g,"")
+    .replace(/https?:\/\/\S+/g,"")
+    .replace(/\s+/g," ")
+    .trim()
+    .slice(0,1200); // max ~90s
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(clean);
+  const voice = getBestVoice();
+  if(voice) utt.voice = voice;
+  utt.lang = voice?.lang.startsWith("fr") ? "fr-FR" : "fr-FR";
+  utt.rate  = 0.9;   // slightly slower = more natural
+  utt.pitch = 0.82;  // slightly lower pitch = male voice effect
+  utt.volume= 0.95;
+  _voiceSpeaking = true;
+  utt.onend  = ()=>{ _voiceSpeaking=false; };
+  utt.onerror= ()=>{ _voiceSpeaking=false; };
+  window.speechSynthesis.speak(utt);
+}
+
+function toggleVoice(){
+  _voiceEnabled = !_voiceEnabled;
+  localStorage.setItem("pgi_voice", _voiceEnabled?"1":"0");
+  if(!_voiceEnabled) window.speechSynthesis?.cancel();
+  // Update all voice buttons
+  document.querySelectorAll(".voice-toggle-btn").forEach(btn=>{
+    btn.textContent = _voiceEnabled ? "🔊 Voix ON" : "🔇 Voix OFF";
+    btn.style.borderColor = _voiceEnabled ? "#00ff88" : "#1c2d48";
+    btn.style.color = _voiceEnabled ? "#00ff88" : "#6b7a99";
+    btn.style.boxShadow = _voiceEnabled ? "0 0 10px rgba(0,255,136,.3)" : "none";
+  });
+  if(_voiceEnabled){
+    speak("Option vocale activée. Je vais lire mes réponses à voix haute.", true);
+  }
+}
+
+// Initialise voices (async in Chrome)
+if(window.speechSynthesis){
+  window.speechSynthesis.onvoiceschanged = ()=>{ getBestVoice(); };
+  getBestVoice(); // trigger load
+}
+
+function makeVoiceBtn(){
+  const btn = document.createElement("button");
+  btn.className = "voice-toggle-btn tf-btn";
+  btn.textContent = _voiceEnabled ? "🔊 Voix ON" : "🔇 Voix OFF";
+  btn.style.cssText = `border-color:${_voiceEnabled?"#00ff88":"#1c2d48"};color:${_voiceEnabled?"#00ff88":"#6b7a99"};${_voiceEnabled?"box-shadow:0 0 10px rgba(0,255,136,.3)":""}`;
+  btn.onclick = toggleVoice;
+  return btn;
+}
+
 // ═══════════════════════════════════════════════════════════
 // SCANNER PRO — Multi-facteurs, haute précision
 // ═══════════════════════════════════════════════════════════
@@ -1797,10 +1956,7 @@ async function runScanPro(){
     } else {
       markets = SCAN_UNIVERSES[_scanFilter] || SCAN_UNIVERSES.all;
     }
-    if(progEl) progEl.textContent = `Calcul des signaux sur ${quotes.length} cours reçus…`;
-
-    // Fetch prices DIRECTEMENT depuis le browser (jamais bloqué)
-    // + terminal context en parallèle depuis le worker
+    // Progress element — déclaré avant toute utilisation
     const progEl = document.getElementById("scanProgress");
     if(progEl) progEl.textContent = `Fetching ${markets.length} instruments depuis Yahoo Finance…`;
 
@@ -1813,11 +1969,20 @@ async function runScanPro(){
     const term = termCtx.status==="fulfilled" ? termCtx.value : null;
 
     if(!quotes.length){
+      // Test connectivity to debug
+      let debugInfo = "Vérifie : 1) Worker déployé dans Cloudflare 2) URL Worker dans Réglages 3) Clé TWELVE_DATA_API_KEY configurée";
+      try{
+        const hRes = await fetch(W()+"/health",{signal:AbortSignal.timeout(5000)});
+        if(hRes.ok){ const h=await hRes.json(); debugInfo = h.kv?"Worker OK — clé marché manquante (TWELVE_DATA_API_KEY requis)":"Worker OK mais KV non configuré"; }
+        else debugInfo = "Worker répond "+hRes.status+" — redéploie le worker";
+      }catch{ debugInfo = "Worker inaccessible — URL incorrecte dans Réglages ?"; }
       res.innerHTML = `<div class="card">
-        <div style="color:#ff3b6b;font-size:13px;font-weight:700;margin-bottom:8px">❌ Impossible de récupérer les prix</div>
-        <div class="small" style="margin-bottom:10px">Yahoo Finance répond parfois lentement. Vérifie ta connexion internet puis réessaie.</div>
-        <button class="btn btn-cyan" onclick="runScanPro()" style="padding:8px 16px">↻ Réessayer</button>
-        <button class="btn" style="--btn-neon:#ff8a00;padding:8px 16px" onclick="document.getElementById('scanThreshold').value='60';setScanFilter(document.querySelector('[data-filter=forex]'));runScanPro()">Essayer Forex uniquement</button>
+        <div style="color:#ff3b6b;font-size:13px;font-weight:700;margin-bottom:8px">❌ Aucun prix reçu</div>
+        <div class="small" style="margin-bottom:8px;color:#fff200">${esc(debugInfo)}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-cyan" onclick="runScanPro()" style="padding:8px 14px;font-size:11px">↻ Réessayer</button>
+          <button class="btn btn-green" onclick="showScreen('reglages')" style="padding:8px 14px;font-size:11px">⚙ Réglages</button>
+        </div>
       </div>`;
       return;
     }
@@ -1970,7 +2135,12 @@ async function loadOppBand(force=false){
     // Fetch directement depuis le navigateur — jamais bloqué par Yahoo
     const quotes = await getQuotes(BAND_MARKETS.map(m=>m.s));
     
-    if(!quotes.length){ inner.innerHTML='<div class="opp-loading">Signaux en attente…</div>'; return; }
+    if(!quotes.length){
+      inner.innerHTML='<div class="opp-loading">⚡ Chargement signaux…</div>';
+      oppBandLastLoad=0; // allow immediate retry
+      setTimeout(()=>loadOppBand(true), 8000); // retry in 8s
+      return;
+    }
     
     // Score avec moteur quantitatif pro
     const signals = BAND_MARKETS.map(m=>{
@@ -2277,6 +2447,7 @@ async function sendChat(){
     chatHistory.push({role:"assistant",content:reply});
     const el=document.getElementById(loadId);
     if(el) el.outerHTML=`<div class="msg ai">${esc(reply).replace(/\n/g,"<br>")}</div>`;
+    speak(reply); // Auto-read if voice enabled
   }catch(e){
     const el=document.getElementById(loadId);
     if(el) el.outerHTML=`<div class="msg ai" style="color:#ff3b6b">${esc(e.message)}</div>`;
@@ -2966,7 +3137,9 @@ S/R: ${levels.map(l=>l.type+"="+l.price?.toFixed(4)).join("|")||"N/A"}
 Règle Ichimoku: ${cTop!=null&&iTk!=null&&iKj!=null?(last.close>cTop&&iTk>iKj?"TRIPLE SIGNAL HAUSSIER":last.close<cBot&&iTk<iKj?"TRIPLE SIGNAL BAISSIER":"Signal mixte"):"N/A"}
 Conclus par ACHAT, VENTE ou ATTENTE avec entrée exacte, objectif, stop-loss, force du signal et 3 raisons chiffrées.`;
     const d=await api("/chat",{method:"POST",body:JSON.stringify({message:msg,provider:aiProvider(),apiKey:getAiKey()})});
-    el.innerHTML=esc(d.reply||"Aucune réponse").replace(/\n/g,"<br>");el.style.color="#e8eefc";
+    const chartReply = d.reply||"Aucune réponse";
+    el.innerHTML=esc(chartReply).replace(/\n/g,"<br>");el.style.color="#e8eefc";
+    speak(chartReply);
   }catch(e){el.textContent="Erreur : "+e.message;el.style.color="#ff3b6b";}
 }
 
@@ -3194,6 +3367,25 @@ document.addEventListener("keydown", e=>{
 
 // Init notes on load
 initNotes();
+
+// Voice buttons
+setTimeout(()=>{
+  const slots = ["voiceBtnAssistant","voiceBtnCharts"];
+  slots.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.appendChild(makeVoiceBtn());
+  });
+  // Also add floating voice indicator in chat area
+  const chatCard = document.querySelector("#assistantScreen .card");
+  if(chatCard){
+    const bar = document.createElement("div");
+    bar.style.cssText="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px";
+    bar.innerHTML='<span style="font-size:10px;color:#6b7a99;font-weight:700;letter-spacing:.8px;text-transform:uppercase">Chat IA multi-tour</span>';
+    const vb = makeVoiceBtn();
+    bar.appendChild(vb);
+    chatCard.insertBefore(bar, chatCard.firstChild);
+  }
+},300);
 </script>
 </body>
 </html>
