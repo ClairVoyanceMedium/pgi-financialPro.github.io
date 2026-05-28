@@ -604,9 +604,12 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
         </select>
       </div>
     </div>
-    <div style="display:flex;gap:6px">
+    <div style="display:flex;gap:6px;flex-direction:column">
       <button class="btn btn-scan" onclick="runScanPro()" style="flex:1;margin-top:0;padding:13px">
         ⚡ SCANNER LES OPPORTUNITÉS
+      </button>
+      <button onclick="testPricesFetch()" style="background:rgba(255,255,255,.04);border:1px solid #1c2d48;border-radius:9px;color:#6b7a99;padding:7px;font-size:10.5px;cursor:pointer;font-family:Montserrat,sans-serif">
+        🔧 Tester la connexion aux prix
       </button>
     </div>
   </div>
@@ -894,6 +897,28 @@ argent</textarea>
       </div>
     </div>
     <div id="chartAIResult" class="small" style="color:#6b7a99">Charge un graphique puis clique Analyser pour obtenir une analyse IA complète avec tous les indicateurs.</div>
+  </div>
+
+  <!-- EXPERT CHAT — Contextual Q&A after chart analysis -->
+  <div class="card" id="chartExpertChat" style="margin-top:7px;display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <b style="font-family:'Montserrat',sans-serif;font-size:13px">💬 Expert Financier</b>
+        <div style="font-size:10px;color:#6b7a99;margin-top:2px">Pose tes questions sur cette analyse — réponse d'un expert senior</div>
+      </div>
+      <button onclick="clearChartChat()" style="background:none;border:1px solid #1c2d48;border-radius:7px;color:#6b7a99;padding:4px 9px;font-size:10px;cursor:pointer">Effacer</button>
+    </div>
+    <!-- Quick questions -->
+    <div id="chartQuickQs" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px"></div>
+    <!-- Chat messages -->
+    <div id="chartChatBox" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:9px;scrollbar-width:thin;scrollbar-color:#1c2d48 transparent"></div>
+    <!-- Input -->
+    <div style="display:flex;gap:6px">
+      <input type="text" id="chartChatInput" class="chat-input" 
+        placeholder="Ex: Quand entrer exactement ? Quel stop-loss si…?" 
+        onkeydown="if(event.key==='Enter')sendChartChat()">
+      <button class="send-btn" onclick="sendChartChat()">➤</button>
+    </div>
   </div>
 </div>
 
@@ -1746,7 +1771,7 @@ const SCAN_UNIVERSES = {
     {s:"GBPJPY=X",n:"GBP/JPY",c:"Forex"},{s:"USDCHF=X",n:"USD/CHF",c:"Forex"},
     {s:"AUDUSD=X",n:"AUD/USD",c:"Forex"},{s:"USDCAD=X",n:"USD/CAD",c:"Forex"},
     {s:"GC=F",n:"Or",c:"Commodité"},{s:"SI=F",n:"Argent",c:"Commodité"},
-    {s:"PA=F",n:"Palladium",c:"Commodité"},{s:"PL=F",n:"Platine",c:"Commodité"},
+    {s:"PA=F",n:"Palladium",c:"Commodité"},{s:"PL=F",n:"Platinum",c:"Commodité"},
     {s:"CL=F",n:"Pétrole WTI",c:"Commodité"},{s:"BZ=F",n:"Pétrole Brent",c:"Commodité"},
     {s:"NG=F",n:"Gaz Naturel",c:"Commodité"},{s:"HG=F",n:"Cuivre",c:"Commodité"},
     {s:"CC=F",n:"Cacao",c:"Commodité"},{s:"CT=F",n:"Coton",c:"Commodité"},
@@ -1772,7 +1797,7 @@ const SCAN_UNIVERSES = {
   ],
   commodities:[
     {s:"GC=F",n:"Or",c:"Commodité"},{s:"SI=F",n:"Argent",c:"Commodité"},
-    {s:"PA=F",n:"Palladium",c:"Commodité"},{s:"PL=F",n:"Platine",c:"Commodité"},
+    {s:"PA=F",n:"Palladium",c:"Commodité"},{s:"PL=F",n:"Platinum",c:"Commodité"},
     {s:"CL=F",n:"Pétrole WTI",c:"Commodité"},{s:"BZ=F",n:"Pétrole Brent",c:"Commodité"},
     {s:"NG=F",n:"Gaz Naturel",c:"Commodité"},{s:"HG=F",n:"Cuivre",c:"Commodité"},
     {s:"CC=F",n:"Cacao",c:"Commodité"},{s:"CT=F",n:"Coton",c:"Commodité"},
@@ -1961,12 +1986,15 @@ async function runScanPro(){
     if(progEl) progEl.textContent = `Fetching ${markets.length} instruments depuis Yahoo Finance…`;
 
     const [quotesResult, termCtx] = await Promise.allSettled([
-      getQuotes(markets.map(m=>m.s)),          // ← BROWSER direct, jamais bloqué
-      api("/terminal").catch(()=>null)          // ← Worker pour contexte macro
+      getQuotes(markets.map(m=>m.s)),
+      api("/terminal").catch(()=>null)
     ]);
 
     const quotes = (quotesResult.status==="fulfilled" ? quotesResult.value : []) || [];
-    const term = termCtx.status==="fulfilled" ? termCtx.value : null;
+    const term   = (termCtx.status==="fulfilled" ? termCtx.value : null) || null;
+    // Always have safe defaults for macro context
+    const newsRisk   = Number(term?.globalNews?.risk?.avgRisk || 30);
+    const yieldSpread= term?.yieldCurve?.spread10y2y ?? null;
 
     if(!quotes.length){
       // Test connectivity to debug
@@ -2019,13 +2047,17 @@ async function runScanPro(){
         </div>
         ${strong.map(o=>renderOppPro(o)).join("")}
         ${weak.length?`<div style="margin:12px 0 6px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Autres instruments surveillés</div>${weak.map(o=>renderOppProSmall(o)).join("")}`:""}`
-      : `<div class="card" style="text-align:center;padding:20px">
-          <div style="font-size:24px;margin-bottom:8px">🔍</div>
-          <div style="font-weight:700;color:#e8eefc;margin-bottom:6px">Aucun signal ≥${threshold}% en ce moment</div>
-          <div class="small">Essaie un seuil plus bas (60%+) ou un autre horizon.</div>
-          <button class="btn btn-cyan" style="margin-top:12px" onclick="document.getElementById('scanThreshold').value='60';runScanPro()">Voir tous les signaux (60%+)</button>
+      : `<div class="card" style="padding:14px">
+          <div style="font-size:13px;font-weight:700;color:#fff200;margin-bottom:6px">📊 ${quotes.length} instruments analysés — aucun signal ≥${threshold}% détecté</div>
+          <div class="small" style="margin-bottom:10px">Le marché est calme ou en consolidation. Les meilleurs signaux s'afficheront dès qu'une opportunité forte se présente.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-cyan" style="padding:6px 12px;font-size:11px" onclick="document.getElementById('scanThreshold').value='60';runScanPro()">Signaux 60%+</button>
+            <button class="btn btn-green" style="padding:6px 12px;font-size:11px" onclick="setScanFilter(document.querySelector('[data-filter=forex]'));runScanPro()">Forex uniquement</button>
+            <button class="btn btn-orange" style="--btn-neon:#ff8a00;padding:6px 12px;font-size:11px" onclick="setScanFilter(document.querySelector('[data-filter=crypto]'));runScanPro()">Crypto uniquement</button>
+          </div>
         </div>
-        ${scored.slice(0,8).map(o=>renderOppProSmall(o)).join("")}`;
+        <div style="margin-top:8px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tous les instruments analysés (triés par conviction)</div>
+        ${scored.sort((a,b)=>b.conviction-a.conviction).slice(0,12).map(o=>renderOppProSmall(o)).join("")}`;
 
   }catch(e){
     res.innerHTML=`<div class='card'><div class='error'>Erreur : ${esc(e.message)}</div></div>`;
@@ -2109,6 +2141,59 @@ function renderOppProSmall(o){
 
 // Legacy alias
 async function runScan(){ await runScanPro(); }
+
+// Diagnostic: test price fetch from all sources
+async function testPricesFetch(){
+  const res = document.getElementById("scanResults");
+  res.innerHTML = `<div class="loading">🔧 Test de connexion en cours…</div>`;
+  const testSyms = ["GC=F","BTC-USD","EURUSD=X","^FCHI","NVDA"];
+  const results = [];
+  
+  // Test 1: Worker /prices
+  try{
+    const t0 = Date.now();
+    const r = await fetch(W()+"/prices?symbols="+encodeURIComponent(testSyms.join(",")),{signal:AbortSignal.timeout(15000)});
+    const d = await r.json();
+    const ms = Date.now()-t0;
+    results.push({src:"Worker /prices", ok:d.quotes?.length>0, detail:`${d.quotes?.length||0}/${testSyms.length} quotes en ${ms}ms`, quotes:d.quotes||[]});
+  }catch(e){ results.push({src:"Worker /prices", ok:false, detail:"Erreur: "+e.message}); }
+  
+  // Test 2: CoinGecko
+  try{
+    const t0=Date.now();
+    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",{signal:AbortSignal.timeout(8000)});
+    const d = await r.json();
+    const ms=Date.now()-t0;
+    results.push({src:"CoinGecko (crypto)", ok:d.bitcoin?.usd>0, detail:`BTC=${d.bitcoin?.usd} en ${ms}ms`});
+  }catch(e){ results.push({src:"CoinGecko (crypto)", ok:false, detail:"CORS bloqué: "+e.message}); }
+  
+  // Test 3: Yahoo direct browser
+  try{
+    const t0=Date.now();
+    const r = await fetch("https://query1.finance.yahoo.com/v8/finance/quote?symbols=GC%3DF&fields=regularMarketPrice&lang=en-US",{signal:AbortSignal.timeout(8000)});
+    const d = await r.json();
+    const price = d?.quoteResponse?.result?.[0]?.regularMarketPrice;
+    const ms=Date.now()-t0;
+    results.push({src:"Yahoo Finance (browser)", ok:price>0, detail:`GC=F=${price||"N/A"} en ${ms}ms`});
+  }catch(e){ results.push({src:"Yahoo Finance (browser)", ok:false, detail:"CORS bloqué: "+e.message}); }
+  
+  res.innerHTML = `<div class="card">
+    <b style="font-family:'Montserrat',sans-serif;font-size:13px;display:block;margin-bottom:12px">🔧 Diagnostic sources de prix</b>
+    ${results.map(r=>`<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span style="font-size:16px;flex-shrink:0">${r.ok?"✅":"❌"}</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:${r.ok?"#00ff88":"#ff3b6b"}">${esc(r.src)}</div>
+        <div style="font-size:10.5px;color:#6b7a99;margin-top:2px">${esc(r.detail)}</div>
+        ${r.quotes?.length?`<div style="font-size:10px;color:#a8b8d8;margin-top:3px">${r.quotes.slice(0,3).map(q=>`${q.symbol}: ${q.regularMarketPrice?.toFixed(2)||"?"}`).join(" · ")}</div>`:""}
+      </div>
+    </div>`).join("")}
+    <div style="margin-top:12px;font-size:11px;color:#6b7a99">
+      ${results.some(r=>r.ok)
+        ? "✅ Au moins une source fonctionne — le scanner devrait trouver des prix."
+        : "❌ Aucune source ne fonctionne. Vérifie ta connexion et que le Worker est bien déployé."}
+    </div>
+  </div>`;
+}
 
 
 let oppBandLastLoad=0;
@@ -3070,6 +3155,107 @@ function renderChart(candles){
   });
 }
 
+// ══════════════════════════════════════════════════════════════
+// CHART EXPERT CHAT — Contextual Q&A with senior finance expert
+// Context: current symbol + timeframe + AI analysis text
+// ══════════════════════════════════════════════════════════════
+let _chartChatHistory = [];
+let _chartAnalysisContext = "";
+
+const CHART_QUICK_QUESTIONS = [
+  "Quand entrer exactement sur ce trade ?",
+  "Quel stop-loss recommandes-tu ?",
+  "Quel est l'objectif de profit réaliste ?",
+  "Ce signal est-il fiable en ce moment ?",
+  "Quel risque prendre sur cette position ?",
+  "Y a-t-il un meilleur point d'entrée à attendre ?",
+  "Que se passe-t-il si le prix casse le support ?",
+  "Confirme-moi la direction à prendre",
+];
+
+function initChartChat(symbol, analysisText){
+  _chartChatHistory = [];
+  _chartAnalysisContext = `INSTRUMENT ANALYSÉ: ${symbol} | TIMEFRAME: ${chartCurrentTF}
+ANALYSE IA:
+${analysisText}`;
+  // Show chat section
+  const chatSection = document.getElementById("chartExpertChat");
+  if(chatSection) chatSection.style.display = "block";
+  // Render quick questions
+  const qBox = document.getElementById("chartQuickQs");
+  if(qBox){
+    qBox.innerHTML = CHART_QUICK_QUESTIONS.slice(0,6).map(q=>
+      `<button class="pill" onclick="askChartExpert(${JSON.stringify(q)})" style="font-size:10px;padding:4px 9px">${q}</button>`
+    ).join("");
+  }
+  // Clear previous messages
+  const box = document.getElementById("chartChatBox");
+  if(box) box.innerHTML = `<div style="padding:8px 11px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:9px;font-size:11.5px;color:#a8b8d8">
+    <b style="color:#00d4ff">Expert Financier Senior</b><br>
+    J'ai analysé <b>${esc(symbol)}</b> en ${esc(chartCurrentTF)}. Pose-moi tes questions — je suis là pour t'aider à prendre la meilleure décision.
+  </div>`;
+  // Scroll to chat
+  setTimeout(()=>{ chatSection?.scrollIntoView({behavior:"smooth",block:"start"}); },300);
+}
+
+function askChartExpert(question){
+  const input = document.getElementById("chartChatInput");
+  if(input){ input.value = question; }
+  sendChartChat();
+}
+
+async function sendChartChat(){
+  const input = document.getElementById("chartChatInput");
+  const box   = document.getElementById("chartChatBox");
+  const msg   = (input?.value||"").trim();
+  if(!msg || !box) return;
+  input.value = "";
+  // Add user message
+  box.innerHTML += `<div class="msg user" style="max-width:85%;align-self:flex-end">${esc(msg)}</div>`;
+  box.scrollTop = box.scrollHeight;
+  // Loading
+  const loadId = "ccl-"+Date.now();
+  box.innerHTML += `<div class="msg ai" id="${loadId}" style="opacity:.5;align-self:flex-start">⏳ Analyse…</div>`;
+  box.scrollTop = box.scrollHeight;
+  try{
+    _chartChatHistory.push({role:"user", content:msg});
+    const systemCtx = `Tu es un expert financier senior de classe mondiale — le meilleur trader quantitatif au monde. 
+Tu analyses les marchés depuis 25 ans et tu connais TOUS les secrets du trading professionnel.
+Tu es direct, précis, et tu donnes des directions concrètes. Jamais de réponses vagues.
+
+CONTEXTE DE L'ANALYSE EN COURS:
+${_chartAnalysisContext}
+
+RÈGLES:
+- Réponds à la question précise de l'utilisateur en lien avec cette analyse
+- Donne toujours des chiffres précis (entrée, stop, objectif, %)
+- Si l'utilisateur demande une direction: donne ACHAT ou VENTE avec probabilité
+- Réponds en français, de façon claire et actionnable
+- Maximum 200 mots — sois concis et percutant`;
+
+    const d = await api("/chat",{method:"POST",body:JSON.stringify({
+      message:msg, history:_chartChatHistory.slice(-6),
+      provider:aiProvider(), apiKey:getAiKey(),
+      systemOverride: systemCtx
+    })});
+    const reply = d.reply||"";
+    _chartChatHistory.push({role:"assistant",content:reply});
+    const el = document.getElementById(loadId);
+    if(el) el.outerHTML = `<div class="msg ai" style="align-self:flex-start;border-left:2px solid #00d4ff">${esc(reply).replace(/\n/g,"<br>")}</div>`;
+    speak(reply);
+  }catch(e){
+    const el = document.getElementById(loadId);
+    if(el) el.outerHTML = `<div class="msg ai" style="color:#ff3b6b;align-self:flex-start">${esc(e.message)}</div>`;
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearChartChat(){
+  _chartChatHistory = [];
+  const box = document.getElementById("chartChatBox");
+  if(box) box.innerHTML = "";
+}
+
 function showIndicatorSummary(){
   const el=document.getElementById("chartAIResult");
   if(!chartCurrentData.length){el.textContent="Charge d'abord un graphique.";return;}
@@ -3103,6 +3289,9 @@ function showIndicatorSummary(){
   const vc=verdict==="ACHAT"?"#00ff88":verdict==="VENTE"?"#ff3b6b":"#fff200";
   el.innerHTML=`<div style="margin-bottom:9px"><span style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:${vc}">${verdict}</span><span style="color:#6b7a99;font-size:10.5px;margin-left:7px">${bull}/${tot} indicateurs haussiers — calcul 100% local</span></div><div style="display:flex;flex-direction:column;gap:4px">${sigs.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:rgba(255,255,255,.025);border-radius:7px;border-left:2.5px solid ${s.ok?"#00ff88":"#ff3b6b"}"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#a8b8d8">${s.k}</span><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#6b7a99">${s.v}</span><span style="font-size:9.5px;font-weight:700;color:${s.ok?"#00ff88":"#ff3b6b"}">${s.sig}</span></div>`).join("")}</div>`;
   el.style.color="#e8eefc";
+  // Init expert chat with indicator context
+  const indicSummary = `Signal indicateurs: ${verdict} (${bull}/${tot} haussiers)`;
+  initChartChat(chartCurrentSymbol||"—", indicSummary);
 }
 
 async function analyzeCurrentChart(){
@@ -3140,6 +3329,8 @@ Conclus par ACHAT, VENTE ou ATTENTE avec entrée exacte, objectif, stop-loss, fo
     const chartReply = d.reply||"Aucune réponse";
     el.innerHTML=esc(chartReply).replace(/\n/g,"<br>");el.style.color="#e8eefc";
     speak(chartReply);
+    // Init expert chat with this analysis context
+    initChartChat(chartCurrentSymbol, chartReply);
   }catch(e){el.textContent="Erreur : "+e.message;el.style.color="#ff3b6b";}
 }
 
