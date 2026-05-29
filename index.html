@@ -441,13 +441,9 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
   <header class="app-header">
     <h1 class="app-title">PGI <span class="dot">•</span> Financial Pro</h1>
     <p class="app-subtitle">Places de Marchés · Macroéconomie · Actualités Mondiales</p>
-    <div class="api-status-bar" id="apiStatusBar">
-      <span class="api-pill wait" id="apis-worker"><span class="api-dot"></span>Worker</span>
-      <span class="api-pill wait" id="apis-market"><span class="api-dot"></span>Marchés</span>
-      <span class="api-pill wait" id="apis-news"><span class="api-dot"></span>News</span>
-      <span class="api-pill wait" id="apis-ai"><span class="api-dot"></span>IA</span>
-      <span class="api-pill wait" id="apis-email"><span class="api-dot"></span>Alertes</span>
-      <span class="api-pill wait" id="apis-terminal"><span class="api-dot"></span>Terminal</span>
+    <!-- SMART MARKET INTELLIGENCE BAR -->
+    <div id="smartBar" style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px 16px 0;min-height:28px">
+      <span style="font-size:9px;color:#6b7a99;align-self:center;font-weight:700;letter-spacing:.5px">⏳ Chargement des signaux live…</span>
     </div>
   </header>
 
@@ -466,7 +462,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
 
   <!-- OPPORTUNITIES BAND -->
   <div class="opp-band-wrap" id="oppBandWrap">
-    <div class="opp-band-label">⚡ SIGNAUX</div>
+    <div class="opp-band-label" style="cursor:pointer" onclick="showSignauxConfig()" title="Configurer les instruments suivis">⚡ SIGNAUX ⚙</div>
     <div class="opp-band-track">
       <div class="opp-band-inner" id="oppBandInner">
         <div class="opp-loading" id="oppBandLoading">Chargement des signaux…</div>
@@ -2196,6 +2192,67 @@ async function testPricesFetch(){
 }
 
 
+// Default BAND instruments (user-configurable)
+const BAND_DEFAULT_SYMBOLS = [
+  {s:"NG=F",n:"Gaz Naturel"},{s:"BZ=F",n:"Brent"},{s:"CL=F",n:"Pétrole WTI"},
+  {s:"GC=F",n:"Or"},{s:"SI=F",n:"Argent"},{s:"PA=F",n:"Palladium"},
+  {s:"EURUSD=X",n:"EUR/USD"},{s:"USDJPY=X",n:"USD/JPY"},{s:"GBPUSD=X",n:"GBP/USD"},
+  {s:"BTC-USD",n:"Bitcoin"},{s:"ETH-USD",n:"Ethereum"},{s:"XLM-USD",n:"Stellar"},
+  {s:"^FCHI",n:"CAC 40"},{s:"^NDX",n:"Nasdaq"},{s:"NVDA",n:"Nvidia"},
+  {s:"ZW=F",n:"Blé"},{s:"ZC=F",n:"Maïs"},{s:"CC=F",n:"Cacao"},
+  {s:"HG=F",n:"Cuivre"},{s:"^GSPC",n:"S&P 500"}
+];
+
+function getBandMarkets(){
+  try{
+    const saved = localStorage.getItem("pgi_band_markets");
+    if(saved) return JSON.parse(saved);
+  }catch{}
+  return BAND_DEFAULT_SYMBOLS;
+}
+
+function showSignauxConfig(){
+  const current = getBandMarkets().map(m=>m.n+"="+m.s).join("\n");
+  const modal = document.createElement("div");
+  modal.id = "signauxModal";
+  modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px";
+  modal.innerHTML = `
+    <div style="background:#0a1020;border:1.5px solid #00ff88;border-radius:16px;padding:18px;width:100%;max-width:390px;box-shadow:0 0 28px rgba(0,255,136,.18)">
+      <h3 style="font-family:Montserrat,sans-serif;font-size:14px;font-weight:800;color:#e8eefc;margin-bottom:5px">⚡ Configurer les Signaux</h3>
+      <p style="font-size:10.5px;color:#6b7a99;margin-bottom:11px">Format : <code style="color:#00ff88">NOM=SYMBOLE</code> — une ligne par instrument<br>Ex: Gaz Naturel=NG=F | Or=GC=F | Bitcoin=BTC-USD</p>
+      <textarea id="signauxConfigInput" style="width:100%;height:220px;background:#060810;color:#e8eefc;border:1px solid #1c2d48;border-radius:9px;padding:9px;font-size:11px;font-family:'JetBrains Mono',monospace;resize:vertical">${esc(current)}</textarea>
+      <div style="display:flex;gap:7px;margin-top:11px">
+        <button onclick="applySignauxConfig()" style="flex:1;background:rgba(0,255,136,.14);border:1px solid rgba(0,255,136,.48);border-radius:9px;color:#00ff88;padding:10px;font-family:Montserrat,sans-serif;font-weight:700;font-size:12px;cursor:pointer">✓ Appliquer</button>
+        <button onclick="resetSignauxConfig()" style="background:rgba(255,255,255,.04);border:1px solid #1c2d48;border-radius:9px;color:#6b7a99;padding:10px 13px;font-size:11px;cursor:pointer">Reset</button>
+        <button onclick="document.getElementById('signauxModal').remove()" style="background:rgba(255,59,107,.1);border:1px solid rgba(255,59,107,.28);border-radius:9px;color:#ff3b6b;padding:10px 13px;font-size:11px;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function applySignauxConfig(){
+  const input = document.getElementById("signauxConfigInput");
+  if(!input) return;
+  const lines = input.value.split("\n").map(l=>l.trim()).filter(Boolean);
+  const markets = [];
+  for(const line of lines){
+    const eq = line.lastIndexOf("=");
+    if(eq < 1) continue;
+    markets.push({n:line.slice(0,eq).trim(), s:line.slice(eq+1).trim()});
+  }
+  if(!markets.length) return;
+  localStorage.setItem("pgi_band_markets", JSON.stringify(markets));
+  document.getElementById("signauxModal")?.remove();
+  oppBandLastLoad = 0;
+  loadOppBand(true);
+}
+
+function resetSignauxConfig(){
+  localStorage.removeItem("pgi_band_markets");
+  const inp = document.getElementById("signauxConfigInput");
+  if(inp) inp.value = BAND_DEFAULT_SYMBOLS.map(m=>m.n+"="+m.s).join("\n");
+}
+
 let oppBandLastLoad=0;
 async function loadOppBand(force=false){
   const now=Date.now();
@@ -2205,18 +2262,7 @@ async function loadOppBand(force=false){
   inner.innerHTML='<div class="opp-loading">⚡ Analyse des marchés…</div>';
   try{
     // Utilise le même moteur que le scanner pro — même univers, même algorithme
-    const BAND_MARKETS = SCAN_UNIVERSES?.all?.slice(0,25) || [
-      {s:"EURUSD=X",n:"EUR/USD",c:"Forex"},{s:"GC=F",n:"Or",c:"Commodité"},
-      {s:"CL=F",n:"Pétrole WTI",c:"Commodité"},{s:"NG=F",n:"Gaz Naturel",c:"Commodité"},
-      {s:"BTC-USD",n:"Bitcoin",c:"Crypto"},{s:"SI=F",n:"Argent",c:"Commodité"},
-      {s:"PA=F",n:"Palladium",c:"Commodité"},{s:"^NDX",n:"Nasdaq",c:"Indice"},
-      {s:"^FCHI",n:"CAC 40",c:"Indice"},{s:"USDJPY=X",n:"USD/JPY",c:"Forex"},
-      {s:"GBPUSD=X",n:"GBP/USD",c:"Forex"},{s:"ETH-USD",n:"Ethereum",c:"Crypto"},
-      {s:"HG=F",n:"Cuivre",c:"Commodité"},{s:"CC=F",n:"Cacao",c:"Commodité"},
-      {s:"NVDA",n:"Nvidia",c:"Action"},{s:"TSLA",n:"Tesla",c:"Action"},
-      {s:"ZW=F",n:"Blé",c:"Commodité"},{s:"XLM-USD",n:"Stellar",c:"Crypto"},
-      {s:"MC.PA",n:"LVMH",c:"Action"},{s:"BZ=F",n:"Brent",c:"Commodité"}
-    ];
+    const BAND_MARKETS = getBandMarkets();
     // Fetch directement depuis le navigateur — jamais bloqué par Yahoo
     const quotes = await getQuotes(BAND_MARKETS.map(m=>m.s));
     
@@ -2257,6 +2303,11 @@ async function loadOppBand(force=false){
             <span style="font-size:8.5px;color:#6b7a99">WATCH</span>
           </div>`;
         }).join("");
+        // Update smartBar with movers
+        updateSmartBar(movers.slice(0,6).map(o=>({
+          symbol:o.symbol, name:o.name, direction:o.pct>=0?"ACHAT":"VENTE",
+          prob:Math.min(72,55+Math.round(Math.abs(o.pct)*5)), pct:o.pct
+        })));
         inner.style.animation="none";
         inner.innerHTML=mhtml+mhtml;
         requestAnimationFrame(()=>{
@@ -2272,6 +2323,11 @@ async function loadOppBand(force=false){
     }
     
     oppBandLastLoad=now;
+    // Update smart bar with top signals
+    updateSmartBar(signals.slice(0,8).map(o=>({
+      symbol:o.symbol, name:o.name, direction:o.direction,
+      prob:o.prob, pct:o.pct
+    })));
     const html=signals.map(o=>`
       <div class="opp-item" onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" title="Cliquer pour voir le graphique">
         <span class="opp-item-name">${esc(o.name)}</span>
@@ -2297,49 +2353,47 @@ async function loadOppBand(force=false){
 // ═══════════════════════════════════════════════════════════
 // HEALTH CHECK
 // ═══════════════════════════════════════════════════════════
-function setApiPill(id, status, label){
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.className="api-pill "+(status==="ok"?"ok":status==="err"?"err":"wait");
-  el.innerHTML=`<span class="api-dot"></span>${label}`;
+// setApiPill kept for compatibility but smartBar replaces the display
+function setApiPill(id, status, label){ /* no-op — using smartBar instead */ }
+
+function updateSmartBar(signals){
+  const bar = document.getElementById("smartBar");
+  if(!bar) return;
+  if(!signals || !signals.length){
+    bar.innerHTML = '<span style="font-size:9px;color:#6b7a99;font-weight:700">⏳ Chargement des signaux…</span>';
+    return;
+  }
+  // Show top signals as compact pills
+  bar.innerHTML = signals.slice(0,8).map(s=>{
+    const dc = s.direction==="ACHAT"?"#00ff88":s.direction==="VENTE"?"#ff3b6b":"#fff200";
+    const bg = s.direction==="ACHAT"?"rgba(0,255,136,.1)":s.direction==="VENTE"?"rgba(255,59,107,.1)":"rgba(255,242,0,.08)";
+    const border = s.direction==="ACHAT"?"rgba(0,255,136,.4)":s.direction==="VENTE"?"rgba(255,59,107,.4)":"rgba(255,242,0,.3)";
+    const pctStr = s.pct >= 0 ? "+"+s.pct.toFixed(1)+"%" : s.pct.toFixed(1)+"%";
+    return `<button onclick="document.getElementById('chartSymbolInput').value='${esc(s.symbol)}';showScreen('charts');loadChart()"
+      style="display:inline-flex;align-items:center;gap:4px;background:${bg};border:1px solid ${border};border-radius:12px;padding:3px 8px;cursor:pointer;transition:.14s"
+      title="Voir le graphique de ${esc(s.name)}">
+      <span style="font-size:9px;font-weight:700;color:#a8b8d8">${esc(s.name)}</span>
+      <span style="font-size:9px;font-weight:800;color:${dc};font-family:'JetBrains Mono',monospace">${esc(s.direction)}</span>
+      <span style="font-size:8.5px;color:${dc};font-family:'JetBrains Mono',monospace">${s.prob}%</span>
+      <span style="font-size:8px;color:#6b7a99;font-family:'JetBrains Mono',monospace">${pctStr}</span>
+    </button>`;
+  }).join("") + '<span style="font-size:8.5px;color:#6b7a99;align-self:center;margin-left:3px">← Clique pour graphique</span>';
 }
 
 async function health(){
   const sw=document.getElementById("stWorker");
   const sm=document.getElementById("stMarket");
   try{
-    const h = await api("/health");
+    await api("/health");
     if(sw){sw.textContent="Worker OK";sw.className="pill ok";}
-    setApiPill("apis-worker","ok","Worker ✓");
-    // Check providers
+    // Check providers silently — no pill display (smartBar handles UI now)
     try{
       const ps = await api("/providers/status");
       const cfg = ps.configured||{};
-      const hasMarket = cfg.TWELVE_DATA_API_KEY||cfg.POLYGON_API_KEY||cfg.EODHD_API_KEY;
-      const hasNews   = cfg.NEWSAPI_KEY||cfg.GNEWS_API_KEY||cfg.MEDIASTACK_API_KEY;
-      const hasAI     = cfg.GROQ_API_KEY||cfg.OPENAI_API_KEY||cfg.MISTRAL_API_KEY;
-      const hasEmail  = cfg.RESEND_API_KEY;
-      const hasFred   = cfg.FRED_API_KEY||cfg.FINNHUB_API_KEY;
-      if(sm){sm.textContent=hasMarket?"Market Data OK":"Market Data";sm.className="pill "+(hasMarket?"ok":"warn");}
-      setApiPill("apis-market", hasMarket?"ok":"err", hasMarket?"Marchés ✓":"Marchés ✗");
-      setApiPill("apis-news",   hasNews?"ok":"err",   hasNews?"News ✓":"News ✗");
-      setApiPill("apis-ai",     hasAI?"ok":"err",     hasAI?"IA ✓":"IA ✗");
-      setApiPill("apis-email",  hasEmail?"ok":"err",  hasEmail?"Alertes ✓":"Alertes ✗");
-      setApiPill("apis-terminal",hasFred?"ok":"err",  hasFred?"Terminal ✓":"Terminal ✗");
-    }catch{
-      setApiPill("apis-market","err","Marchés ?");
-      setApiPill("apis-news","err","News ?");
-      setApiPill("apis-ai","err","IA ?");
-    }
+      if(sm){sm.textContent=cfg.TWELVE_DATA_API_KEY||cfg.POLYGON_API_KEY?"Market OK":"Market";sm.className="pill "+(cfg.TWELVE_DATA_API_KEY?"ok":"warn");}
+    }catch{}
   }catch(e){
     if(sw){sw.textContent="Worker hors ligne";sw.className="pill err";}
-    if(sm){sw.textContent="Market Data";sm.className="pill warn";}
-    setApiPill("apis-worker","err","Worker ✗");
-    setApiPill("apis-market","err","Marchés ✗");
-    setApiPill("apis-news","err","News ✗");
-    setApiPill("apis-ai","err","IA ✗");
-    setApiPill("apis-email","err","Alertes ✗");
-    setApiPill("apis-terminal","err","Terminal ✗");
   }
 }
 
@@ -3175,26 +3229,33 @@ const CHART_QUICK_QUESTIONS = [
 
 function initChartChat(symbol, analysisText){
   _chartChatHistory = [];
-  _chartAnalysisContext = `INSTRUMENT ANALYSÉ: ${symbol} | TIMEFRAME: ${chartCurrentTF}
-ANALYSE IA:
+  // Get REAL price from chart data — never let AI invent prices
+  const sorted = (chartCurrentData||[]).slice().sort((a,b)=>a.time-b.time);
+  const last   = sorted[sorted.length-1] || {};
+  const prev2  = sorted[sorted.length-2] || last;
+  const realPrice = last.close || 0;
+  const realPct   = prev2.close && realPrice ? ((realPrice-prev2.close)/prev2.close*100) : 0;
+  const priceInfo = realPrice > 0
+    ? `PRIX RÉEL: ${realPrice.toFixed(5)} | Variation: ${realPct>=0?"+":""}${realPct.toFixed(2)}% | Haut: ${(last.high||realPrice).toFixed(5)} | Bas: ${(last.low||realPrice).toFixed(5)}`
+    : "PRIX: données du graphique ci-dessus";
+  _chartAnalysisContext = `INSTRUMENT: ${symbol} | TIMEFRAME: ${chartCurrentTF}
+${priceInfo}
+RÈGLE ABSOLUE: Utilise UNIQUEMENT les prix ci-dessus. Ne jamais inventer d'autres prix.
+ANALYSE TECHNIQUE:
 ${analysisText}`;
-  // Show chat section
   const chatSection = document.getElementById("chartExpertChat");
   if(chatSection) chatSection.style.display = "block";
-  // Render quick questions
   const qBox = document.getElementById("chartQuickQs");
   if(qBox){
     qBox.innerHTML = CHART_QUICK_QUESTIONS.slice(0,6).map(q=>
       `<button class="pill" onclick="askChartExpert(${JSON.stringify(q)})" style="font-size:10px;padding:4px 9px">${q}</button>`
     ).join("");
   }
-  // Clear previous messages
   const box = document.getElementById("chartChatBox");
   if(box) box.innerHTML = `<div style="padding:8px 11px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:9px;font-size:11.5px;color:#a8b8d8">
-    <b style="color:#00d4ff">Expert Financier Senior</b><br>
-    J'ai analysé <b>${esc(symbol)}</b> en ${esc(chartCurrentTF)}. Pose-moi tes questions — je suis là pour t'aider à prendre la meilleure décision.
+    <b style="color:#00d4ff">Expert Senior</b> — Analyse de <b>${esc(symbol)}</b> (${esc(chartCurrentTF)}) au prix <b style="color:#e8eefc">${realPrice>0?realPrice.toFixed(realPrice<10?5:2):"voir graphique"}</b><br>
+    Pose-moi tes questions — je suis là pour t'aider à décider.
   </div>`;
-  // Scroll to chat
   setTimeout(()=>{ chatSection?.scrollIntoView({behavior:"smooth",block:"start"}); },300);
 }
 
@@ -3233,10 +3294,14 @@ RÈGLES:
 - Réponds en français, de façon claire et actionnable
 - Maximum 200 mots — sois concis et percutant`;
 
+    // Build enriched message with real chart data embedded
+    // (systemOverride is ignored by worker — inject context into user message)
+    const enrichedMsg = _chartChatHistory.length <= 1
+      ? `[CONTEXTE ANALYSE EN COURS]\n${_chartAnalysisContext}\n\n[QUESTION TRADER]: ${msg}`
+      : msg;  // subsequent messages already have context in history
     const d = await api("/chat",{method:"POST",body:JSON.stringify({
-      message:msg, history:_chartChatHistory.slice(-6),
-      provider:aiProvider(), apiKey:getAiKey(),
-      systemOverride: systemCtx
+      message:enrichedMsg, history:_chartChatHistory.slice(-6),
+      provider:aiProvider(), apiKey:getAiKey()
     })});
     const reply = d.reply||"";
     _chartChatHistory.push({role:"assistant",content:reply});
