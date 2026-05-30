@@ -77,36 +77,9 @@ a{color:#00d4ff;text-decoration:none}
 /* ═══════════════════════════════════════
    TICKER BAR
 ═══════════════════════════════════════ */
-.ticker-wrapper{
-  display:flex;align-items:stretch;
-  background:rgba(8,13,24,.95);border:1px solid #1c2d48;
-  border-radius:12px;margin:8px 10px 6px;overflow:hidden;
-}
-.ticker-scroll{
-  display:block;overflow:hidden;flex:1;
-  padding:0;cursor:grab;position:relative;
-}
-.ticker-scroll:active{cursor:grabbing}
-.ticker-inner-wrap{
-  display:flex;gap:0;
-  will-change:transform;
-  backface-visibility:hidden;
-}
-.ticker-item{
-  display:flex;flex-direction:column;align-items:center;
-  min-width:82px;padding:9px 12px;
-  border-right:1px solid rgba(255,255,255,.06);flex-shrink:0;
-}
-.ticker-item:last-child{border-right:none}
-.ticker-label{font-size:9.5px;color:#6b7a99;font-weight:700;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase}
-.ticker-price{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;color:#e8eefc;white-space:nowrap;margin-top:2px}
-.ticker-change{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;white-space:nowrap;margin-top:1px}
-.ticker-change.up{color:#00ff88}.ticker-change.down{color:#ff3b6b}.ticker-change.flat{color:#fff200}
-.ticker-gear{
-  padding:0 13px;background:none;border:none;border-left:1px solid #1c2d48;
-  color:#6b7a99;font-size:15px;cursor:pointer;display:flex;align-items:center;transition:.15s;
-}
-.ticker-gear:hover{color:#00d4ff}
+
+
+
 
 /* ═══════════════════════════════════════
    CLOCKS — Style salle de marché années 80
@@ -442,16 +415,16 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     <h1 class="app-title">PGI <span class="dot">•</span> Financial Pro</h1>
     <p class="app-subtitle">Places de Marchés · Macroéconomie · Actualités Mondiales</p>
     <!-- SMART MARKET INTELLIGENCE BAR -->
-    <div id="smartBar" style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px 16px 0;min-height:28px">
-      <span style="font-size:9px;color:#6b7a99;align-self:center;font-weight:700;letter-spacing:.5px">⏳ Chargement des signaux live…</span>
+    <!-- SMART SIGNAL BAR — Opportunités immédiates (intraday) -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 16px 2px">
+      <span style="font-size:8.5px;color:#6b7a99;font-weight:700;letter-spacing:.8px;text-transform:uppercase;flex-shrink:0">⚡ MAINTENANT</span>
+      <div id="smartBar" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:24px">
+        <span style="font-size:9px;color:#6b7a99;align-self:center">Calcul des opportunités immédiates…</span>
+      </div>
     </div>
   </header>
 
-  <!-- TICKER -->
-  <div class="ticker-wrapper">
-    <div class="ticker-scroll" id="tickerScroll"></div>
-    <button class="ticker-gear" onclick="showTickerConfig()" title="Configurer le ticker">⚙</button>
-  </div>
+  <!-- Ticker removed — Smart Bar above takes the role -->
 
   <!-- CLOCKS -->
   <div class="clocks-section">
@@ -2359,25 +2332,61 @@ function setApiPill(id, status, label){ /* no-op — using smartBar instead */ }
 function updateSmartBar(signals){
   const bar = document.getElementById("smartBar");
   if(!bar) return;
+  bar.innerHTML = "";
   if(!signals || !signals.length){
-    bar.innerHTML = '<span style="font-size:9px;color:#6b7a99;font-weight:700">⏳ Chargement des signaux…</span>';
-    return;
+    const s = document.createElement("span");
+    s.style.cssText = "font-size:9px;color:#6b7a99";
+    s.textContent = "Calcul des opportunites...";
+    bar.appendChild(s); return;
   }
-  // Show top signals as compact pills
-  bar.innerHTML = signals.slice(0,8).map(s=>{
-    const dc = s.direction==="ACHAT"?"#00ff88":s.direction==="VENTE"?"#ff3b6b":"#fff200";
-    const bg = s.direction==="ACHAT"?"rgba(0,255,136,.1)":s.direction==="VENTE"?"rgba(255,59,107,.1)":"rgba(255,242,0,.08)";
-    const border = s.direction==="ACHAT"?"rgba(0,255,136,.4)":s.direction==="VENTE"?"rgba(255,59,107,.4)":"rgba(255,242,0,.3)";
-    const pctStr = s.pct >= 0 ? "+"+s.pct.toFixed(1)+"%" : s.pct.toFixed(1)+"%";
-    return `<button onclick="document.getElementById('chartSymbolInput').value='${esc(s.symbol)}';showScreen('charts');loadChart()"
-      style="display:inline-flex;align-items:center;gap:4px;background:${bg};border:1px solid ${border};border-radius:12px;padding:3px 8px;cursor:pointer;transition:.14s"
-      title="Voir le graphique de ${esc(s.name)}">
-      <span style="font-size:9px;font-weight:700;color:#a8b8d8">${esc(s.name)}</span>
-      <span style="font-size:9px;font-weight:800;color:${dc};font-family:'JetBrains Mono',monospace">${esc(s.direction)}</span>
-      <span style="font-size:8.5px;color:${dc};font-family:'JetBrains Mono',monospace">${s.prob}%</span>
-      <span style="font-size:8px;color:#6b7a99;font-family:'JetBrains Mono',monospace">${pctStr}</span>
-    </button>`;
-  }).join("") + '<span style="font-size:8.5px;color:#6b7a99;align-self:center;margin-left:3px">← Clique pour graphique</span>';
+  const actionable = signals.filter(function(s){ return s.direction !== "ATTENTE"; }).slice(0,8);
+  if(!actionable.length){
+    const s = document.createElement("span");
+    s.style.cssText = "font-size:9px;color:#6b7a99";
+    s.textContent = "Marches calmes - aucune opportunite immediate";
+    bar.appendChild(s); return;
+  }
+  actionable.forEach(function(s){
+    const isAchat = s.direction === "ACHAT";
+    const dc  = isAchat ? "#00ff88" : "#ff3b6b";
+    const bg  = isAchat ? "rgba(0,255,136,.1)" : "rgba(255,59,107,.1)";
+    const brd = isAchat ? "rgba(0,255,136,.45)" : "rgba(255,59,107,.45)";
+    const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
+    const btn = document.createElement("button");
+    btn.dataset.sym = s.symbol;
+    btn.title = s.direction + " sur " + s.name + " - " + s.prob + "% de reussite - Cliquer pour graphique";
+    btn.style.cssText = "display:inline-flex;align-items:center;gap:5px;background:" + bg + ";border:1px solid " + brd + ";border-radius:14px;padding:4px 10px;cursor:pointer;font-family:inherit;box-shadow:0 0 6px " + dc + "22;margin:1px";
+
+    const arrow = document.createElement("span");
+    arrow.style.cssText = "font-size:10px;font-weight:800;color:" + dc;
+    arrow.textContent = isAchat ? "▲" : "▼";
+
+    const name = document.createElement("span");
+    name.style.cssText = "font-size:9.5px;font-weight:700;color:#e8eefc";
+    name.textContent = s.name;
+
+    const prob = document.createElement("span");
+    prob.style.cssText = "font-size:9.5px;font-weight:800;color:" + dc + ";font-family:monospace";
+    prob.textContent = s.prob + "%";
+
+    const variation = document.createElement("span");
+    variation.style.cssText = "font-size:8.5px;color:" + dc + ";font-family:monospace";
+    variation.textContent = pct;
+
+    btn.appendChild(arrow);
+    btn.appendChild(name);
+    btn.appendChild(prob);
+    btn.appendChild(variation);
+
+    btn.onclick = function(){
+      var sym = this.dataset.sym;
+      var inp = document.getElementById("chartSymbolInput");
+      if(inp) inp.value = sym;
+      showScreen("charts");
+      loadChart();
+    };
+    bar.appendChild(btn);
+  });
 }
 
 async function health(){
