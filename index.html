@@ -415,11 +415,11 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     <h1 class="app-title">PGI <span class="dot">•</span> Financial Pro</h1>
     <p class="app-subtitle">Places de Marchés · Macroéconomie · Actualités Mondiales</p>
     <!-- SMART MARKET INTELLIGENCE BAR -->
-    <!-- SMART SIGNAL BAR — Opportunités immédiates (intraday) -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 16px 2px">
-      <span style="font-size:8.5px;color:#6b7a99;font-weight:700;letter-spacing:.8px;text-transform:uppercase;flex-shrink:0">⚡ MAINTENANT</span>
-      <div id="smartBar" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:24px">
-        <span style="font-size:9px;color:#6b7a99;align-self:center">Calcul des opportunités immédiates…</span>
+    <!-- SMART SIGNAL BAR — Opportunités immédiates -->
+    <div style="padding:6px 10px 2px">
+      <div style="font-size:9px;font-weight:700;color:#6b7a99;letter-spacing:1.5px;text-transform:uppercase;text-align:center;margin-bottom:5px">Opportunités immédiates</div>
+      <div id="smartBar" style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px;justify-content:space-between;align-items:center;width:100%;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none">
+        <span style="font-size:9px;color:#6b7a99">Calcul en cours…</span>
       </div>
     </div>
   </header>
@@ -2335,48 +2335,51 @@ function updateSmartBar(signals){
   bar.innerHTML = "";
   if(!signals || !signals.length){
     const s = document.createElement("span");
-    s.style.cssText = "font-size:9px;color:#6b7a99";
-    s.textContent = "Calcul des opportunites...";
+    s.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
+    s.textContent = "Calcul en cours...";
     bar.appendChild(s); return;
   }
   const actionable = signals.filter(function(s){ return s.direction !== "ATTENTE"; }).slice(0,8);
   if(!actionable.length){
     const s = document.createElement("span");
-    s.style.cssText = "font-size:9px;color:#6b7a99";
-    s.textContent = "Marches calmes - aucune opportunite immediate";
+    s.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
+    s.textContent = "Marches calmes";
     bar.appendChild(s); return;
   }
   actionable.forEach(function(s){
     const isAchat = s.direction === "ACHAT";
     const dc  = isAchat ? "#00ff88" : "#ff3b6b";
     const bg  = isAchat ? "rgba(0,255,136,.1)" : "rgba(255,59,107,.1)";
-    const brd = isAchat ? "rgba(0,255,136,.45)" : "rgba(255,59,107,.45)";
+    const brd = isAchat ? "rgba(0,255,136,.4)" : "rgba(255,59,107,.4)";
     const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
+
     const btn = document.createElement("button");
     btn.dataset.sym = s.symbol;
-    btn.title = s.direction + " sur " + s.name + " - " + s.prob + "% de reussite - Cliquer pour graphique";
-    btn.style.cssText = "display:inline-flex;align-items:center;gap:5px;background:" + bg + ";border:1px solid " + brd + ";border-radius:14px;padding:4px 10px;cursor:pointer;font-family:inherit;box-shadow:0 0 6px " + dc + "22;margin:1px";
+    btn.title = s.direction + " sur " + s.name + " — cliquer pour graphique";
+    // flex:1 makes each button fill equal space horizontally
+    btn.style.cssText = "flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;"
+      + "background:" + bg + ";border:1px solid " + brd + ";border-radius:10px;"
+      + "padding:5px 4px;cursor:pointer;font-family:inherit;"
+      + "box-shadow:0 0 5px " + dc + "18;transition:.14s";
 
-    const arrow = document.createElement("span");
-    arrow.style.cssText = "font-size:10px;font-weight:800;color:" + dc;
-    arrow.textContent = isAchat ? "▲" : "▼";
+    // Direction badge top
+    const dir = document.createElement("span");
+    dir.style.cssText = "font-size:8px;font-weight:800;color:" + dc + ";letter-spacing:.5px;line-height:1";
+    dir.textContent = isAchat ? "▲ ACHAT" : "▼ VENTE";
 
+    // Name
     const name = document.createElement("span");
-    name.style.cssText = "font-size:9.5px;font-weight:700;color:#e8eefc";
+    name.style.cssText = "font-size:9px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
     name.textContent = s.name;
 
-    const prob = document.createElement("span");
-    prob.style.cssText = "font-size:9.5px;font-weight:800;color:" + dc + ";font-family:monospace";
-    prob.textContent = s.prob + "%";
+    // Prob + pct in one line
+    const meta = document.createElement("span");
+    meta.style.cssText = "font-size:8px;color:" + dc + ";font-family:monospace;line-height:1";
+    meta.textContent = s.prob + "% · " + pct;
 
-    const variation = document.createElement("span");
-    variation.style.cssText = "font-size:8.5px;color:" + dc + ";font-family:monospace";
-    variation.textContent = pct;
-
-    btn.appendChild(arrow);
+    btn.appendChild(dir);
     btn.appendChild(name);
-    btn.appendChild(prob);
-    btn.appendChild(variation);
+    btn.appendChild(meta);
 
     btn.onclick = function(){
       var sym = this.dataset.sym;
