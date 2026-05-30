@@ -401,6 +401,10 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
 }
 .cal-date-btn:hover{border-color:#00d4ff;color:#00d4ff}
 .cal-date-btn.active{background:rgba(0,212,255,.13);border-color:#00d4ff;color:#00d4ff}
+@keyframes neonPulseViolet{
+  0%,100%{text-shadow:0 0 8px rgba(216,180,254,.9),0 0 20px rgba(216,180,254,.5),0 0 40px rgba(216,180,254,.2);opacity:1}
+  50%{text-shadow:0 0 16px rgba(216,180,254,1),0 0 40px rgba(216,180,254,.8),0 0 80px rgba(216,180,254,.4);opacity:.85}
+}
 @media(min-width:600px){body{display:flex;justify-content:center}#app{max-width:420px;width:100%;min-height:100vh}}
 </style>
 </head>
@@ -417,7 +421,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     <!-- SMART MARKET INTELLIGENCE BAR -->
     <!-- SMART SIGNAL BAR — Opportunités immédiates -->
     <div style="padding:18px 10px 16px">
-      <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;color:#fff200;text-shadow:0 0 8px rgba(255,242,0,.9),0 0 20px rgba(255,242,0,.5),0 0 40px rgba(255,242,0,.2)">Opportunités de Trading Immédiates</div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;color:#d8b4fe;text-shadow:0 0 8px rgba(216,180,254,.9),0 0 20px rgba(216,180,254,.5),0 0 40px rgba(216,180,254,.2);animation:neonPulseViolet 2s ease-in-out infinite">Opportunités de Trading Immédiates</div>
       <div id="smartBar" style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px;justify-content:space-between;align-items:center;width:100%;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none">
         <span style="font-size:9px;color:#6b7a99">Calcul en cours…</span>
       </div>
