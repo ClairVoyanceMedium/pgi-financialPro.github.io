@@ -422,7 +422,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     <!-- SMART SIGNAL BAR — Opportunités immédiates -->
     <div style="padding:18px 10px 16px">
       <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;color:#d8b4fe;text-shadow:0 0 8px rgba(216,180,254,.9),0 0 20px rgba(216,180,254,.5),0 0 40px rgba(216,180,254,.2);animation:neonPulseViolet 2s ease-in-out infinite">Opportunités de Trading Immédiates</div>
-      <div id="smartBar" style="display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px;justify-content:space-between;align-items:center;width:100%;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none">
+      <div id="smartBar" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;justify-content:space-between;align-items:stretch;width:100%">
         <span style="font-size:9px;color:#6b7a99">Calcul en cours…</span>
       </div>
     </div>
@@ -2360,21 +2360,21 @@ function updateSmartBar(signals){
     const btn = document.createElement("button");
     btn.dataset.sym = s.symbol;
     btn.title = s.direction + " sur " + s.name + " — cliquer pour graphique";
-    btn.style.cssText = "flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"
-      + "background:" + bg + ";border:1px solid " + brd + ";border-radius:12px;"
-      + "padding:9px 6px;cursor:pointer;font-family:inherit;"
-      + "box-shadow:0 0 8px " + dc + "22;transition:.15s";
+    btn.style.cssText = "flex:1;min-width:calc(25% - 5px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;"
+      + "background:" + bg + ";border:1px solid " + brd + ";border-radius:14px;"
+      + "padding:13px 8px;cursor:pointer;font-family:inherit;"
+      + "box-shadow:0 0 10px " + dc + "25;transition:.15s";
 
     const dir = document.createElement("span");
-    dir.style.cssText = "font-size:9px;font-weight:800;color:" + dc + ";letter-spacing:.6px;line-height:1";
+    dir.style.cssText = "font-size:10px;font-weight:800;color:" + dc + ";letter-spacing:.6px;line-height:1";
     dir.textContent = isAchat ? "▲ ACHETER" : "▼ VENDRE";
 
     const name = document.createElement("span");
-    name.style.cssText = "font-size:10.5px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    name.style.cssText = "font-size:12px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
     name.textContent = s.name;
 
     const meta = document.createElement("span");
-    meta.style.cssText = "font-size:9px;color:" + dc + ";font-family:monospace;line-height:1;font-weight:600";
+    meta.style.cssText = "font-size:10px;color:" + dc + ";font-family:monospace;line-height:1;font-weight:600";
     meta.textContent = s.prob + "% · " + pct;
 
     btn.appendChild(dir);
