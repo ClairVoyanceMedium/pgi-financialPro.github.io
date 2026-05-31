@@ -2353,32 +2353,28 @@ function updateSmartBar(signals){
   actionable.forEach(function(s){
     const isAchat = s.direction === "ACHAT";
     const dc  = isAchat ? "#00ff88" : "#ff3b6b";
-    const bg  = isAchat ? "rgba(0,255,136,.1)" : "rgba(255,59,107,.1)";
-    const brd = isAchat ? "rgba(0,255,136,.4)" : "rgba(255,59,107,.4)";
+    const bg  = isAchat ? "rgba(0,255,136,.08)" : "rgba(255,59,107,.08)";
+    const brd = isAchat ? "rgba(0,255,136,.4)"  : "rgba(255,59,107,.4)";
     const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
 
     const btn = document.createElement("button");
     btn.dataset.sym = s.symbol;
     btn.title = s.direction + " sur " + s.name + " — cliquer pour graphique";
-    // flex:1 makes each button fill equal space horizontally
-    btn.style.cssText = "flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;"
-      + "background:" + bg + ";border:1px solid " + brd + ";border-radius:10px;"
-      + "padding:5px 4px;cursor:pointer;font-family:inherit;"
-      + "box-shadow:0 0 5px " + dc + "18;transition:.14s";
+    btn.style.cssText = "flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"
+      + "background:" + bg + ";border:1px solid " + brd + ";border-radius:12px;"
+      + "padding:9px 6px;cursor:pointer;font-family:inherit;"
+      + "box-shadow:0 0 8px " + dc + "22;transition:.15s";
 
-    // Direction badge top
     const dir = document.createElement("span");
-    dir.style.cssText = "font-size:8px;font-weight:800;color:" + dc + ";letter-spacing:.5px;line-height:1";
+    dir.style.cssText = "font-size:9px;font-weight:800;color:" + dc + ";letter-spacing:.6px;line-height:1";
     dir.textContent = isAchat ? "▲ ACHAT" : "▼ VENTE";
 
-    // Name
     const name = document.createElement("span");
-    name.style.cssText = "font-size:9px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    name.style.cssText = "font-size:10.5px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
     name.textContent = s.name;
 
-    // Prob + pct in one line
     const meta = document.createElement("span");
-    meta.style.cssText = "font-size:8px;color:" + dc + ";font-family:monospace;line-height:1";
+    meta.style.cssText = "font-size:9px;color:" + dc + ";font-family:monospace;line-height:1;font-weight:600";
     meta.textContent = s.prob + "% · " + pct;
 
     btn.appendChild(dir);
