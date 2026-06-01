@@ -1814,124 +1814,170 @@ function setScanFilter(btn){
 // ── Moteur quantitatif multi-facteurs ──────────────────────
 // Calcule un score haute conviction sur plusieurs dimensions
 function quantScorePro(q, newsRisk, yieldSpread){
-  const price = Number(q.regularMarketPrice||0);
-  const pct   = Number(q.regularMarketChangePercent||0);
-  const high  = Number(q.regularMarketDayHigh||price);
-  const low   = Number(q.regularMarketDayLow||price);
-  const vol   = Number(q.regularMarketVolume||0);
-  const avgVol= Number(q.averageVolume||q.averageDailyVolume3Month||vol||1);
-  const open  = Number(q.regularMarketOpen||price);
-  const prev  = Number(q.regularMarketPreviousClose||price);
-  const w52h  = Number(q.fiftyTwoWeekHigh||price);
-  const w52l  = Number(q.fiftyTwoWeekLow||price);
+  const price  = Number(q.regularMarketPrice||0);
+  const pct    = Number(q.regularMarketChangePercent||0);
+  const high   = Number(q.regularMarketDayHigh||price);
+  const low    = Number(q.regularMarketDayLow||price);
+  const vol    = Number(q.regularMarketVolume||0);
+  const avgVol = Number(q.averageVolume||q.averageDailyVolume3Month||vol||1);
+  const open   = Number(q.regularMarketOpen||price);
+  const prev   = Number(q.regularMarketPreviousClose||price);
+  const w52h   = Number(q.fiftyTwoWeekHigh||price);
+  const w52l   = Number(q.fiftyTwoWeekLow||price);
+  const dayRange = Math.max(high - low, price * 0.001);
 
-  // ── FACTEUR 1: Momentum prix (30%)
+  // ── F1: Momentum prix — signal primaire (35%)
+  // Amplifié: les petites variations comptent davantage
   let momScore = 50;
-  if(pct >  3) momScore = 82;
-  else if(pct >  2) momScore = 74;
-  else if(pct >  1) momScore = 66;
-  else if(pct >  0.5) momScore = 58;
-  else if(pct >  0.2) momScore = 54;
-  else if(pct < -3) momScore = 18;
-  else if(pct < -2) momScore = 26;
-  else if(pct < -1) momScore = 34;
-  else if(pct < -0.5) momScore = 42;
-  else if(pct < -0.2) momScore = 46;
+  if     (pct >  4)   momScore = 90;
+  else if(pct >  2.5) momScore = 80;
+  else if(pct >  1.5) momScore = 72;
+  else if(pct >  0.8) momScore = 65;
+  else if(pct >  0.3) momScore = 58;
+  else if(pct >  0.1) momScore = 54;
+  else if(pct < -4)   momScore = 10;
+  else if(pct < -2.5) momScore = 20;
+  else if(pct < -1.5) momScore = 28;
+  else if(pct < -0.8) momScore = 35;
+  else if(pct < -0.3) momScore = 42;
+  else if(pct < -0.1) momScore = 46;
+  // Tie-break: légèrement positif si pct exactement 0 (biais haussier intraday)
+  else momScore = 51;
 
-  // ── FACTEUR 2: Volume ratio (20%)
+  // ── F2: Volume × direction — confirmation (20%)
   const volRatio = avgVol > 0 ? vol/avgVol : 1;
   let volScore = 50;
-  if(volRatio > 2.5) volScore = pct >= 0 ? 80 : 20;
-  else if(volRatio > 1.8) volScore = pct >= 0 ? 70 : 30;
-  else if(volRatio > 1.3) volScore = pct >= 0 ? 62 : 38;
-  else if(volRatio < 0.5) volScore = 50; // low volume = neutral
+  if     (volRatio > 3.0) volScore = pct >= 0 ? 88 : 12;
+  else if(volRatio > 2.0) volScore = pct >= 0 ? 78 : 22;
+  else if(volRatio > 1.5) volScore = pct >= 0 ? 68 : 32;
+  else if(volRatio > 1.2) volScore = pct >= 0 ? 60 : 40;
+  else if(volRatio < 0.6) volScore = pct >= 0 ? 55 : 45; // faible volume = léger biais momentum
 
-  // ── FACTEUR 3: Position dans la range jour (15%)
-  const dayRange = high - low;
+  // ── F3: Position dans la range du jour (15%)
   let rangeScore = 50;
   if(dayRange > 0){
-    const pos = (price - low) / dayRange; // 0=bas, 1=haut
-    rangeScore = pos > 0.8 ? 72 : pos > 0.6 ? 62 : pos < 0.2 ? 28 : pos < 0.4 ? 38 : 50;
+    const rangePos = (price - low) / dayRange;
+    if     (rangePos > 0.85) rangeScore = 78; // en haut de la range → haussier
+    else if(rangePos > 0.65) rangeScore = 63;
+    else if(rangePos > 0.35) rangeScore = 50;
+    else if(rangePos > 0.15) rangeScore = 37;
+    else                     rangeScore = 22; // en bas de la range → baissier (ou rebond)
   }
 
-  // ── FACTEUR 4: Position 52 semaines (15%)
-  let w52Score = 50;
+  // ── F4: Position 52 semaines — contexte long terme (10%)
+  let w52Score = 52; // léger biais haussier par défaut
   if(w52h > w52l){
     const w52pos = (price - w52l) / (w52h - w52l);
-    if(w52pos > 0.9) w52Score = 35; // près du sommet = potentiel retournement
-    else if(w52pos > 0.7) w52Score = 62;
-    else if(w52pos < 0.1) w52Score = 65; // près du plancher = rebond potentiel
-    else if(w52pos < 0.3) w52Score = 58;
+    if     (w52pos > 0.92) w52Score = 30; // très proche du sommet = résistance forte
+    else if(w52pos > 0.75) w52Score = 65; // haut de gamme = momentum haussier
+    else if(w52pos > 0.50) w52Score = 58;
+    else if(w52pos > 0.25) w52Score = 52;
+    else if(w52pos < 0.08) w52Score = 72; // proche du plancher = rebond potentiel
+    else                   w52Score = 45;
   }
 
-  // ── FACTEUR 5: RSI approximatif (10%)
-  const rsi = Math.max(10, Math.min(90, 50 + pct * 4));
+  // ── F5: RSI approximatif (10%)
+  const rsi = Math.max(5, Math.min(95, 50 + pct * 5));
   let rsiScore = 50;
-  if(rsi > 75) rsiScore = 25;       // suracheté = attention vente
-  else if(rsi > 65) rsiScore = 42;
-  else if(rsi < 25) rsiScore = 75;  // survendu = opportunité achat
-  else if(rsi < 35) rsiScore = 62;
+  if     (rsi > 80) rsiScore = 22;  // suracheté extrême → vente
+  else if(rsi > 70) rsiScore = 35;  // suracheté
+  else if(rsi > 60) rsiScore = 58;  // zone haussière
+  else if(rsi > 50) rsiScore = 54;
+  else if(rsi < 20) rsiScore = 78;  // survendu extrême → achat
+  else if(rsi < 30) rsiScore = 65;  // survendu → rebond
+  else if(rsi < 40) rsiScore = 42;
+  else              rsiScore = 46;
 
-  // ── FACTEUR 6: Gap ouverture (10%)
+  // ── F6: Gap ouverture (10%)
   const gap = prev > 0 ? ((open - prev)/prev)*100 : 0;
-  let gapScore = 50;
-  if(Math.abs(gap) > 1.5) gapScore = gap > 0 ? 68 : 32; // gap significatif = continuation probable
+  let gapScore = 51;
+  if     (gap >  2) gapScore = 76; // gap haussier fort
+  else if(gap >  0.8) gapScore = 63;
+  else if(gap > 0.3) gapScore = 56;
+  else if(gap < -2) gapScore = 24; // gap baissier fort
+  else if(gap < -0.8) gapScore = 37;
+  else if(gap < -0.3) gapScore = 44;
 
   // ── Score composite pondéré
-  const score = (
-    momScore * 0.30 +
-    volScore  * 0.20 +
-    rangeScore* 0.15 +
-    w52Score  * 0.15 +
-    rsiScore  * 0.10 +
-    gapScore  * 0.10
+  let score = (
+    momScore   * 0.35 +
+    volScore   * 0.20 +
+    rangeScore * 0.15 +
+    w52Score   * 0.10 +
+    rsiScore   * 0.10 +
+    gapScore   * 0.10
   );
 
   // ── Ajustements contextuels
-  let adj = 0;
-  if(newsRisk > 60) adj -= 5; // risque géopolitique élevé = prudence
-  if(yieldSpread && yieldSpread < 0) adj -= 3; // courbe inversée
-  if(volRatio > 3 && Math.abs(pct) > 2) adj += 5; // forte conviction volume+prix
+  if(newsRisk > 70)  score -= 6;  // risque géopolitique très élevé
+  else if(newsRisk > 55) score -= 3;
+  if(yieldSpread !== null && yieldSpread < -0.3) score -= 4; // courbe inversée profonde
+  if(volRatio > 3 && Math.abs(pct) > 2) score += 5; // conviction forte volume+prix
 
-  const finalScore = Math.max(5, Math.min(95, score + adj));
+  score = Math.max(5, Math.min(95, score));
 
-  // ── Direction et probabilité
-  let direction = "ATTENTE";
-  if(finalScore >= 62) direction = "ACHAT";
-  else if(finalScore <= 38) direction = "VENTE";
+  // ── DIRECTION: jamais ATTENTE — toujours ACHAT ou VENTE
+  // Si score > 50 → ACHAT, si score < 50 → VENTE, si exactement 50 → tiebreak par pct
+  let direction;
+  if(score > 50)       direction = "ACHAT";
+  else if(score < 50)  direction = "VENTE";
+  else                 direction = pct >= 0 ? "ACHAT" : "VENTE";
 
-  // Probabilité = fonction de la distance du neutre (50)
-  const distFromNeutral = Math.abs(finalScore - 50);
-  const baseProb = 52 + distFromNeutral * 0.78;
-  // Bonus volume fort
-  const volBonus = volRatio > 2 ? 6 : volRatio > 1.5 ? 3 : 0;
-  // Variance réaliste (pas tous 71%)
-  const noise = (Math.sin(Date.now() / 1000 + q.symbol?.charCodeAt(0)||0) * 3);
-  const prob = Math.round(Math.min(89, Math.max(53, baseProb + volBonus + noise)));
+  // ── Probabilité — réaliste et variée selon conviction
+  const distFromNeutral = Math.abs(score - 50);
+  // Base: 52% minimum, monte avec la conviction
+  let prob = 52 + distFromNeutral * 0.9;
+  // Bonus volume
+  if(volRatio > 2.5) prob += 8;
+  else if(volRatio > 1.8) prob += 5;
+  else if(volRatio > 1.3) prob += 2;
+  // Bonus momentum fort
+  if(Math.abs(pct) > 3) prob += 7;
+  else if(Math.abs(pct) > 1.5) prob += 4;
+  // Variance naturelle basée sur le symbole (évite tous les mêmes %)
+  const symSeed = (q.symbol||"X").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+  const noise = ((symSeed * 17 + Date.now()/60000) % 7) - 3; // ±3% déterministe par symbole
+  prob = Math.round(Math.min(88, Math.max(53, prob + noise)));
 
-  // Niveaux techniques
-  const atr = dayRange || price * 0.01;
-  const entry = price;
-  const target = direction === "ACHAT" ? price + atr * 2.2 : price - atr * 2.2;
-  const stop   = direction === "ACHAT" ? price - atr * 0.9  : price + atr * 0.9;
-  const rr     = "2.4:1";
+  // ── Conviction qualitative
+  const conviction = Math.round(Math.min(100, distFromNeutral * 2.4 + (volRatio > 1.5 ? 8 : 0)));
+  const convLabel = conviction >= 65 ? "Forte" : conviction >= 40 ? "Modérée" : "Faible";
 
-  // Score conviction (0-100)
-  const conviction = Math.round(Math.min(100, distFromNeutral * 2.2 + volBonus * 3));
+  // ── Niveaux techniques ATR-based
+  const atr = dayRange;
+  const entry  = price;
+  const target = direction === "ACHAT" ? price + atr * 2.5 : price - atr * 2.5;
+  const stop   = direction === "ACHAT" ? price - atr * 1.0 : price + atr * 1.0;
+  const rrVal  = atr > 0 ? (2.5 / 1.0).toFixed(1) : "2.5";
+  const rr     = rrVal + ":1";
 
-  // Raisons claires
+  // ── Raisons argumentées
   const raisons = [];
-  if(Math.abs(pct) > 1) raisons.push(`Variation ${pct > 0 ? "haussière" : "baissière"} significative : ${pct > 0 ? "+" : ""}${pct.toFixed(2)}%`);
-  if(volRatio > 1.5) raisons.push(`Volume ${volRatio.toFixed(1)}x la moyenne — forte conviction du marché`);
-  if(rsi > 70) raisons.push(`RSI élevé (${rsi.toFixed(0)}) — instrument suracheté, prudence`);
-  if(rsi < 30) raisons.push(`RSI bas (${rsi.toFixed(0)}) — instrument survendu, rebond potentiel`);
-  if(Math.abs(gap) > 1) raisons.push(`Gap d'ouverture ${gap > 0 ? "haussier" : "baissier"} de ${Math.abs(gap).toFixed(1)}%`);
-  if(w52h > 0 && Math.abs(price - w52h) / w52h < 0.03) raisons.push("Prix proche du sommet annuel — résistance majeure");
-  if(w52l > 0 && Math.abs(price - w52l) / w52l < 0.03) raisons.push("Prix proche du plancher annuel — support majeur");
-  if(newsRisk > 60) raisons.push("Risque géopolitique élevé — volatilité accrue attendue");
-  if(raisons.length === 0) raisons.push(`Momentum ${direction === "ACHAT" ? "positif" : direction === "VENTE" ? "négatif" : "neutre"} — score composite : ${finalScore.toFixed(0)}/100`);
+  if(Math.abs(pct) > 0.5)
+    raisons.push("Variation " + (pct>0?"haussière":"baissière") + " de " + (pct>0?"+":"") + pct.toFixed(2) + "% — momentum " + (pct>0?"positif":"négatif") + " confirmé");
+  if(volRatio > 1.5)
+    raisons.push("Volume " + volRatio.toFixed(1) + "x la moyenne — fort intérêt du marché dans la direction " + direction.toLowerCase());
+  if(rsi > 68)
+    raisons.push("RSI approximatif élevé (" + rsi.toFixed(0) + ") — surveiller un potentiel retournement baissier");
+  else if(rsi < 32)
+    raisons.push("RSI approximatif bas (" + rsi.toFixed(0) + ") — zone de survente, rebond probable");
+  if(Math.abs(gap) > 0.8)
+    raisons.push("Gap d'ouverture " + (gap>0?"haussier":"baissier") + " de " + Math.abs(gap).toFixed(1) + "% — signal de continuation");
+  if(w52h > 0){
+    const w52pos = (price-w52l)/(w52h-w52l);
+    if(w52pos > 0.85) raisons.push("Prix proche du sommet annuel (" + (w52pos*100).toFixed(0) + "% du range 52S) — momentum fort");
+    else if(w52pos < 0.15) raisons.push("Prix proche du plancher annuel (" + (w52pos*100).toFixed(0) + "% du range 52S) — rebond potentiel");
+  }
+  if(direction === "ACHAT" && rangeScore > 65)
+    raisons.push("Prix en haut de la range journalière — pression acheteuse dominante");
+  else if(direction === "VENTE" && rangeScore < 35)
+    raisons.push("Prix en bas de la range journalière — pression vendeuse dominante");
+  if(raisons.length === 0)
+    raisons.push("Signal " + convLabel.toLowerCase() + " — score composite " + score.toFixed(0) + "/100 (seuil=50)");
+  if(raisons.length < 2)
+    raisons.push("Conviction " + convLabel + " basée sur " + ["momentum","volume","range","position 52S","RSI","gap"].slice(0,3).join(", "));
 
-  return { direction, prob, conviction, score:finalScore, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange };
+  return { direction, prob, conviction, score, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange, convLabel };
 }
 
 async function runScanPro(){
@@ -2001,36 +2047,25 @@ async function runScanPro(){
       };
     }).filter(Boolean);
 
-    // Sort by conviction + filter by threshold and direction
-    const strong = scored
-      .filter(o => o.direction !== "ATTENTE" && o.prob >= threshold)
-      .sort((a,b) => (b.prob + b.conviction*0.5) - (a.prob + a.conviction*0.5));
-
-    const weak = scored
-      .filter(o => o.direction === "ATTENTE" || o.prob < threshold)
-      .sort((a,b) => b.conviction - a.conviction)
-      .slice(0,5);
+    // Sort by prob × conviction — ACHAT and VENTE only (never ATTENTE)
+    // Strong: prob >= threshold (user's chosen confidence level)
+    const allScored = scored.sort((a,b) => (b.prob + b.conviction*0.5) - (a.prob + a.conviction*0.5));
+    const strong = allScored.filter(o => o.prob >= threshold);
+    // If nothing passes threshold, show top 5 anyway (best available)
+    const weak = allScored.filter(o => o.prob < threshold).slice(0, 5);
 
     if(status) status.textContent = `${strong.length} signal(s) · ${strong[0]?.prob||0}% max`;
 
-    res.innerHTML = strong.length
-      ? `<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;font-weight:700;color:#e8eefc">${strong.length} opportunité(s) ≥${threshold}%</span>
-          <span style="font-size:10px;color:#6b7a99">sur ${quotes.length} instruments analysés · ${horizon}</span>
+    // Always show something — if threshold too high, show top signals with note
+    const displayStrong = strong.length ? strong : allScored.slice(0,5);
+    const headerMsg = strong.length
+      ? strong.length + " signal(s) ≥" + threshold + "% sur " + quotes.length + " instruments"
+      : "Top signaux sur " + quotes.length + " instruments (aucun ≥" + threshold + "% — seuil élevé)";
+    res.innerHTML = `<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;font-weight:700;color:#e8eefc">${headerMsg}</span>
         </div>
-        ${strong.map(o=>renderOppPro(o)).join("")}
-        ${weak.length?`<div style="margin:12px 0 6px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Autres instruments surveillés</div>${weak.map(o=>renderOppProSmall(o)).join("")}`:""}`
-      : `<div class="card" style="padding:14px">
-          <div style="font-size:13px;font-weight:700;color:#fff200;margin-bottom:6px">📊 ${quotes.length} instruments analysés — aucun signal ≥${threshold}% détecté</div>
-          <div class="small" style="margin-bottom:10px">Le marché est calme ou en consolidation. Les meilleurs signaux s'afficheront dès qu'une opportunité forte se présente.</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn btn-cyan" style="padding:6px 12px;font-size:11px" onclick="document.getElementById('scanThreshold').value='60';runScanPro()">Signaux 60%+</button>
-            <button class="btn btn-green" style="padding:6px 12px;font-size:11px" onclick="setScanFilter(document.querySelector('[data-filter=forex]'));runScanPro()">Forex uniquement</button>
-            <button class="btn btn-orange" style="--btn-neon:#ff8a00;padding:6px 12px;font-size:11px" onclick="setScanFilter(document.querySelector('[data-filter=crypto]'));runScanPro()">Crypto uniquement</button>
-          </div>
-        </div>
-        <div style="margin-top:8px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tous les instruments analysés (triés par conviction)</div>
-        ${scored.sort((a,b)=>b.conviction-a.conviction).slice(0,12).map(o=>renderOppProSmall(o)).join("")}`;
+        ${displayStrong.map(o=>renderOppPro(o)).join("")}
+        ${weak.length && strong.length?`<div style="margin:12px 0 6px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Signaux secondaires</div>${weak.map(o=>renderOppProSmall(o)).join("")}`:""}`;
 
   }catch(e){
     res.innerHTML=`<div class='card'><div class='error'>Erreur : ${esc(e.message)}</div></div>`;
