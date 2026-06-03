@@ -1352,13 +1352,13 @@ function resetTickerConfig(){
 // CLOCKS — Style salle des marchés années 80 B&W
 // ═══════════════════════════════════════════════════════════
 const CLOCKS_DATA = [
-  {id:"paris",    name:"Paris",     tz:"Europe/Paris",      open:"09:00",close:"17:30",days:[1,2,3,4,5],row:1},
-  {id:"londres",  name:"Londres",   tz:"Europe/London",     open:"08:00",close:"16:30",days:[1,2,3,4,5],row:1},
-  {id:"newyork",  name:"New York",  tz:"America/New_York",  open:"09:30",close:"16:00",days:[1,2,3,4,5],row:1},
-  {id:"tokyo",    name:"Tokyo",     tz:"Asia/Tokyo",        open:"09:00",close:"15:00",days:[1,2,3,4,5],row:2},
-  {id:"singapour",name:"Singapour", tz:"Asia/Singapore",    open:"09:00",close:"17:00",days:[1,2,3,4,5],row:2},
-  {id:"hongkong", name:"Hong Kong", tz:"Asia/Hong_Kong",    open:"09:30",close:"16:00",days:[1,2,3,4,5],row:2},
-  {id:"sydney",   name:"Sydney",    tz:"Australia/Sydney",  open:"10:00",close:"16:00",days:[1,2,3,4,5],row:3}
+  {id:"paris",    name:"Paris",     tz:"Europe/Paris",      open:"09:00",close:"17:30",days:[1,2,3,4,5],row:1,idx:"^FCHI", idxLabel:"CAC 40"},
+  {id:"londres",  name:"Londres",   tz:"Europe/London",     open:"08:00",close:"16:30",days:[1,2,3,4,5],row:1,idx:"^FTSE", idxLabel:"FTSE 100"},
+  {id:"newyork",  name:"New York",  tz:"America/New_York",  open:"09:30",close:"16:00",days:[1,2,3,4,5],row:1,idx:"^DJI",  idxLabel:"Dow Jones"},
+  {id:"tokyo",    name:"Tokyo",     tz:"Asia/Tokyo",        open:"09:00",close:"15:00",days:[1,2,3,4,5],row:2,idx:"^N225", idxLabel:"Nikkei 225"},
+  {id:"singapour",name:"Singapour", tz:"Asia/Singapore",    open:"09:00",close:"17:00",days:[1,2,3,4,5],row:2,idx:"^STI",  idxLabel:"STI"},
+  {id:"hongkong", name:"Hong Kong", tz:"Asia/Hong_Kong",    open:"09:30",close:"16:00",days:[1,2,3,4,5],row:2,idx:"^HSI",  idxLabel:"Hang Seng"},
+  {id:"sydney",   name:"Sydney",    tz:"Australia/Sydney",  open:"10:00",close:"16:00",days:[1,2,3,4,5],row:3,idx:"^AXJO", idxLabel:"ASX 200"}
 ];
 
 function makeClock80s(c){
@@ -1407,6 +1407,30 @@ function makeClock80s(c){
     <span class="clock-status" id="cs-${id}">—</span>
     <span class="clock-count" id="cc-${id}"></span>
   </div>`;
+}
+
+async function loadClockIndexes(){
+  const syms = CLOCKS_DATA.filter(function(c){ return c.idx; }).map(function(c){ return c.idx; });
+  if(!syms.length) return;
+  try{
+    const quotes = await getQuotes(syms);
+    var map = {};
+    quotes.forEach(function(q){ map[q.symbol] = q; });
+    CLOCKS_DATA.forEach(function(c){
+      if(!c.idx) return;
+      var q = map[c.idx];
+      var pEl = document.getElementById("ci-p-"+c.id);
+      var cEl = document.getElementById("ci-c-"+c.id);
+      if(!pEl || !cEl) return;
+      if(!q || !q.regularMarketPrice){ pEl.textContent="—"; return; }
+      var p   = q.regularMarketPrice;
+      var pct = q.regularMarketChangePercent || 0;
+      var up  = pct >= 0;
+      pEl.textContent = p >= 1000 ? Math.round(p).toLocaleString("fr-FR") : p.toFixed(2);
+      cEl.textContent = (up ? "▲ +" : "▼ ") + Math.abs(pct).toFixed(2) + "%";
+      cEl.style.color = up ? "#00ff88" : "#ff3b6b";
+    });
+  }catch(e){ console.warn("Clock indexes:", e.message); }
 }
 
 function buildClocks(){
@@ -2280,7 +2304,9 @@ async function loadOppBand(force=false){
         // Update smartBar with movers
         updateSmartBar(movers.slice(0,6).map(o=>({
           symbol:o.symbol, name:o.name, direction:o.pct>=0?"ACHAT":"VENTE",
-          prob:Math.min(72,55+Math.round(Math.abs(o.pct)*5)), pct:o.pct
+          prob:Math.min(72,55+Math.round(Math.abs(o.pct)*5)), pct:o.pct,
+          price:o.price, target:o.target, stop:o.stop, entry:o.price,
+          convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0
         })));
         inner.style.animation="none";
         inner.innerHTML=mhtml+mhtml;
@@ -2297,10 +2323,12 @@ async function loadOppBand(force=false){
     }
     
     oppBandLastLoad=now;
-    // Update smart bar with top signals
+    // Update smart bar with top signals — pass ALL fields for exit strategy
     updateSmartBar(signals.slice(0,8).map(o=>({
       symbol:o.symbol, name:o.name, direction:o.direction,
-      prob:o.prob, pct:o.pct
+      prob:o.prob, pct:o.pct, price:o.price,
+      target:o.target, stop:o.stop, entry:o.entry,
+      convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0
     })));
     const html=signals.map(o=>`
       <div class="opp-item" onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" title="Cliquer pour voir le graphique">
@@ -2335,17 +2363,17 @@ function updateSmartBar(signals){
   if(!bar) return;
   bar.innerHTML = "";
   if(!signals || !signals.length){
-    const s = document.createElement("span");
-    s.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
-    s.textContent = "Calcul en cours...";
-    bar.appendChild(s); return;
+    const sp = document.createElement("span");
+    sp.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
+    sp.textContent = "Calcul en cours...";
+    bar.appendChild(sp); return;
   }
   const actionable = signals.filter(function(s){ return s.direction !== "ATTENTE"; }).slice(0,8);
   if(!actionable.length){
-    const s = document.createElement("span");
-    s.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
-    s.textContent = "Marches calmes";
-    bar.appendChild(s); return;
+    const sp = document.createElement("span");
+    sp.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
+    sp.textContent = "Marches calmes";
+    bar.appendChild(sp); return;
   }
   actionable.forEach(function(s){
     const isAchat = s.direction === "ACHAT";
@@ -2353,30 +2381,55 @@ function updateSmartBar(signals){
     const bg  = isAchat ? "rgba(0,255,136,.08)" : "rgba(255,59,107,.08)";
     const brd = isAchat ? "rgba(0,255,136,.4)"  : "rgba(255,59,107,.4)";
     const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
+    const horizon = s.convLabel === "Forte" ? "Intraday" : s.convLabel === "Modérée" ? "1-3 jours" : "Court terme";
+    const targetStr = s.target && s.target > 0 ? (s.target < 10 ? s.target.toFixed(4) : s.target.toFixed(2)) : "—";
+    const stopStr   = s.stop   && s.stop   > 0 ? (s.stop   < 10 ? s.stop.toFixed(4)   : s.stop.toFixed(2))   : "—";
 
     const btn = document.createElement("button");
     btn.dataset.sym = s.symbol;
     btn.title = s.direction + " sur " + s.name + " — cliquer pour graphique";
-    btn.style.cssText = "flex:1;min-width:calc(25% - 5px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;"
+    btn.style.cssText = "flex:1;min-width:calc(25% - 5px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"
       + "background:" + bg + ";border:1px solid " + brd + ";border-radius:14px;"
-      + "padding:13px 8px;cursor:pointer;font-family:inherit;"
-      + "box-shadow:0 0 10px " + dc + "25;transition:.15s";
+      + "padding:10px 6px;cursor:pointer;font-family:inherit;"
+      + "box-shadow:0 0 10px " + dc + "20;transition:.15s";
 
+    // Direction badge
     const dir = document.createElement("span");
     dir.style.cssText = "font-size:10px;font-weight:800;color:" + dc + ";letter-spacing:.6px;line-height:1";
     dir.textContent = isAchat ? "▲ ACHETER" : "▼ VENDRE";
 
+    // Name
     const name = document.createElement("span");
-    name.style.cssText = "font-size:12px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    name.style.cssText = "font-size:11.5px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
     name.textContent = s.name;
 
+    // Prob + variation
     const meta = document.createElement("span");
-    meta.style.cssText = "font-size:10px;color:" + dc + ";font-family:monospace;line-height:1;font-weight:600";
+    meta.style.cssText = "font-size:9.5px;color:" + dc + ";font-family:monospace;font-weight:600";
     meta.textContent = s.prob + "% · " + pct;
+
+    // Exit info — separator
+    const sep = document.createElement("div");
+    sep.style.cssText = "width:80%;height:1px;background:rgba(255,255,255,.08);margin:2px 0";
+
+    // Target exit price
+    const exitEl = document.createElement("span");
+    exitEl.style.cssText = "font-size:8.5px;color:#6b7a99;text-align:center;line-height:1.3";
+    exitEl.innerHTML = "<span style='color:#00ff88'>✓ " + targetStr + "</span>"
+      + " <span style='color:#6b7a99'>/</span>"
+      + " <span style='color:#ff3b6b'>✗ " + stopStr + "</span>";
+
+    // Horizon
+    const hor = document.createElement("span");
+    hor.style.cssText = "font-size:8px;color:#6b7a99;font-style:italic";
+    hor.textContent = "⏱ " + horizon;
 
     btn.appendChild(dir);
     btn.appendChild(name);
     btn.appendChild(meta);
+    btn.appendChild(sep);
+    btn.appendChild(exitEl);
+    btn.appendChild(hor);
 
     btn.onclick = function(){
       var sym = this.dataset.sym;
@@ -2627,7 +2680,7 @@ async function sendChatHome(){
   const msg=input.value.trim(); if(!msg) return;
   input.value="";
   showScreen("assistant");
-  await new Promise(r=>setTimeout(r,100));
+  await new Promise(r=>setTimeout(r,150));
   document.getElementById("chatInput").value=msg;
   sendChat();
 }
@@ -3451,6 +3504,9 @@ function init(){
   // Clocks
   setInterval(renderClocks, 1000);
   renderClocks();
+  // Index prices under clocks — load after 3s, refresh every 5 min
+  setTimeout(loadClockIndexes, 3000);
+  setInterval(loadClockIndexes, 300000);
   // Opportunities band — load after 2s to not block UI
   setTimeout(loadOppBand, 2000);
 }
