@@ -91,7 +91,7 @@ a{color:#00d4ff;text-decoration:none}
 
 .clock-card{
   position:relative;border-radius:12px;padding:8px 6px 7px;overflow:hidden;
-  min-height:182px;height:182px;display:flex;flex-direction:column;align-items:center;
+  min-height:182px;height:auto;display:flex;flex-direction:column;align-items:center;
   border:1.5px solid #1c2d48;
   background:linear-gradient(160deg,#0e1828 0%,#0a1020 100%);
   transition:.3s;
@@ -1400,12 +1400,18 @@ function makeClock80s(c){
     <circle cx="44" cy="44" r="1.5" fill="#e81010"/>
     <ellipse cx="36" cy="30" rx="16" ry="9" fill="url(#gl-${id})" opacity=".65"/>
   </svg>`;
-  return `<div class="clock-card" id="clock-${id}">
+  const clickFn = c.idx ? `onclick="document.getElementById('chartSymbolInput').value='${c.idx}';showScreen('charts');loadChart()" title="Voir le graphique ${c.idxLabel||''}"` : "";
+  return `<div class="clock-card" id="clock-${id}" style="cursor:${c.idx?'pointer':'default'}" ${clickFn}>
     <span class="clock-city">${c.name}</span>
     ${svg}
     <span class="clock-time-digital" id="ct-${id}">--:--:--</span>
     <span class="clock-status" id="cs-${id}">—</span>
     <span class="clock-count" id="cc-${id}"></span>
+    <div style="width:100%;text-align:center;border-top:1px solid rgba(255,255,255,.08);padding-top:5px;margin-top:4px">
+      <div style="font-size:8px;color:#6b7a99;font-weight:700;letter-spacing:.8px;text-transform:uppercase">${c.idxLabel||""}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#e8eefc;margin-top:2px;line-height:1" id="ci-p-${id}">—</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;margin-top:2px" id="ci-c-${id}">—</div>
+    </div>
   </div>`;
 }
 
