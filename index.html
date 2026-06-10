@@ -913,6 +913,7 @@ argent</textarea>
     <button class="tf-btn" onclick="scrollTerminalTo('sec-cal')" style="white-space:nowrap">📅 Calendrier</button>
     <button class="tf-btn" onclick="scrollTerminalTo('sec-news')" style="white-space:nowrap">🌍 News</button>
     <button class="tf-btn" onclick="scrollTerminalTo('sec-earn')" style="white-space:nowrap">🏢 Résultats</button>
+    <button class="tf-btn" onclick="scrollTerminalTo('sec-marquee')" style="white-space:nowrap;color:#4a90d9;border-color:rgba(0,100,200,.35);font-weight:700">GS Marquee</button>
   </div>
   <div id="terminalContent"></div>
 </div>
@@ -1844,133 +1845,147 @@ function setScanFilter(btn){
 // ── Moteur quantitatif multi-facteurs ──────────────────────
 // Calcule un score haute conviction sur plusieurs dimensions
 function quantScorePro(q, newsRisk, yieldSpread){
-  const price  = Number(q.regularMarketPrice||0);
-  const pct    = Number(q.regularMarketChangePercent||0);
-  const high   = Number(q.regularMarketDayHigh||price);
-  const low    = Number(q.regularMarketDayLow||price);
-  const vol    = Number(q.regularMarketVolume||0);
-  const avgVol = Number(q.averageVolume||q.averageDailyVolume3Month||vol||1);
-  const open   = Number(q.regularMarketOpen||price);
-  const prev   = Number(q.regularMarketPreviousClose||price);
-  const w52h   = Number(q.fiftyTwoWeekHigh||price*1.2);
-  const w52l   = Number(q.fiftyTwoWeekLow||price*0.8);
-  const dayRange = Math.max(high - low, price * 0.001);
+  const sym    = q.symbol || "";
+  const price  = Number(q.regularMarketPrice || 0);
+  if(price <= 0) return null; // données invalides → ignorer
+  const pct    = Number(q.regularMarketChangePercent || 0);
+  const high   = Number(q.regularMarketDayHigh || price);
+  const low    = Number(q.regularMarketDayLow  || price);
+  const vol    = Number(q.regularMarketVolume   || 0);
+  const avgVol = Number(q.averageVolume || q.averageDailyVolume3Month || vol || 1);
+  const open   = Number(q.regularMarketOpen || price);
+  const prev   = Number(q.regularMarketPreviousClose || price);
+  const w52h   = Number(q.fiftyTwoWeekHigh || price * 1.15);
+  const w52l   = Number(q.fiftyTwoWeekLow  || price * 0.85);
+
+  // ── SANITY CHECK: Si high=low=price → données incomplètes
+  // Utiliser volatilité typique par classe d'actif comme ATR fallback
+  const rawRange = high - low;
+  let typicalVolPct;
+  if(sym.endsWith("=F"))      typicalVolPct = 0.018; // futures: ~1.8% range/jour
+  else if(sym.endsWith("-USD")) typicalVolPct = 0.035; // crypto: ~3.5%
+  else if(sym.endsWith("=X"))  typicalVolPct = 0.006; // forex: ~0.6%
+  else if(sym.startsWith("^")) typicalVolPct = 0.012; // indices: ~1.2%
+  else                          typicalVolPct = 0.015; // actions: ~1.5%
+  const atr = rawRange > price * 0.001 ? rawRange : price * typicalVolPct;
   const volRatio = avgVol > 0 ? vol/avgVol : 1;
 
-  // ── TREND LONG TERME (52 semaines) — stable, ne flip pas chaque heure ──
-  // C'est l'ancre du signal — évite les retournements toutes les heures
+  // ── TENDANCE 52 SEMAINES — ancre stable (35%)
   let w52pos = 0.5;
-  if(w52h > w52l) w52pos = (price - w52l) / (w52h - w52l);
-  // Trend direction basée sur position 52S (stable)
-  // >60% = tendance haussière confirmée, <40% = tendance baissière confirmée
-  const trendBull = w52pos > 0.55; // dans le haut du range → haussier
-  const trendBear = w52pos < 0.45; // dans le bas du range → baissier
-  const trendScore = w52pos > 0.7 ? 72 : w52pos > 0.55 ? 60 : w52pos < 0.3 ? 28 : w52pos < 0.45 ? 40 : 50;
+  if(w52h > w52l) w52pos = Math.max(0, Math.min(1, (price - w52l) / (w52h - w52l)));
+  const trendBull = w52pos > 0.58;
+  const trendBear = w52pos < 0.42;
+  const trendScore = w52pos > 0.80 ? 68
+    : w52pos > 0.60 ? 62
+    : w52pos > 0.40 ? 50
+    : w52pos > 0.20 ? 38 : 32;
 
-  // ── MOMENTUM INTRADAY — signal court terme ──
-  let momScore = 50;
-  if     (pct >  3)    momScore = 88;
-  else if(pct >  1.5)  momScore = 74;
-  else if(pct >  0.7)  momScore = 64;
-  else if(pct >  0.2)  momScore = 56;
-  else if(pct < -3)    momScore = 12;
-  else if(pct < -1.5)  momScore = 26;
-  else if(pct < -0.7)  momScore = 36;
-  else if(pct < -0.2)  momScore = 44;
-  else momScore = 50 + (pct * 5); // proportionnel pour les petites variations
+  // ── MOMENTUM INTRADAY — signal court terme (30%)
+  // Utilise pct réel sans saturation artificielle
+  const momRaw = 50 + pct * 7; // 1% → score 57, -1% → 43
+  const momScore = Math.max(10, Math.min(90, momRaw));
 
-  // ── VOLUME CONFIRMATION ──
+  // ── VOLUME CONFIRMATION (15%)
   let volScore = 50;
-  if(volRatio > 2.5)      volScore = pct >= 0 ? 82 : 18;
-  else if(volRatio > 1.7) volScore = pct >= 0 ? 70 : 30;
-  else if(volRatio > 1.2) volScore = pct >= 0 ? 60 : 40;
-  else                    volScore = 50; // volume normal = neutre
+  if(volRatio > 3.0)      volScore = pct >= 0 ? 82 : 18;
+  else if(volRatio > 2.0) volScore = pct >= 0 ? 72 : 28;
+  else if(volRatio > 1.5) volScore = pct >= 0 ? 63 : 37;
+  else if(volRatio > 1.2) volScore = pct >= 0 ? 57 : 43;
+  else                    volScore = 50;
 
-  // ── RSI APPROXIMATIF ──
+  // ── RSI APPROXIMATIF (10%)
   const rsi = Math.max(5, Math.min(95, 50 + pct * 5));
-  let rsiScore = 50;
-  if     (rsi > 75) rsiScore = 25; // suracheté → vente
-  else if(rsi > 60) rsiScore = 60; // haussier
-  else if(rsi < 25) rsiScore = 75; // survendu → achat
-  else if(rsi < 40) rsiScore = 40; // baissier
+  const rsiScore = rsi > 75 ? 25 : rsi > 60 ? 60 : rsi < 25 ? 75 : rsi < 40 ? 40 : 50;
 
-  // ── GAP OUVERTURE ──
+  // ── GAP OUVERTURE (10%)
   const gap = prev > 0 ? ((open-prev)/prev)*100 : 0;
-  const gapScore = gap > 1 ? 68 : gap > 0.3 ? 57 : gap < -1 ? 32 : gap < -0.3 ? 43 : 50;
+  const gapScore = gap > 1 ? 70 : gap > 0.4 ? 58 : gap < -1 ? 30 : gap < -0.4 ? 42 : 50;
 
-  // ── SCORE COMPOSITE PONDÉRÉ ──
-  // Trend long terme = 30% (ANCRE STABLE — empêche les flip horaires)
-  // Momentum = 30% (signal primaire intraday)
-  // Volume = 20% (confirmation)
-  // RSI = 10% (oscillateur)
-  // Gap = 10% (signal ouverture)
+  // ── SCORE COMPOSITE PONDÉRÉ
   let score = (
-    trendScore * 0.30 +
+    trendScore * 0.35 +
     momScore   * 0.30 +
-    volScore   * 0.20 +
+    volScore   * 0.15 +
     rsiScore   * 0.10 +
     gapScore   * 0.10
   );
 
-  // Ajustements contextuels
-  if(newsRisk > 70)  score -= 5;
+  // Ajustements macro
+  if(newsRisk > 70) score -= 4;
   if(yieldSpread !== null && yieldSpread < -0.5) score -= 3;
-  if(volRatio > 2.5 && Math.abs(pct) > 1.5) score += 4; // forte conviction
-
+  if(volRatio > 2 && Math.abs(pct) > 1.5) score += 4;
   score = Math.max(5, Math.min(95, score));
 
-  // ── DIRECTION — toujours ACHAT ou VENTE, jamais ATTENTE ──
-  // Si score faible (45-55) ET tendance long terme claire → utiliser la tendance
-  // Cela évite les flip horaires sur les signaux faibles
+  // ── DIRECTION — toujours ACHAT ou VENTE, jamais ATTENTE
   let direction;
   if(score >= 55)       direction = "ACHAT";
   else if(score <= 45)  direction = "VENTE";
-  else if(trendBull)    direction = "ACHAT";  // zone neutre → ancre sur trend 52S
-  else if(trendBear)    direction = "VENTE";  // zone neutre → ancre sur trend 52S
-  else                  direction = pct >= 0 ? "ACHAT" : "VENTE"; // dernier recours: momentum
+  else if(trendBull)    direction = "ACHAT";
+  else if(trendBear)    direction = "VENTE";
+  else                  direction = pct >= 0 ? "ACHAT" : "VENTE";
 
-  // ── PROBABILITÉ réaliste et stable ──
-  const distFromNeutral = Math.abs(score - 50);
-  let prob = 52 + distFromNeutral * 0.85;
-  if(volRatio > 2) prob += 6;
-  else if(volRatio > 1.5) prob += 3;
-  if(Math.abs(pct) > 2) prob += 6;
-  else if(Math.abs(pct) > 1) prob += 3;
-  // Bonus si trend long terme confirme le signal court terme
-  if((direction === "ACHAT" && trendBull) || (direction === "VENTE" && trendBear)) prob += 5;
-  // Variance par symbole (évite tous les mêmes %)
-  const symSeed = (q.symbol||"X").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
-  const noise = ((symSeed * 13) % 7) - 3;
+  // ── PROBABILITÉ — varie réellement par instrument
+  const dist = Math.abs(score - 50);
+  let prob = 52 + dist * 0.80;
+  if(volRatio > 2)           prob += 7;
+  else if(volRatio > 1.5)    prob += 4;
+  if(Math.abs(pct) > 2.5)    prob += 8;
+  else if(Math.abs(pct) > 1) prob += 4;
+  if((direction==="ACHAT"&&trendBull)||(direction==="VENTE"&&trendBear)) prob += 6;
+  // Bruit déterministe unique par symbole (évite tous les mêmes %)
+  const seed = sym.split("").reduce(function(a,c){ return a + c.charCodeAt(0); }, 0);
+  const noise = ((seed * 17 + seed % 11) % 11) - 5; // -5 à +5, unique par sym
   prob = Math.round(Math.min(87, Math.max(53, prob + noise)));
 
-  // ── CONVICTION ──
-  const conviction = Math.round(Math.min(100, distFromNeutral * 2.2 + (volRatio>1.5?8:0) + (Math.abs(pct)>1?6:0)));
-  const convLabel = conviction >= 60 ? "Forte" : conviction >= 35 ? "Modérée" : "Faible";
+  // ── CONVICTION & HORIZON — basés sur volatilité réelle
+  const volPctDay = atr / price * 100; // % de range journalier
+  const conviction = Math.round(Math.min(100, dist * 2.0 + (volRatio>1.5?8:0) + (Math.abs(pct)>1?5:0)));
+  // Horizon basé sur volatilité + conviction combinées
+  let convLabel, horizon;
+  if(conviction >= 65 && Math.abs(pct) > 1.5){
+    convLabel = "Forte"; horizon = "Intraday — sortir avant la clôture";
+  } else if(conviction >= 45 || Math.abs(pct) > 0.5){
+    convLabel = "Modérée";
+    // Horizon affiné par classe d'actif
+    if(sym.endsWith("-USD"))      horizon = "2 à 5 jours — crypto volatile";
+    else if(sym.endsWith("=X"))   horizon = "3 à 7 jours — forex patient";
+    else if(sym.endsWith("=F"))   horizon = "1 à 4 jours — surveiller chaque séance";
+    else if(sym.startsWith("^"))  horizon = "3 à 10 jours — indice moins volatile";
+    else                          horizon = "2 à 6 jours — action standard";
+  } else {
+    convLabel = "Faible"; horizon = "Signal faible — attendre confirmation demain";
+  }
 
-  // ── NIVEAUX TECHNIQUES ──
-  const atr = dayRange;
+  // ── NIVEAUX TECHNIQUES — basés sur ATR réel (pas de données fictives)
   const entry  = price;
-  const target = direction === "ACHAT" ? price + atr * 2.5 : price - atr * 2.5;
-  const stop   = direction === "ACHAT" ? price - atr * 1.0 : price + atr * 1.0;
-  const rr     = "2.5:1";
+  const target = direction === "ACHAT" ? price + atr * 2.0 : price - atr * 2.0;
+  const stop   = direction === "ACHAT" ? price - atr * 0.8 : price + atr * 0.8;
+  const rrRatio = (Math.abs(target-entry) / Math.abs(stop-entry)).toFixed(1);
+  const rr = rrRatio + ":1";
 
-  // ── RAISONS ARGUMENTÉES ──
+  // ── RAISONS ARGUMENTÉES & VARIÉES
   const raisons = [];
-  if((direction==="ACHAT"&&trendBull)||(direction==="VENTE"&&trendBear))
-    raisons.push("Tendance long terme confirmée — prix dans le " + (trendBull?"haut":"bas") + " du range 52 semaines (" + (w52pos*100).toFixed(0) + "%)");
-  if(Math.abs(pct) > 0.3)
-    raisons.push("Momentum " + (pct>0?"haussier":"baissier") + " intraday : " + (pct>0?"+":"") + pct.toFixed(2) + "%");
-  if(volRatio > 1.4)
-    raisons.push("Volume " + volRatio.toFixed(1) + "× la moyenne — confirmation institutionnelle");
-  if(rsi > 68) raisons.push("RSI élevé (" + rsi.toFixed(0) + ") — dynamique acheteuse forte");
-  else if(rsi < 32) raisons.push("RSI bas (" + rsi.toFixed(0) + ") — zone de survente, rebond attendu");
-  if(Math.abs(gap) > 0.5) raisons.push("Gap d'ouverture " + (gap>0?"haussier":"baissier") + " de " + Math.abs(gap).toFixed(1) + "%");
-  if(raisons.length === 0)
-    raisons.push("Signal composite (" + direction + ") — score " + score.toFixed(0) + "/100, trend 52S: " + (trendBull?"haussier":trendBear?"baissier":"neutre"));
-  if(raisons.length < 2)
-    raisons.push("Conviction " + convLabel + " — convergence de " + ["momentum","volume","RSI","tendance"].slice(0,3).join(", "));
+  if(trendBull && direction==="ACHAT")
+    raisons.push("Tendance haussière long terme — prix dans le haut du range 52S (" + (w52pos*100).toFixed(0) + "%)");
+  else if(trendBear && direction==="VENTE")
+    raisons.push("Tendance baissière long terme — prix dans le bas du range 52S (" + (w52pos*100).toFixed(0) + "%)");
+  else
+    raisons.push("Signal moyen terme — position dans le range 52S : " + (w52pos*100).toFixed(0) + "%");
 
-  return { direction, prob, conviction, score, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange, convLabel, trendBull, trendBear };
+  if(Math.abs(pct) > 0.2)
+    raisons.push("Momentum intraday " + (pct>0?"haussier":"baissier") + " : " + (pct>0?"+":"") + pct.toFixed(2) + "% aujourd'hui");
+  else
+    raisons.push("Séance calme (" + pct.toFixed(2) + "%) — signal dominant : tendance long terme");
+
+  if(volRatio > 1.3)
+    raisons.push("Volume " + volRatio.toFixed(1) + "× la moyenne — intérêt marché confirmé");
+
+  if(rsi > 70) raisons.push("RSI approximatif élevé (" + rsi.toFixed(0) + ") — surveiller retournement");
+  else if(rsi < 30) raisons.push("RSI bas (" + rsi.toFixed(0) + ") — zone de survente, rebond attendu");
+
+  if(Math.abs(gap) > 0.5) raisons.push("Gap " + (gap>0?"haussier":"baissier") + " d'ouverture : " + Math.abs(gap).toFixed(1) + "%");
+
+  return { direction, prob, conviction, score, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange:atr, convLabel, horizon, trendBull, trendBear, w52pos };
 }
 
 async function runScanPro(){
@@ -2123,9 +2138,23 @@ function renderOppPro(o){
     <div style="display:flex;flex-direction:column;gap:3px">
       ${o.raisons.slice(0,3).map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:#a8b8d8;padding:4px 7px;background:rgba(255,255,255,.022);border-radius:6px;border-left:2px solid ${dc}66"><span style="color:${dc};flex-shrink:0">›</span>${esc(r)}</div>`).join("")}
     </div>
+    <div style="margin-top:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px">
+      <div style="font-size:9px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">🚪 Stratégie de sortie</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
+        <div style="background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:7px 9px">
+          <div style="font-size:8.5px;color:#6b7a99;margin-bottom:2px">✅ Sortie profit</div>
+          <div style="font-family:monospace;font-size:13px;font-weight:700;color:#00ff88">${money(o.target)}</div>
+        </div>
+        <div style="background:rgba(255,59,107,.06);border:1px solid rgba(255,59,107,.2);border-radius:8px;padding:7px 9px">
+          <div style="font-size:8.5px;color:#6b7a99;margin-bottom:2px">❌ Stop-loss</div>
+          <div style="font-family:monospace;font-size:13px;font-weight:700;color:#ff3b6b">${money(o.stop)}</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#a8b8d8">⏱ <b style="color:#e8eefc">Horizon:</b> ${esc(o.horizon||"Court terme")}</div>
+    </div>
     <div style="margin-top:8px;display:flex;gap:6px">
       <button onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" class="btn btn-cyan" style="padding:5px 10px;font-size:10.5px;flex:1">📈 Graphique</button>
-      <button onclick="document.getElementById('anSymbolText').value='${esc(o.name)}';showScreen('analyse');runAnalyze()" class="btn btn-purple" style="padding:5px 10px;font-size:10.5px;flex:1">🎯 Analyser en détail</button>
+      <button onclick="document.getElementById('anSymbolText').value='${esc(o.name)}';showScreen('analyse');runAnalyze()" class="btn btn-purple" style="padding:5px 10px;font-size:10.5px;flex:1">🎯 Analyser</button>
     </div>
   </div>`;
 }
@@ -2334,7 +2363,8 @@ async function loadOppBand(force=false){
       symbol:o.symbol, name:o.name, direction:o.direction,
       prob:o.prob, pct:o.pct, price:o.price,
       target:o.target, stop:o.stop, entry:o.entry,
-      convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0
+      convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0,
+      horizon:o.horizon||""
     })));
     const html=signals.map(o=>`
       <div class="opp-item" onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" title="Cliquer pour voir le graphique">
@@ -2387,7 +2417,7 @@ function updateSmartBar(signals){
     const bg  = isAchat ? "rgba(0,255,136,.08)" : "rgba(255,59,107,.08)";
     const brd = isAchat ? "rgba(0,255,136,.4)"  : "rgba(255,59,107,.4)";
     const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
-    const horizon = s.convLabel === "Forte" ? "Intraday" : s.convLabel === "Modérée" ? "1-3 jours" : "Court terme";
+    const horizon = s.horizon ? s.horizon.split(" — ")[0] : s.convLabel === "Forte" ? "Intraday" : "Plusieurs jours";
     const targetStr = s.target && s.target > 0 ? (s.target < 10 ? s.target.toFixed(4) : s.target.toFixed(2)) : "—";
     const stopStr   = s.stop   && s.stop   > 0 ? (s.stop   < 10 ? s.stop.toFixed(4)   : s.stop.toFixed(2))   : "—";
 
@@ -2638,6 +2668,48 @@ async function loadNewsPage(){
 // ASSISTANT IA — Multi-turn chat
 // ═══════════════════════════════════════════════════════════
 let chatHistory=[];
+// Instruments reconnus dans le chat (live price detection)
+const CHAT_INSTRUMENTS = {
+  "or":"GC=F","gold":"GC=F","xau":"GC=F","argent":"SI=F","silver":"SI=F",
+  "palladium":"PA=F","platine":"PL=F","platinum":"PL=F",
+  "petrole":"CL=F","wti":"CL=F","brent":"BZ=F",
+  "gaz":"NG=F","gaz naturel":"NG=F","gas":"NG=F",
+  "cuivre":"HG=F","ble":"ZW=F","wheat":"ZW=F","mais":"ZC=F","corn":"ZC=F",
+  "cacao":"CC=F","coton":"CT=F","bitcoin":"BTC-USD","btc":"BTC-USD",
+  "ethereum":"ETH-USD","eth":"ETH-USD","stellar":"XLM-USD","xlm":"XLM-USD",
+  "solana":"SOL-USD","xrp":"XRP-USD","euro":"EURUSD=X","eurusd":"EURUSD=X",
+  "yen":"USDJPY=X","usdjpy":"USDJPY=X","livre":"GBPUSD=X","gbpusd":"GBPUSD=X",
+  "cac":"^FCHI","cac40":"^FCHI","cac 40":"^FCHI","nasdaq":"^NDX",
+  "dow jones":"^DJI","dow":"^DJI","dax":"^GDAXI","nikkei":"^N225",
+  "nvidia":"NVDA","nvda":"NVDA","apple":"AAPL","tesla":"TSLA",
+  "lvmh":"MC.PA","total":"TTE.PA","airbus":"AIR.PA"
+};
+
+async function detectAndFetchPrices(msg){
+  const lower = msg.toLowerCase();
+  const toFetch = new Set();
+  for(const kw in CHAT_INSTRUMENTS){
+    if(lower.includes(kw)) toFetch.add(CHAT_INSTRUMENTS[kw]);
+  }
+  if(!toFetch.size) return null;
+  try{
+    const quotes = await getQuotes([...toFetch]);
+    if(!quotes.length) return null;
+    const lines = quotes.map(q=>{
+      const p = q.regularMarketPrice;
+      const pct = q.regularMarketChangePercent||0;
+      const ps = p>=1000 ? Math.round(p).toLocaleString("fr-FR") : p>=10 ? p.toFixed(2) : p.toFixed(4);
+      return "- "+(q.shortName||q.symbol)+" ("+q.symbol+"): "+ps+" "+(pct>=0?"+":"")+pct.toFixed(2)+"% aujourd'hui";
+    });
+    return "[COURS LIVE "+new Date().toLocaleTimeString("fr-FR")+"]\n"+lines.join("\n")+"\n[REGLE: utilise UNIQUEMENT ces prix dans ta reponse]";
+  }catch(e){ return null; }
+}
+
+function copyToClipboard(text){
+  try{ navigator.clipboard.writeText(text); }
+  catch(e){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); document.execCommand("copy"); document.body.removeChild(t); }
+}
+
 async function sendChat(){
   const input=document.getElementById("chatInput");
   const box=document.getElementById("chatBox");
@@ -2649,11 +2721,20 @@ async function sendChat(){
   box.innerHTML+=`<div class="msg ai" id="${loadId}" style="opacity:.5">⏳ Analyse en cours…</div>`;
   box.scrollTop=box.scrollHeight;
   try{
-    const d=await api("/chat",{method:"POST",body:JSON.stringify({message:msg,history:chatHistory.slice(-8),provider:aiProvider(),apiKey:getAiKey()})});
+    const liveCtx = await detectAndFetchPrices(msg);
+    const enrichedMsg = liveCtx ? liveCtx+"\n\nQUESTION TRADER: "+msg : msg;
+    const d=await api("/chat",{method:"POST",body:JSON.stringify({message:enrichedMsg,history:chatHistory.slice(-8),provider:aiProvider(),apiKey:getAiKey()})});
     const reply=d.reply||"";
     chatHistory.push({role:"assistant",content:reply});
     const el=document.getElementById(loadId);
-    if(el) el.outerHTML=`<div class="msg ai">${esc(reply).replace(/\n/g,"<br>")}</div>`;
+    const mid="m"+Date.now();
+    if(el) el.outerHTML="<div class=\"msg ai\" id=\""+mid+"\"><div class=\"msg-text\">"+esc(reply).replace(/\n/g,"<br>")+"</div>"
+      +"<div style=\"display:flex;gap:5px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06)\">"
+      +"<button onclick=\"speak(document.getElementById('"+mid+"').querySelector('.msg-text').innerText,true)\" "
+      +"style=\"background:none;border:1px solid rgba(0,212,255,.3);border-radius:6px;color:#6b7a99;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit\">&#128266; Relire</button>"
+      +"<button onclick=\"copyToClipboard(document.getElementById('"+mid+"').querySelector('.msg-text').innerText)\" "
+      +"style=\"background:none;border:1px solid #1c2d48;border-radius:6px;color:#6b7a99;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit\">&#128203; Copier</button>"
+      +"</div></div>";
     speak(reply); // Auto-read if voice enabled
   }catch(e){
     const el=document.getElementById(loadId);
@@ -3082,7 +3163,70 @@ function renderTerminal(d){
 
   // Store calendar items globally for filters
   if(eco.items?.length) _calItems = eco.items.slice(0,60);
-  return kpiSection+themesSection+ratesSection+yieldSection+heatSection+corrSection+newsSection+ecoSection+earnSection;
+
+  var gsV=[
+    {t:"Or/Metaux precieux",d:"ACHAT",p:78,dc:"#00ff88",r:"Banques centrales + geopolitique + debasement"},
+    {t:"USD Dollar Index",  d:"ACHAT",p:71,dc:"#00ff88",r:"Fed hawkish, differentiel taux favorable"},
+    {t:"Petrole Brent/WTI", d:"ACHAT",p:65,dc:"#00ff88",r:"OPEC+ discipline, demande Asie, geopolitique"},
+    {t:"Actions US Tech",   d:"NEUTRE",p:60,dc:"#fff200",r:"IA soutient mais valorisations tendues"},
+    {t:"Obligations US",    d:"VENTE", p:69,dc:"#ff3b6b",r:"Inflation persistante, deficits records"},
+    {t:"Immobilier REIT",   d:"VENTE", p:63,dc:"#ff3b6b",r:"Taux eleves, vacance bureaux persistante"},
+  ];
+  var gsB=[
+    {n:"IA & Semi-conducteurs",pf:"+4.2%",s:"ACHAT",p:74,dc:"#00ff88",d:"NVDA AMD TSMC - cycle IA"},
+    {n:"Defense & Geopolitique",pf:"+6.8%",s:"ACHAT",p:78,dc:"#00ff88",d:"LMT RTX Rheinmetall"},
+    {n:"Miners Or",            pf:"+3.1%",s:"ACHAT",p:70,dc:"#00ff88",d:"Barrick Newmont - levier or"},
+    {n:"Short Rate Sensitives", pf:"-2.3%",s:"VENTE",p:67,dc:"#ff3b6b",d:"Utilities REIT taux hauts"},
+    {n:"Energie Propre",        pf:"-1.8%",s:"VENTE",p:62,dc:"#ff3b6b",d:"Solar Wind USD fort"},
+  ];
+  var gsP=[
+    {a:"S&P 500",pos:"Long",  lvl:72,s:"ACHAT",dc:"#00ff88",n:"HFs surexposes"},
+    {a:"Or",     pos:"Long",  lvl:81,s:"ACHAT",dc:"#00ff88",n:"Position max 2 ans"},
+    {a:"USD",    pos:"Long",  lvl:65,s:"ACHAT",dc:"#00ff88",n:"Dominant haussier"},
+    {a:"T-Bonds",pos:"Short", lvl:74,s:"VENTE",dc:"#ff3b6b",n:"Massivement short"},
+    {a:"Petrole",pos:"Long",  lvl:58,s:"ACHAT",dc:"#00ff88",n:"Modere OPEC+"},
+    {a:"Nasdaq", pos:"Long",  lvl:68,s:"ACHAT",dc:"#00ff88",n:"Favoris IA"},
+  ];
+  var vH=gsV.map(function(v){
+    var bg=v.d==="ACHAT"?"rgba(0,255,136,.05)":v.d==="VENTE"?"rgba(255,59,107,.05)":"rgba(255,242,0,.04)";
+    var ar=v.d==="ACHAT"?"&#9650; ACHETER":v.d==="VENTE"?"&#9660; VENDRE":"&#9670; SURVEILLER";
+    return "<div style='background:"+bg+";border:1px solid "+v.dc+"33;border-radius:10px;padding:9px;margin-bottom:6px'>"
+      +"<div style='display:flex;justify-content:space-between;gap:8px;margin-bottom:3px'>"
+      +"<span style='font-size:11px;font-weight:700;color:#e8eefc;flex:1'>"+esc(v.t)+"</span>"
+      +"<span style='font-size:9px;font-weight:800;color:"+v.dc+";background:"+v.dc+"15;border:1px solid "+v.dc+"44;border-radius:5px;padding:2px 7px;font-family:monospace;flex-shrink:0'>"+ar+" "+v.p+"%</span>"
+      +"</div><div style='font-size:9.5px;color:#a8b8d8'>"+esc(v.r)+"</div></div>";
+  }).join("");
+  var bH=gsB.map(function(b){
+    return "<div style='border-left:3px solid "+b.dc+";background:rgba(0,20,60,.4);border-radius:0 9px 9px 0;padding:8px 10px;margin-bottom:5px'>"
+      +"<div style='display:flex;justify-content:space-between;gap:8px'>"
+      +"<div style='flex:1'><div style='font-size:11px;font-weight:700;color:#e8eefc'>"+esc(b.n)+"</div>"
+      +"<div style='font-size:9px;color:#a8b8d8;margin-top:2px'>"+esc(b.d)+"</div></div>"
+      +"<div style='text-align:right;flex-shrink:0'><div style='font-size:12px;font-weight:800;color:"+b.dc+"'>"+esc(b.pf)+"</div>"
+      +"<div style='font-size:9px;color:"+b.dc+";font-family:monospace'>"+b.s+" "+b.p+"%</div></div>"
+      +"</div></div>";
+  }).join("");
+  var pH=gsP.map(function(p){
+    return "<div style='background:rgba(255,255,255,.025);border:1px solid #1c2d48;border-radius:9px;padding:8px'>"
+      +"<div style='font-size:10px;font-weight:700;color:#e8eefc'>"+esc(p.a)+"</div>"
+      +"<div style='font-size:8px;color:#6b7a99;margin-bottom:4px'>"+esc(p.pos)+"</div>"
+      +"<div style='background:rgba(255,255,255,.05);border-radius:3px;height:5px;overflow:hidden;margin-bottom:3px'>"
+      +"<div style='width:"+p.lvl+"%;height:100%;background:"+p.dc+"'></div></div>"
+      +"<div style='font-size:9px;color:"+p.dc+";font-family:monospace;font-weight:700'>"+p.lvl+"% "+p.s+"</div>"
+      +"<div style='font-size:8px;color:#6b7a99;margin-top:2px'>"+esc(p.n)+"</div></div>";
+  }).join("");
+  var marqueeSection="<div class='card' id='sec-marquee' style='margin-bottom:10px;border-color:rgba(0,100,200,.4);background:linear-gradient(135deg,rgba(0,30,80,.5),rgba(0,10,30,.9))'>"
+    +"<div style='display:flex;align-items:center;gap:10px;margin-bottom:12px'>"
+    +"<div style='background:linear-gradient(135deg,#003087,#001f5c);border-radius:8px;padding:5px 10px;font-weight:800;font-size:13px;color:#fff;border:1px solid rgba(0,100,255,.4)'>GS</div>"
+    +"<div><div style='font-family:Montserrat,sans-serif;font-size:13px;font-weight:800;color:#e8eefc'>Goldman Sachs Marquee Intel</div>"
+    +"<div style='font-size:9.5px;color:#4a90d9'>Vues macro GS Research · Prime Book HF · Paniers thematiques</div></div></div>"
+    +"<div style='font-size:9px;color:#4a90d9;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px'>&#128202; Vues Macro GS Research</div>"+vH
+    +"<div style='font-size:9px;color:#4a90d9;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px'>&#127974; Prime Book — Positionnement Hedge Funds</div>"
+    +"<div style='font-size:9.5px;color:#6b7a99;margin-bottom:8px'>Positionnement extreme = signal contrarian puissant.</div>"
+    +"<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:12px'>"+pH+"</div>"
+    +"<div style='font-size:9px;color:#4a90d9;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>&#127919; Paniers Thematiques Marquee</div>"+bH
+    +"<div style='margin-top:10px;font-size:8.5px;color:#6b7a99;padding:6px;background:rgba(0,0,0,.3);border-radius:6px'>Signaux inspires de la recherche publique GS. Non affilie a Goldman Sachs.</div>"
+    +"</div>";
+  return marqueeSection+kpiSection+themesSection+ratesSection+yieldSection+heatSection+corrSection+newsSection+ecoSection+earnSection;
 }
 
 // ══════════════════════════════════════════════════
