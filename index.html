@@ -913,7 +913,6 @@ argent</textarea>
     <button class="tf-btn" onclick="scrollTerminalTo('sec-cal')" style="white-space:nowrap">📅 Calendrier</button>
     <button class="tf-btn" onclick="scrollTerminalTo('sec-news')" style="white-space:nowrap">🌍 News</button>
     <button class="tf-btn" onclick="scrollTerminalTo('sec-earn')" style="white-space:nowrap">🏢 Résultats</button>
-    <button class="tf-btn" onclick="scrollTerminalTo('sec-marquee')" style="white-space:nowrap;color:#4a90d9;border-color:rgba(0,100,200,.35);font-weight:700">GS Marquee</button>
   </div>
   <div id="terminalContent"></div>
 </div>
@@ -1100,8 +1099,15 @@ async function getQuotes(symbols) {
     } catch {}
   }
 
-  for (const q of fetched) _quoteCache.set(q.symbol, {q, ts:now});
-  return [...fromCache, ...fetched];
+  // Sanity check — reject prices that don't match known ranges
+  const validFetched = fetched.filter(q => isPriceValid(q.symbol, q.regularMarketPrice));
+  for (const q of validFetched) _quoteCache.set(q.symbol, {q, ts:now});
+  // Also invalidate cache entries with wrong prices from previous fetches
+  for(const sym of symbols){
+    const c = _quoteCache.get(sym);
+    if(c && !isPriceValid(sym, c.q.regularMarketPrice)) _quoteCache.delete(sym);
+  }
+  return [...fromCache.filter(q => isPriceValid(q.symbol, q.regularMarketPrice)), ...validFetched];
 }
 
 function invalidateQuotes(symbols){
@@ -2138,23 +2144,9 @@ function renderOppPro(o){
     <div style="display:flex;flex-direction:column;gap:3px">
       ${o.raisons.slice(0,3).map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:#a8b8d8;padding:4px 7px;background:rgba(255,255,255,.022);border-radius:6px;border-left:2px solid ${dc}66"><span style="color:${dc};flex-shrink:0">›</span>${esc(r)}</div>`).join("")}
     </div>
-    <div style="margin-top:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px">
-      <div style="font-size:9px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">🚪 Stratégie de sortie</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
-        <div style="background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:7px 9px">
-          <div style="font-size:8.5px;color:#6b7a99;margin-bottom:2px">✅ Sortie profit</div>
-          <div style="font-family:monospace;font-size:13px;font-weight:700;color:#00ff88">${money(o.target)}</div>
-        </div>
-        <div style="background:rgba(255,59,107,.06);border:1px solid rgba(255,59,107,.2);border-radius:8px;padding:7px 9px">
-          <div style="font-size:8.5px;color:#6b7a99;margin-bottom:2px">❌ Stop-loss</div>
-          <div style="font-family:monospace;font-size:13px;font-weight:700;color:#ff3b6b">${money(o.stop)}</div>
-        </div>
-      </div>
-      <div style="font-size:10px;color:#a8b8d8">⏱ <b style="color:#e8eefc">Horizon:</b> ${esc(o.horizon||"Court terme")}</div>
-    </div>
     <div style="margin-top:8px;display:flex;gap:6px">
       <button onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" class="btn btn-cyan" style="padding:5px 10px;font-size:10.5px;flex:1">📈 Graphique</button>
-      <button onclick="document.getElementById('anSymbolText').value='${esc(o.name)}';showScreen('analyse');runAnalyze()" class="btn btn-purple" style="padding:5px 10px;font-size:10.5px;flex:1">🎯 Analyser</button>
+      <button onclick="document.getElementById('anSymbolText').value='${esc(o.name)}';showScreen('analyse');runAnalyze()" class="btn btn-purple" style="padding:5px 10px;font-size:10.5px;flex:1">🎯 Analyser en détail</button>
     </div>
   </div>`;
 }
@@ -2253,7 +2245,7 @@ function showSignauxConfig(){
   modal.innerHTML = `
     <div style="background:#0a1020;border:1.5px solid #00ff88;border-radius:16px;padding:18px;width:100%;max-width:390px;box-shadow:0 0 28px rgba(0,255,136,.18)">
       <h3 style="font-family:Montserrat,sans-serif;font-size:14px;font-weight:800;color:#e8eefc;margin-bottom:5px">⚡ Configurer les Signaux</h3>
-      <p style="font-size:10.5px;color:#6b7a99;margin-bottom:11px">Format : <code style="color:#00ff88">NOM=SYMBOLE</code> — une ligne par instrument<br>Ex: Gaz Naturel=NG=F | Or=GC=F | Bitcoin=BTC-USD</p>
+      <p style="font-size:10.5px;color:#6b7a99;margin-bottom:11px">Format : <code style="color:#00ff88">Nom=SYMBOLE</code> — une ligne par instrument<br><span style="font-size:9.5px">Ex: Gaz Naturel=NG=F &nbsp;|&nbsp; Or=GC=F &nbsp;|&nbsp; Bitcoin=BTC-USD &nbsp;|&nbsp; EUR/USD=EURUSD=X</span></p>
       <textarea id="signauxConfigInput" style="width:100%;height:220px;background:#060810;color:#e8eefc;border:1px solid #1c2d48;border-radius:9px;padding:9px;font-size:11px;font-family:'JetBrains Mono',monospace;resize:vertical">${esc(current)}</textarea>
       <div style="display:flex;gap:7px;margin-top:11px">
         <button onclick="applySignauxConfig()" style="flex:1;background:rgba(0,255,136,.14);border:1px solid rgba(0,255,136,.48);border-radius:9px;color:#00ff88;padding:10px;font-family:Montserrat,sans-serif;font-weight:700;font-size:12px;cursor:pointer">✓ Appliquer</button>
@@ -2270,9 +2262,14 @@ function applySignauxConfig(){
   const lines = input.value.split("\n").map(l=>l.trim()).filter(Boolean);
   const markets = [];
   for(const line of lines){
-    const eq = line.lastIndexOf("=");
-    if(eq < 1) continue;
-    markets.push({n:line.slice(0,eq).trim(), s:line.slice(eq+1).trim()});
+    // Handle symbols with "=" in them: "Gaz Naturel=NG=F" -> name="Gaz Naturel", sym="NG=F"
+    // Strategy: find first "=" that splits name from symbol
+    // Symbol starts after first "=" and may contain more "=" (like NG=F, GC=F, EURUSD=X)
+    const firstEq = line.indexOf("=");
+    if(firstEq < 1) continue;
+    const name = line.slice(0, firstEq).trim();
+    const sym  = line.slice(firstEq+1).trim();
+    if(name && sym) markets.push({n:name, s:sym});
   }
   if(!markets.length) return;
   localStorage.setItem("pgi_band_markets", JSON.stringify(markets));
@@ -2310,6 +2307,8 @@ async function loadOppBand(force=false){
     // Score avec moteur quantitatif pro
     const signals = BAND_MARKETS.map(m=>{
       const q=quotes.find(qq=>qq.symbol===m.s || qq.symbol===m.s.toUpperCase());
+      // Reject bad prices
+      if(q && !isPriceValid(m.s, q.regularMarketPrice)) return null;
       if(!q||!q.regularMarketPrice) return null;
       const sig=quantScorePro(q,30,null);
       return {...sig, symbol:m.s, name:m.n, price:q.regularMarketPrice};
@@ -2668,48 +2667,6 @@ async function loadNewsPage(){
 // ASSISTANT IA — Multi-turn chat
 // ═══════════════════════════════════════════════════════════
 let chatHistory=[];
-// Instruments reconnus dans le chat (live price detection)
-const CHAT_INSTRUMENTS = {
-  "or":"GC=F","gold":"GC=F","xau":"GC=F","argent":"SI=F","silver":"SI=F",
-  "palladium":"PA=F","platine":"PL=F","platinum":"PL=F",
-  "petrole":"CL=F","wti":"CL=F","brent":"BZ=F",
-  "gaz":"NG=F","gaz naturel":"NG=F","gas":"NG=F",
-  "cuivre":"HG=F","ble":"ZW=F","wheat":"ZW=F","mais":"ZC=F","corn":"ZC=F",
-  "cacao":"CC=F","coton":"CT=F","bitcoin":"BTC-USD","btc":"BTC-USD",
-  "ethereum":"ETH-USD","eth":"ETH-USD","stellar":"XLM-USD","xlm":"XLM-USD",
-  "solana":"SOL-USD","xrp":"XRP-USD","euro":"EURUSD=X","eurusd":"EURUSD=X",
-  "yen":"USDJPY=X","usdjpy":"USDJPY=X","livre":"GBPUSD=X","gbpusd":"GBPUSD=X",
-  "cac":"^FCHI","cac40":"^FCHI","cac 40":"^FCHI","nasdaq":"^NDX",
-  "dow jones":"^DJI","dow":"^DJI","dax":"^GDAXI","nikkei":"^N225",
-  "nvidia":"NVDA","nvda":"NVDA","apple":"AAPL","tesla":"TSLA",
-  "lvmh":"MC.PA","total":"TTE.PA","airbus":"AIR.PA"
-};
-
-async function detectAndFetchPrices(msg){
-  const lower = msg.toLowerCase();
-  const toFetch = new Set();
-  for(const kw in CHAT_INSTRUMENTS){
-    if(lower.includes(kw)) toFetch.add(CHAT_INSTRUMENTS[kw]);
-  }
-  if(!toFetch.size) return null;
-  try{
-    const quotes = await getQuotes([...toFetch]);
-    if(!quotes.length) return null;
-    const lines = quotes.map(q=>{
-      const p = q.regularMarketPrice;
-      const pct = q.regularMarketChangePercent||0;
-      const ps = p>=1000 ? Math.round(p).toLocaleString("fr-FR") : p>=10 ? p.toFixed(2) : p.toFixed(4);
-      return "- "+(q.shortName||q.symbol)+" ("+q.symbol+"): "+ps+" "+(pct>=0?"+":"")+pct.toFixed(2)+"% aujourd'hui";
-    });
-    return "[COURS LIVE "+new Date().toLocaleTimeString("fr-FR")+"]\n"+lines.join("\n")+"\n[REGLE: utilise UNIQUEMENT ces prix dans ta reponse]";
-  }catch(e){ return null; }
-}
-
-function copyToClipboard(text){
-  try{ navigator.clipboard.writeText(text); }
-  catch(e){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); document.execCommand("copy"); document.body.removeChild(t); }
-}
-
 async function sendChat(){
   const input=document.getElementById("chatInput");
   const box=document.getElementById("chatBox");
@@ -2721,20 +2678,11 @@ async function sendChat(){
   box.innerHTML+=`<div class="msg ai" id="${loadId}" style="opacity:.5">⏳ Analyse en cours…</div>`;
   box.scrollTop=box.scrollHeight;
   try{
-    const liveCtx = await detectAndFetchPrices(msg);
-    const enrichedMsg = liveCtx ? liveCtx+"\n\nQUESTION TRADER: "+msg : msg;
-    const d=await api("/chat",{method:"POST",body:JSON.stringify({message:enrichedMsg,history:chatHistory.slice(-8),provider:aiProvider(),apiKey:getAiKey()})});
+    const d=await api("/chat",{method:"POST",body:JSON.stringify({message:msg,history:chatHistory.slice(-8),provider:aiProvider(),apiKey:getAiKey()})});
     const reply=d.reply||"";
     chatHistory.push({role:"assistant",content:reply});
     const el=document.getElementById(loadId);
-    const mid="m"+Date.now();
-    if(el) el.outerHTML="<div class=\"msg ai\" id=\""+mid+"\"><div class=\"msg-text\">"+esc(reply).replace(/\n/g,"<br>")+"</div>"
-      +"<div style=\"display:flex;gap:5px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06)\">"
-      +"<button onclick=\"speak(document.getElementById('"+mid+"').querySelector('.msg-text').innerText,true)\" "
-      +"style=\"background:none;border:1px solid rgba(0,212,255,.3);border-radius:6px;color:#6b7a99;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit\">&#128266; Relire</button>"
-      +"<button onclick=\"copyToClipboard(document.getElementById('"+mid+"').querySelector('.msg-text').innerText)\" "
-      +"style=\"background:none;border:1px solid #1c2d48;border-radius:6px;color:#6b7a99;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit\">&#128203; Copier</button>"
-      +"</div></div>";
+    if(el) el.outerHTML=`<div class="msg ai">${esc(reply).replace(/\n/g,"<br>")}</div>`;
     speak(reply); // Auto-read if voice enabled
   }catch(e){
     const el=document.getElementById(loadId);
@@ -3163,70 +3111,7 @@ function renderTerminal(d){
 
   // Store calendar items globally for filters
   if(eco.items?.length) _calItems = eco.items.slice(0,60);
-
-  var gsV=[
-    {t:"Or/Metaux precieux",d:"ACHAT",p:78,dc:"#00ff88",r:"Banques centrales + geopolitique + debasement"},
-    {t:"USD Dollar Index",  d:"ACHAT",p:71,dc:"#00ff88",r:"Fed hawkish, differentiel taux favorable"},
-    {t:"Petrole Brent/WTI", d:"ACHAT",p:65,dc:"#00ff88",r:"OPEC+ discipline, demande Asie, geopolitique"},
-    {t:"Actions US Tech",   d:"NEUTRE",p:60,dc:"#fff200",r:"IA soutient mais valorisations tendues"},
-    {t:"Obligations US",    d:"VENTE", p:69,dc:"#ff3b6b",r:"Inflation persistante, deficits records"},
-    {t:"Immobilier REIT",   d:"VENTE", p:63,dc:"#ff3b6b",r:"Taux eleves, vacance bureaux persistante"},
-  ];
-  var gsB=[
-    {n:"IA & Semi-conducteurs",pf:"+4.2%",s:"ACHAT",p:74,dc:"#00ff88",d:"NVDA AMD TSMC - cycle IA"},
-    {n:"Defense & Geopolitique",pf:"+6.8%",s:"ACHAT",p:78,dc:"#00ff88",d:"LMT RTX Rheinmetall"},
-    {n:"Miners Or",            pf:"+3.1%",s:"ACHAT",p:70,dc:"#00ff88",d:"Barrick Newmont - levier or"},
-    {n:"Short Rate Sensitives", pf:"-2.3%",s:"VENTE",p:67,dc:"#ff3b6b",d:"Utilities REIT taux hauts"},
-    {n:"Energie Propre",        pf:"-1.8%",s:"VENTE",p:62,dc:"#ff3b6b",d:"Solar Wind USD fort"},
-  ];
-  var gsP=[
-    {a:"S&P 500",pos:"Long",  lvl:72,s:"ACHAT",dc:"#00ff88",n:"HFs surexposes"},
-    {a:"Or",     pos:"Long",  lvl:81,s:"ACHAT",dc:"#00ff88",n:"Position max 2 ans"},
-    {a:"USD",    pos:"Long",  lvl:65,s:"ACHAT",dc:"#00ff88",n:"Dominant haussier"},
-    {a:"T-Bonds",pos:"Short", lvl:74,s:"VENTE",dc:"#ff3b6b",n:"Massivement short"},
-    {a:"Petrole",pos:"Long",  lvl:58,s:"ACHAT",dc:"#00ff88",n:"Modere OPEC+"},
-    {a:"Nasdaq", pos:"Long",  lvl:68,s:"ACHAT",dc:"#00ff88",n:"Favoris IA"},
-  ];
-  var vH=gsV.map(function(v){
-    var bg=v.d==="ACHAT"?"rgba(0,255,136,.05)":v.d==="VENTE"?"rgba(255,59,107,.05)":"rgba(255,242,0,.04)";
-    var ar=v.d==="ACHAT"?"&#9650; ACHETER":v.d==="VENTE"?"&#9660; VENDRE":"&#9670; SURVEILLER";
-    return "<div style='background:"+bg+";border:1px solid "+v.dc+"33;border-radius:10px;padding:9px;margin-bottom:6px'>"
-      +"<div style='display:flex;justify-content:space-between;gap:8px;margin-bottom:3px'>"
-      +"<span style='font-size:11px;font-weight:700;color:#e8eefc;flex:1'>"+esc(v.t)+"</span>"
-      +"<span style='font-size:9px;font-weight:800;color:"+v.dc+";background:"+v.dc+"15;border:1px solid "+v.dc+"44;border-radius:5px;padding:2px 7px;font-family:monospace;flex-shrink:0'>"+ar+" "+v.p+"%</span>"
-      +"</div><div style='font-size:9.5px;color:#a8b8d8'>"+esc(v.r)+"</div></div>";
-  }).join("");
-  var bH=gsB.map(function(b){
-    return "<div style='border-left:3px solid "+b.dc+";background:rgba(0,20,60,.4);border-radius:0 9px 9px 0;padding:8px 10px;margin-bottom:5px'>"
-      +"<div style='display:flex;justify-content:space-between;gap:8px'>"
-      +"<div style='flex:1'><div style='font-size:11px;font-weight:700;color:#e8eefc'>"+esc(b.n)+"</div>"
-      +"<div style='font-size:9px;color:#a8b8d8;margin-top:2px'>"+esc(b.d)+"</div></div>"
-      +"<div style='text-align:right;flex-shrink:0'><div style='font-size:12px;font-weight:800;color:"+b.dc+"'>"+esc(b.pf)+"</div>"
-      +"<div style='font-size:9px;color:"+b.dc+";font-family:monospace'>"+b.s+" "+b.p+"%</div></div>"
-      +"</div></div>";
-  }).join("");
-  var pH=gsP.map(function(p){
-    return "<div style='background:rgba(255,255,255,.025);border:1px solid #1c2d48;border-radius:9px;padding:8px'>"
-      +"<div style='font-size:10px;font-weight:700;color:#e8eefc'>"+esc(p.a)+"</div>"
-      +"<div style='font-size:8px;color:#6b7a99;margin-bottom:4px'>"+esc(p.pos)+"</div>"
-      +"<div style='background:rgba(255,255,255,.05);border-radius:3px;height:5px;overflow:hidden;margin-bottom:3px'>"
-      +"<div style='width:"+p.lvl+"%;height:100%;background:"+p.dc+"'></div></div>"
-      +"<div style='font-size:9px;color:"+p.dc+";font-family:monospace;font-weight:700'>"+p.lvl+"% "+p.s+"</div>"
-      +"<div style='font-size:8px;color:#6b7a99;margin-top:2px'>"+esc(p.n)+"</div></div>";
-  }).join("");
-  var marqueeSection="<div class='card' id='sec-marquee' style='margin-bottom:10px;border-color:rgba(0,100,200,.4);background:linear-gradient(135deg,rgba(0,30,80,.5),rgba(0,10,30,.9))'>"
-    +"<div style='display:flex;align-items:center;gap:10px;margin-bottom:12px'>"
-    +"<div style='background:linear-gradient(135deg,#003087,#001f5c);border-radius:8px;padding:5px 10px;font-weight:800;font-size:13px;color:#fff;border:1px solid rgba(0,100,255,.4)'>GS</div>"
-    +"<div><div style='font-family:Montserrat,sans-serif;font-size:13px;font-weight:800;color:#e8eefc'>Goldman Sachs Marquee Intel</div>"
-    +"<div style='font-size:9.5px;color:#4a90d9'>Vues macro GS Research · Prime Book HF · Paniers thematiques</div></div></div>"
-    +"<div style='font-size:9px;color:#4a90d9;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px'>&#128202; Vues Macro GS Research</div>"+vH
-    +"<div style='font-size:9px;color:#4a90d9;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px'>&#127974; Prime Book — Positionnement Hedge Funds</div>"
-    +"<div style='font-size:9.5px;color:#6b7a99;margin-bottom:8px'>Positionnement extreme = signal contrarian puissant.</div>"
-    +"<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:12px'>"+pH+"</div>"
-    +"<div style='font-size:9px;color:#4a90d9;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>&#127919; Paniers Thematiques Marquee</div>"+bH
-    +"<div style='margin-top:10px;font-size:8.5px;color:#6b7a99;padding:6px;background:rgba(0,0,0,.3);border-radius:6px'>Signaux inspires de la recherche publique GS. Non affilie a Goldman Sachs.</div>"
-    +"</div>";
-  return marqueeSection+kpiSection+themesSection+ratesSection+yieldSection+heatSection+corrSection+newsSection+ecoSection+earnSection;
+  return kpiSection+themesSection+ratesSection+yieldSection+heatSection+corrSection+newsSection+ecoSection+earnSection;
 }
 
 // ══════════════════════════════════════════════════
