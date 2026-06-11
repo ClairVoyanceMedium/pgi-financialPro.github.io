@@ -498,6 +498,13 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
         <span style="font-size:12px">Bloomberg Terminal</span>
       </div>
     </button>
+    <!-- ROW 5: Goldman Sachs Marquee — neon bleu ciel -->
+    <button class="nav-btn" style="--neon:#00bfff;grid-column:span 4;padding:12px 16px;background:linear-gradient(135deg,rgba(0,25,60,.85),rgba(0,8,25,.95));border-color:rgba(0,191,255,.45)" onclick="showScreen('marquee')">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%">
+        <div style="background:linear-gradient(135deg,#003087,#001a4d);border-radius:10px;padding:5px 13px;font-weight:900;font-size:16px;color:#fff;border:1.5px solid rgba(0,191,255,.55);filter:drop-shadow(0 0 10px rgba(0,191,255,.7));flex-shrink:0">GS</div>
+        <span style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:13.5px;letter-spacing:1.5px;text-transform:uppercase;color:#00bfff;text-shadow:0 0 8px #00bfff,0 0 18px #00bfff66,0 0 35px #00bfff33">Goldman Sachs Marquee</span>
+      </div>
+    </button>
   </div>
 
   <!-- ASSISTANT WIDGET -->
@@ -3161,6 +3168,30 @@ function renderTerminal(d){
 // CALENDAR FILTER
 // ══════════════════════════════════════════════════
 let _calItems = [];
+function setCalDate(preset){
+  const inp = document.getElementById("calDateInput");
+  const today = new Date();
+  const fmt = d => d.toISOString().split("T")[0];
+  // Update active button
+  document.querySelectorAll(".cal-date-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("cbd-"+preset);
+  if(btn) btn.classList.add("active");
+  if(preset==="all"){
+    if(inp) inp.value="";
+  } else if(preset==="today"){
+    if(inp) inp.value=fmt(today);
+  } else if(preset==="tomorrow"){
+    const t=new Date(today); t.setDate(t.getDate()+1);
+    if(inp) inp.value=fmt(t);
+  } else if(preset==="week"){
+    if(inp) inp.value=fmt(today); // show from today, week's events
+  } else if(preset==="next"){
+    const t=new Date(today); t.setDate(t.getDate()+7);
+    if(inp) inp.value=fmt(t);
+  }
+  filterCalendar();
+}
+
 function filterCalendar(){
   const calList=document.getElementById("calList");
   if(!calList) return;
