@@ -77,36 +77,9 @@ a{color:#00d4ff;text-decoration:none}
 /* ═══════════════════════════════════════
    TICKER BAR
 ═══════════════════════════════════════ */
-.ticker-wrapper{
-  display:flex;align-items:stretch;
-  background:rgba(8,13,24,.95);border:1px solid #1c2d48;
-  border-radius:12px;margin:8px 10px 6px;overflow:hidden;
-}
-.ticker-scroll{
-  display:block;overflow:hidden;flex:1;
-  padding:0;cursor:grab;position:relative;
-}
-.ticker-scroll:active{cursor:grabbing}
-.ticker-inner-wrap{
-  display:flex;gap:0;
-  will-change:transform;
-  backface-visibility:hidden;
-}
-.ticker-item{
-  display:flex;flex-direction:column;align-items:center;
-  min-width:82px;padding:9px 12px;
-  border-right:1px solid rgba(255,255,255,.06);flex-shrink:0;
-}
-.ticker-item:last-child{border-right:none}
-.ticker-label{font-size:9.5px;color:#6b7a99;font-weight:700;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase}
-.ticker-price{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;color:#e8eefc;white-space:nowrap;margin-top:2px}
-.ticker-change{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;white-space:nowrap;margin-top:1px}
-.ticker-change.up{color:#00ff88}.ticker-change.down{color:#ff3b6b}.ticker-change.flat{color:#fff200}
-.ticker-gear{
-  padding:0 13px;background:none;border:none;border-left:1px solid #1c2d48;
-  color:#6b7a99;font-size:15px;cursor:pointer;display:flex;align-items:center;transition:.15s;
-}
-.ticker-gear:hover{color:#00d4ff}
+
+
+
 
 /* ═══════════════════════════════════════
    CLOCKS — Style salle de marché années 80
@@ -118,7 +91,7 @@ a{color:#00d4ff;text-decoration:none}
 
 .clock-card{
   position:relative;border-radius:12px;padding:8px 6px 7px;overflow:hidden;
-  min-height:182px;height:182px;display:flex;flex-direction:column;align-items:center;
+  min-height:182px;height:auto;display:flex;flex-direction:column;align-items:center;
   border:1.5px solid #1c2d48;
   background:linear-gradient(160deg,#0e1828 0%,#0a1020 100%);
   transition:.3s;
@@ -428,6 +401,10 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
 }
 .cal-date-btn:hover{border-color:#00d4ff;color:#00d4ff}
 .cal-date-btn.active{background:rgba(0,212,255,.13);border-color:#00d4ff;color:#00d4ff}
+@keyframes neonPulseViolet{
+  0%,100%{text-shadow:0 0 8px rgba(216,180,254,.9),0 0 20px rgba(216,180,254,.5),0 0 40px rgba(216,180,254,.2);opacity:1}
+  50%{text-shadow:0 0 16px rgba(216,180,254,1),0 0 40px rgba(216,180,254,.8),0 0 80px rgba(216,180,254,.4);opacity:.85}
+}
 @media(min-width:600px){body{display:flex;justify-content:center}#app{max-width:420px;width:100%;min-height:100vh}}
 </style>
 </head>
@@ -442,16 +419,16 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     <h1 class="app-title">PGI <span class="dot">•</span> Financial Pro</h1>
     <p class="app-subtitle">Places de Marchés · Macroéconomie · Actualités Mondiales</p>
     <!-- SMART MARKET INTELLIGENCE BAR -->
-    <div id="smartBar" style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px 16px 0;min-height:28px">
-      <span style="font-size:9px;color:#6b7a99;align-self:center;font-weight:700;letter-spacing:.5px">⏳ Chargement des signaux live…</span>
+    <!-- SMART SIGNAL BAR — Opportunités immédiates -->
+    <div style="padding:26px 10px 22px">
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;color:#d8b4fe;text-shadow:0 0 8px rgba(216,180,254,.9),0 0 20px rgba(216,180,254,.5),0 0 40px rgba(216,180,254,.2);animation:neonPulseViolet 2s ease-in-out infinite">Opportunités de Trading Immédiates</div>
+      <div id="smartBar" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;justify-content:space-between;align-items:stretch;width:100%">
+        <span style="font-size:9px;color:#6b7a99">Calcul en cours…</span>
+      </div>
     </div>
   </header>
 
-  <!-- TICKER -->
-  <div class="ticker-wrapper">
-    <div class="ticker-scroll" id="tickerScroll"></div>
-    <button class="ticker-gear" onclick="showTickerConfig()" title="Configurer le ticker">⚙</button>
-  </div>
+  <!-- Ticker removed — Smart Bar above takes the role -->
 
   <!-- CLOCKS -->
   <div class="clocks-section">
@@ -508,7 +485,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     </button>
     <button class="nav-btn nav-violet" onclick="showScreen('assistant')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.5" fill="currentColor" stroke="none"/><path d="M8 7V5M16 7V5" stroke-linecap="round"/></svg>
-      <span>Assistant IA</span>
+      <span>Conseiller Financier IA</span>
     </button>
     <button class="nav-btn" style="--neon:#00d4ff" onclick="showScreen('charts')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,6 13.5,14.5 8.5,9.5 2,16"/><polyline points="16,6 22,6 22,12"/></svg>
@@ -525,7 +502,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
 
   <!-- ASSISTANT WIDGET -->
   <div class="assistant-widget">
-    <div class="assistant-widget-header"><span>Assistant IA</span><span class="sparkle-icon">✦</span></div>
+    <div class="assistant-widget-header"><span>Conseiller Financier IA</span><span class="sparkle-icon">✦</span></div>
     <div class="quick-chips" id="quickChipsHome"></div>
     <div class="chat-input-row">
       <input type="text" id="chatInputHome" class="chat-input" placeholder="Pose ta question sur un marché…" onkeydown="if(event.key==='Enter')sendChatHome()">
@@ -670,7 +647,7 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
 <div id="assistantScreen" class="screen section-screen">
   <div class="section-header-bar">
     <button class="back-btn" onclick="showScreen('home')">‹ Accueil</button>
-    <span class="section-screen-title">🤖 Assistant IA</span>
+    <span class="section-screen-title">🤖 Conseiller Financier IA</span>
     <div id="voiceBtnAssistant" style="margin-left:auto"></div>
   </div>
   <div class="card">
@@ -1375,13 +1352,13 @@ function resetTickerConfig(){
 // CLOCKS — Style salle des marchés années 80 B&W
 // ═══════════════════════════════════════════════════════════
 const CLOCKS_DATA = [
-  {id:"paris",    name:"Paris",     tz:"Europe/Paris",      open:"09:00",close:"17:30",days:[1,2,3,4,5],row:1},
-  {id:"londres",  name:"Londres",   tz:"Europe/London",     open:"08:00",close:"16:30",days:[1,2,3,4,5],row:1},
-  {id:"newyork",  name:"New York",  tz:"America/New_York",  open:"09:30",close:"16:00",days:[1,2,3,4,5],row:1},
-  {id:"tokyo",    name:"Tokyo",     tz:"Asia/Tokyo",        open:"09:00",close:"15:00",days:[1,2,3,4,5],row:2},
-  {id:"singapour",name:"Singapour", tz:"Asia/Singapore",    open:"09:00",close:"17:00",days:[1,2,3,4,5],row:2},
-  {id:"hongkong", name:"Hong Kong", tz:"Asia/Hong_Kong",    open:"09:30",close:"16:00",days:[1,2,3,4,5],row:2},
-  {id:"sydney",   name:"Sydney",    tz:"Australia/Sydney",  open:"10:00",close:"16:00",days:[1,2,3,4,5],row:3}
+  {id:"paris",    name:"Paris",     tz:"Europe/Paris",      open:"09:00",close:"17:30",days:[1,2,3,4,5],row:1,idx:"^FCHI", idxLabel:"CAC 40"},
+  {id:"londres",  name:"Londres",   tz:"Europe/London",     open:"08:00",close:"16:30",days:[1,2,3,4,5],row:1,idx:"^FTSE", idxLabel:"FTSE 100"},
+  {id:"newyork",  name:"New York",  tz:"America/New_York",  open:"09:30",close:"16:00",days:[1,2,3,4,5],row:1,idx:"^DJI",  idxLabel:"Dow Jones"},
+  {id:"tokyo",    name:"Tokyo",     tz:"Asia/Tokyo",        open:"09:00",close:"15:00",days:[1,2,3,4,5],row:2,idx:"^N225", idxLabel:"Nikkei 225"},
+  {id:"singapour",name:"Singapour", tz:"Asia/Singapore",    open:"09:00",close:"17:00",days:[1,2,3,4,5],row:2,idx:"^STI",  idxLabel:"STI"},
+  {id:"hongkong", name:"Hong Kong", tz:"Asia/Hong_Kong",    open:"09:30",close:"16:00",days:[1,2,3,4,5],row:2,idx:"^HSI",  idxLabel:"Hang Seng"},
+  {id:"sydney",   name:"Sydney",    tz:"Australia/Sydney",  open:"10:00",close:"16:00",days:[1,2,3,4,5],row:3,idx:"^AXJO", idxLabel:"ASX 200"}
 ];
 
 function makeClock80s(c){
@@ -1423,13 +1400,43 @@ function makeClock80s(c){
     <circle cx="44" cy="44" r="1.5" fill="#e81010"/>
     <ellipse cx="36" cy="30" rx="16" ry="9" fill="url(#gl-${id})" opacity=".65"/>
   </svg>`;
-  return `<div class="clock-card" id="clock-${id}">
+  const clickFn = c.idx ? `onclick="document.getElementById('chartSymbolInput').value='${c.idx}';showScreen('charts');loadChart()" title="Voir le graphique ${c.idxLabel||''}"` : "";
+  return `<div class="clock-card" id="clock-${id}" style="cursor:${c.idx?'pointer':'default'}" ${clickFn}>
     <span class="clock-city">${c.name}</span>
     ${svg}
     <span class="clock-time-digital" id="ct-${id}">--:--:--</span>
     <span class="clock-status" id="cs-${id}">—</span>
     <span class="clock-count" id="cc-${id}"></span>
+    <div style="width:100%;text-align:center;border-top:1px solid rgba(255,255,255,.08);padding-top:5px;margin-top:4px">
+      <div style="font-size:8px;color:#6b7a99;font-weight:700;letter-spacing:.8px;text-transform:uppercase">${c.idxLabel||""}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#e8eefc;margin-top:2px;line-height:1" id="ci-p-${id}">—</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;margin-top:2px" id="ci-c-${id}">—</div>
+    </div>
   </div>`;
+}
+
+async function loadClockIndexes(){
+  const syms = CLOCKS_DATA.filter(function(c){ return c.idx; }).map(function(c){ return c.idx; });
+  if(!syms.length) return;
+  try{
+    const quotes = await getQuotes(syms);
+    var map = {};
+    quotes.forEach(function(q){ map[q.symbol] = q; });
+    CLOCKS_DATA.forEach(function(c){
+      if(!c.idx) return;
+      var q = map[c.idx];
+      var pEl = document.getElementById("ci-p-"+c.id);
+      var cEl = document.getElementById("ci-c-"+c.id);
+      if(!pEl || !cEl) return;
+      if(!q || !q.regularMarketPrice){ pEl.textContent="—"; return; }
+      var p   = q.regularMarketPrice;
+      var pct = q.regularMarketChangePercent || 0;
+      var up  = pct >= 0;
+      pEl.textContent = p >= 1000 ? Math.round(p).toLocaleString("fr-FR") : p.toFixed(2);
+      cEl.textContent = (up ? "▲ +" : "▼ ") + Math.abs(pct).toFixed(2) + "%";
+      cEl.style.color = up ? "#00ff88" : "#ff3b6b";
+    });
+  }catch(e){ console.warn("Clock indexes:", e.message); }
 }
 
 function buildClocks(){
@@ -1837,124 +1844,133 @@ function setScanFilter(btn){
 // ── Moteur quantitatif multi-facteurs ──────────────────────
 // Calcule un score haute conviction sur plusieurs dimensions
 function quantScorePro(q, newsRisk, yieldSpread){
-  const price = Number(q.regularMarketPrice||0);
-  const pct   = Number(q.regularMarketChangePercent||0);
-  const high  = Number(q.regularMarketDayHigh||price);
-  const low   = Number(q.regularMarketDayLow||price);
-  const vol   = Number(q.regularMarketVolume||0);
-  const avgVol= Number(q.averageVolume||q.averageDailyVolume3Month||vol||1);
-  const open  = Number(q.regularMarketOpen||price);
-  const prev  = Number(q.regularMarketPreviousClose||price);
-  const w52h  = Number(q.fiftyTwoWeekHigh||price);
-  const w52l  = Number(q.fiftyTwoWeekLow||price);
-
-  // ── FACTEUR 1: Momentum prix (30%)
-  let momScore = 50;
-  if(pct >  3) momScore = 82;
-  else if(pct >  2) momScore = 74;
-  else if(pct >  1) momScore = 66;
-  else if(pct >  0.5) momScore = 58;
-  else if(pct >  0.2) momScore = 54;
-  else if(pct < -3) momScore = 18;
-  else if(pct < -2) momScore = 26;
-  else if(pct < -1) momScore = 34;
-  else if(pct < -0.5) momScore = 42;
-  else if(pct < -0.2) momScore = 46;
-
-  // ── FACTEUR 2: Volume ratio (20%)
+  const price  = Number(q.regularMarketPrice||0);
+  const pct    = Number(q.regularMarketChangePercent||0);
+  const high   = Number(q.regularMarketDayHigh||price);
+  const low    = Number(q.regularMarketDayLow||price);
+  const vol    = Number(q.regularMarketVolume||0);
+  const avgVol = Number(q.averageVolume||q.averageDailyVolume3Month||vol||1);
+  const open   = Number(q.regularMarketOpen||price);
+  const prev   = Number(q.regularMarketPreviousClose||price);
+  const w52h   = Number(q.fiftyTwoWeekHigh||price*1.2);
+  const w52l   = Number(q.fiftyTwoWeekLow||price*0.8);
+  const dayRange = Math.max(high - low, price * 0.001);
   const volRatio = avgVol > 0 ? vol/avgVol : 1;
+
+  // ── TREND LONG TERME (52 semaines) — stable, ne flip pas chaque heure ──
+  // C'est l'ancre du signal — évite les retournements toutes les heures
+  let w52pos = 0.5;
+  if(w52h > w52l) w52pos = (price - w52l) / (w52h - w52l);
+  // Trend direction basée sur position 52S (stable)
+  // >60% = tendance haussière confirmée, <40% = tendance baissière confirmée
+  const trendBull = w52pos > 0.55; // dans le haut du range → haussier
+  const trendBear = w52pos < 0.45; // dans le bas du range → baissier
+  const trendScore = w52pos > 0.7 ? 72 : w52pos > 0.55 ? 60 : w52pos < 0.3 ? 28 : w52pos < 0.45 ? 40 : 50;
+
+  // ── MOMENTUM INTRADAY — signal court terme ──
+  let momScore = 50;
+  if     (pct >  3)    momScore = 88;
+  else if(pct >  1.5)  momScore = 74;
+  else if(pct >  0.7)  momScore = 64;
+  else if(pct >  0.2)  momScore = 56;
+  else if(pct < -3)    momScore = 12;
+  else if(pct < -1.5)  momScore = 26;
+  else if(pct < -0.7)  momScore = 36;
+  else if(pct < -0.2)  momScore = 44;
+  else momScore = 50 + (pct * 5); // proportionnel pour les petites variations
+
+  // ── VOLUME CONFIRMATION ──
   let volScore = 50;
-  if(volRatio > 2.5) volScore = pct >= 0 ? 80 : 20;
-  else if(volRatio > 1.8) volScore = pct >= 0 ? 70 : 30;
-  else if(volRatio > 1.3) volScore = pct >= 0 ? 62 : 38;
-  else if(volRatio < 0.5) volScore = 50; // low volume = neutral
+  if(volRatio > 2.5)      volScore = pct >= 0 ? 82 : 18;
+  else if(volRatio > 1.7) volScore = pct >= 0 ? 70 : 30;
+  else if(volRatio > 1.2) volScore = pct >= 0 ? 60 : 40;
+  else                    volScore = 50; // volume normal = neutre
 
-  // ── FACTEUR 3: Position dans la range jour (15%)
-  const dayRange = high - low;
-  let rangeScore = 50;
-  if(dayRange > 0){
-    const pos = (price - low) / dayRange; // 0=bas, 1=haut
-    rangeScore = pos > 0.8 ? 72 : pos > 0.6 ? 62 : pos < 0.2 ? 28 : pos < 0.4 ? 38 : 50;
-  }
-
-  // ── FACTEUR 4: Position 52 semaines (15%)
-  let w52Score = 50;
-  if(w52h > w52l){
-    const w52pos = (price - w52l) / (w52h - w52l);
-    if(w52pos > 0.9) w52Score = 35; // près du sommet = potentiel retournement
-    else if(w52pos > 0.7) w52Score = 62;
-    else if(w52pos < 0.1) w52Score = 65; // près du plancher = rebond potentiel
-    else if(w52pos < 0.3) w52Score = 58;
-  }
-
-  // ── FACTEUR 5: RSI approximatif (10%)
-  const rsi = Math.max(10, Math.min(90, 50 + pct * 4));
+  // ── RSI APPROXIMATIF ──
+  const rsi = Math.max(5, Math.min(95, 50 + pct * 5));
   let rsiScore = 50;
-  if(rsi > 75) rsiScore = 25;       // suracheté = attention vente
-  else if(rsi > 65) rsiScore = 42;
-  else if(rsi < 25) rsiScore = 75;  // survendu = opportunité achat
-  else if(rsi < 35) rsiScore = 62;
+  if     (rsi > 75) rsiScore = 25; // suracheté → vente
+  else if(rsi > 60) rsiScore = 60; // haussier
+  else if(rsi < 25) rsiScore = 75; // survendu → achat
+  else if(rsi < 40) rsiScore = 40; // baissier
 
-  // ── FACTEUR 6: Gap ouverture (10%)
-  const gap = prev > 0 ? ((open - prev)/prev)*100 : 0;
-  let gapScore = 50;
-  if(Math.abs(gap) > 1.5) gapScore = gap > 0 ? 68 : 32; // gap significatif = continuation probable
+  // ── GAP OUVERTURE ──
+  const gap = prev > 0 ? ((open-prev)/prev)*100 : 0;
+  const gapScore = gap > 1 ? 68 : gap > 0.3 ? 57 : gap < -1 ? 32 : gap < -0.3 ? 43 : 50;
 
-  // ── Score composite pondéré
-  const score = (
-    momScore * 0.30 +
-    volScore  * 0.20 +
-    rangeScore* 0.15 +
-    w52Score  * 0.15 +
-    rsiScore  * 0.10 +
-    gapScore  * 0.10
+  // ── SCORE COMPOSITE PONDÉRÉ ──
+  // Trend long terme = 30% (ANCRE STABLE — empêche les flip horaires)
+  // Momentum = 30% (signal primaire intraday)
+  // Volume = 20% (confirmation)
+  // RSI = 10% (oscillateur)
+  // Gap = 10% (signal ouverture)
+  let score = (
+    trendScore * 0.30 +
+    momScore   * 0.30 +
+    volScore   * 0.20 +
+    rsiScore   * 0.10 +
+    gapScore   * 0.10
   );
 
-  // ── Ajustements contextuels
-  let adj = 0;
-  if(newsRisk > 60) adj -= 5; // risque géopolitique élevé = prudence
-  if(yieldSpread && yieldSpread < 0) adj -= 3; // courbe inversée
-  if(volRatio > 3 && Math.abs(pct) > 2) adj += 5; // forte conviction volume+prix
+  // Ajustements contextuels
+  if(newsRisk > 70)  score -= 5;
+  if(yieldSpread !== null && yieldSpread < -0.5) score -= 3;
+  if(volRatio > 2.5 && Math.abs(pct) > 1.5) score += 4; // forte conviction
 
-  const finalScore = Math.max(5, Math.min(95, score + adj));
+  score = Math.max(5, Math.min(95, score));
 
-  // ── Direction et probabilité
-  let direction = "ATTENTE";
-  if(finalScore >= 62) direction = "ACHAT";
-  else if(finalScore <= 38) direction = "VENTE";
+  // ── DIRECTION — toujours ACHAT ou VENTE, jamais ATTENTE ──
+  // Si score faible (45-55) ET tendance long terme claire → utiliser la tendance
+  // Cela évite les flip horaires sur les signaux faibles
+  let direction;
+  if(score >= 55)       direction = "ACHAT";
+  else if(score <= 45)  direction = "VENTE";
+  else if(trendBull)    direction = "ACHAT";  // zone neutre → ancre sur trend 52S
+  else if(trendBear)    direction = "VENTE";  // zone neutre → ancre sur trend 52S
+  else                  direction = pct >= 0 ? "ACHAT" : "VENTE"; // dernier recours: momentum
 
-  // Probabilité = fonction de la distance du neutre (50)
-  const distFromNeutral = Math.abs(finalScore - 50);
-  const baseProb = 52 + distFromNeutral * 0.78;
-  // Bonus volume fort
-  const volBonus = volRatio > 2 ? 6 : volRatio > 1.5 ? 3 : 0;
-  // Variance réaliste (pas tous 71%)
-  const noise = (Math.sin(Date.now() / 1000 + q.symbol?.charCodeAt(0)||0) * 3);
-  const prob = Math.round(Math.min(89, Math.max(53, baseProb + volBonus + noise)));
+  // ── PROBABILITÉ réaliste et stable ──
+  const distFromNeutral = Math.abs(score - 50);
+  let prob = 52 + distFromNeutral * 0.85;
+  if(volRatio > 2) prob += 6;
+  else if(volRatio > 1.5) prob += 3;
+  if(Math.abs(pct) > 2) prob += 6;
+  else if(Math.abs(pct) > 1) prob += 3;
+  // Bonus si trend long terme confirme le signal court terme
+  if((direction === "ACHAT" && trendBull) || (direction === "VENTE" && trendBear)) prob += 5;
+  // Variance par symbole (évite tous les mêmes %)
+  const symSeed = (q.symbol||"X").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+  const noise = ((symSeed * 13) % 7) - 3;
+  prob = Math.round(Math.min(87, Math.max(53, prob + noise)));
 
-  // Niveaux techniques
-  const atr = dayRange || price * 0.01;
-  const entry = price;
-  const target = direction === "ACHAT" ? price + atr * 2.2 : price - atr * 2.2;
-  const stop   = direction === "ACHAT" ? price - atr * 0.9  : price + atr * 0.9;
-  const rr     = "2.4:1";
+  // ── CONVICTION ──
+  const conviction = Math.round(Math.min(100, distFromNeutral * 2.2 + (volRatio>1.5?8:0) + (Math.abs(pct)>1?6:0)));
+  const convLabel = conviction >= 60 ? "Forte" : conviction >= 35 ? "Modérée" : "Faible";
 
-  // Score conviction (0-100)
-  const conviction = Math.round(Math.min(100, distFromNeutral * 2.2 + volBonus * 3));
+  // ── NIVEAUX TECHNIQUES ──
+  const atr = dayRange;
+  const entry  = price;
+  const target = direction === "ACHAT" ? price + atr * 2.5 : price - atr * 2.5;
+  const stop   = direction === "ACHAT" ? price - atr * 1.0 : price + atr * 1.0;
+  const rr     = "2.5:1";
 
-  // Raisons claires
+  // ── RAISONS ARGUMENTÉES ──
   const raisons = [];
-  if(Math.abs(pct) > 1) raisons.push(`Variation ${pct > 0 ? "haussière" : "baissière"} significative : ${pct > 0 ? "+" : ""}${pct.toFixed(2)}%`);
-  if(volRatio > 1.5) raisons.push(`Volume ${volRatio.toFixed(1)}x la moyenne — forte conviction du marché`);
-  if(rsi > 70) raisons.push(`RSI élevé (${rsi.toFixed(0)}) — instrument suracheté, prudence`);
-  if(rsi < 30) raisons.push(`RSI bas (${rsi.toFixed(0)}) — instrument survendu, rebond potentiel`);
-  if(Math.abs(gap) > 1) raisons.push(`Gap d'ouverture ${gap > 0 ? "haussier" : "baissier"} de ${Math.abs(gap).toFixed(1)}%`);
-  if(w52h > 0 && Math.abs(price - w52h) / w52h < 0.03) raisons.push("Prix proche du sommet annuel — résistance majeure");
-  if(w52l > 0 && Math.abs(price - w52l) / w52l < 0.03) raisons.push("Prix proche du plancher annuel — support majeur");
-  if(newsRisk > 60) raisons.push("Risque géopolitique élevé — volatilité accrue attendue");
-  if(raisons.length === 0) raisons.push(`Momentum ${direction === "ACHAT" ? "positif" : direction === "VENTE" ? "négatif" : "neutre"} — score composite : ${finalScore.toFixed(0)}/100`);
+  if((direction==="ACHAT"&&trendBull)||(direction==="VENTE"&&trendBear))
+    raisons.push("Tendance long terme confirmée — prix dans le " + (trendBull?"haut":"bas") + " du range 52 semaines (" + (w52pos*100).toFixed(0) + "%)");
+  if(Math.abs(pct) > 0.3)
+    raisons.push("Momentum " + (pct>0?"haussier":"baissier") + " intraday : " + (pct>0?"+":"") + pct.toFixed(2) + "%");
+  if(volRatio > 1.4)
+    raisons.push("Volume " + volRatio.toFixed(1) + "× la moyenne — confirmation institutionnelle");
+  if(rsi > 68) raisons.push("RSI élevé (" + rsi.toFixed(0) + ") — dynamique acheteuse forte");
+  else if(rsi < 32) raisons.push("RSI bas (" + rsi.toFixed(0) + ") — zone de survente, rebond attendu");
+  if(Math.abs(gap) > 0.5) raisons.push("Gap d'ouverture " + (gap>0?"haussier":"baissier") + " de " + Math.abs(gap).toFixed(1) + "%");
+  if(raisons.length === 0)
+    raisons.push("Signal composite (" + direction + ") — score " + score.toFixed(0) + "/100, trend 52S: " + (trendBull?"haussier":trendBear?"baissier":"neutre"));
+  if(raisons.length < 2)
+    raisons.push("Conviction " + convLabel + " — convergence de " + ["momentum","volume","RSI","tendance"].slice(0,3).join(", "));
 
-  return { direction, prob, conviction, score:finalScore, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange };
+  return { direction, prob, conviction, score, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange, convLabel, trendBull, trendBear };
 }
 
 async function runScanPro(){
@@ -2024,36 +2040,25 @@ async function runScanPro(){
       };
     }).filter(Boolean);
 
-    // Sort by conviction + filter by threshold and direction
-    const strong = scored
-      .filter(o => o.direction !== "ATTENTE" && o.prob >= threshold)
-      .sort((a,b) => (b.prob + b.conviction*0.5) - (a.prob + a.conviction*0.5));
-
-    const weak = scored
-      .filter(o => o.direction === "ATTENTE" || o.prob < threshold)
-      .sort((a,b) => b.conviction - a.conviction)
-      .slice(0,5);
+    // Sort by prob × conviction — ACHAT and VENTE only (never ATTENTE)
+    // Strong: prob >= threshold (user's chosen confidence level)
+    const allScored = scored.sort((a,b) => (b.prob + b.conviction*0.5) - (a.prob + a.conviction*0.5));
+    const strong = allScored.filter(o => o.prob >= threshold);
+    // If nothing passes threshold, show top 5 anyway (best available)
+    const weak = allScored.filter(o => o.prob < threshold).slice(0, 5);
 
     if(status) status.textContent = `${strong.length} signal(s) · ${strong[0]?.prob||0}% max`;
 
-    res.innerHTML = strong.length
-      ? `<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;font-weight:700;color:#e8eefc">${strong.length} opportunité(s) ≥${threshold}%</span>
-          <span style="font-size:10px;color:#6b7a99">sur ${quotes.length} instruments analysés · ${horizon}</span>
+    // Always show something — if threshold too high, show top signals with note
+    const displayStrong = strong.length ? strong : allScored.slice(0,5);
+    const headerMsg = strong.length
+      ? strong.length + " signal(s) ≥" + threshold + "% sur " + quotes.length + " instruments"
+      : "Top signaux sur " + quotes.length + " instruments (aucun ≥" + threshold + "% — seuil élevé)";
+    res.innerHTML = `<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;font-weight:700;color:#e8eefc">${headerMsg}</span>
         </div>
-        ${strong.map(o=>renderOppPro(o)).join("")}
-        ${weak.length?`<div style="margin:12px 0 6px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Autres instruments surveillés</div>${weak.map(o=>renderOppProSmall(o)).join("")}`:""}`
-      : `<div class="card" style="padding:14px">
-          <div style="font-size:13px;font-weight:700;color:#fff200;margin-bottom:6px">📊 ${quotes.length} instruments analysés — aucun signal ≥${threshold}% détecté</div>
-          <div class="small" style="margin-bottom:10px">Le marché est calme ou en consolidation. Les meilleurs signaux s'afficheront dès qu'une opportunité forte se présente.</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn btn-cyan" style="padding:6px 12px;font-size:11px" onclick="document.getElementById('scanThreshold').value='60';runScanPro()">Signaux 60%+</button>
-            <button class="btn btn-green" style="padding:6px 12px;font-size:11px" onclick="setScanFilter(document.querySelector('[data-filter=forex]'));runScanPro()">Forex uniquement</button>
-            <button class="btn btn-orange" style="--btn-neon:#ff8a00;padding:6px 12px;font-size:11px" onclick="setScanFilter(document.querySelector('[data-filter=crypto]'));runScanPro()">Crypto uniquement</button>
-          </div>
-        </div>
-        <div style="margin-top:8px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tous les instruments analysés (triés par conviction)</div>
-        ${scored.sort((a,b)=>b.conviction-a.conviction).slice(0,12).map(o=>renderOppProSmall(o)).join("")}`;
+        ${displayStrong.map(o=>renderOppPro(o)).join("")}
+        ${weak.length && strong.length?`<div style="margin:12px 0 6px;font-size:10px;color:#6b7a99;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Signaux secondaires</div>${weak.map(o=>renderOppProSmall(o)).join("")}`:""}`;
 
   }catch(e){
     res.innerHTML=`<div class='card'><div class='error'>Erreur : ${esc(e.message)}</div></div>`;
@@ -2280,9 +2285,8 @@ async function loadOppBand(force=false){
       const sig=quantScorePro(q,30,null);
       return {...sig, symbol:m.s, name:m.n, price:q.regularMarketPrice};
     }).filter(Boolean)
-      .filter(o=>o.direction!=="ATTENTE" && o.prob>=68)
       .sort((a,b)=>(b.prob+b.conviction*0.4)-(a.prob+a.conviction*0.4))
-      .slice(0,15);
+      .slice(0,8);
     
     if(!signals.length){
       // Show top movers anyway (all directions) for info
@@ -2306,7 +2310,9 @@ async function loadOppBand(force=false){
         // Update smartBar with movers
         updateSmartBar(movers.slice(0,6).map(o=>({
           symbol:o.symbol, name:o.name, direction:o.pct>=0?"ACHAT":"VENTE",
-          prob:Math.min(72,55+Math.round(Math.abs(o.pct)*5)), pct:o.pct
+          prob:Math.min(72,55+Math.round(Math.abs(o.pct)*5)), pct:o.pct,
+          price:o.price, target:o.target, stop:o.stop, entry:o.price,
+          convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0
         })));
         inner.style.animation="none";
         inner.innerHTML=mhtml+mhtml;
@@ -2323,10 +2329,12 @@ async function loadOppBand(force=false){
     }
     
     oppBandLastLoad=now;
-    // Update smart bar with top signals
+    // Update smart bar with top signals — pass ALL fields for exit strategy
     updateSmartBar(signals.slice(0,8).map(o=>({
       symbol:o.symbol, name:o.name, direction:o.direction,
-      prob:o.prob, pct:o.pct
+      prob:o.prob, pct:o.pct, price:o.price,
+      target:o.target, stop:o.stop, entry:o.entry,
+      convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0
     })));
     const html=signals.map(o=>`
       <div class="opp-item" onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" title="Cliquer pour voir le graphique">
@@ -2359,25 +2367,85 @@ function setApiPill(id, status, label){ /* no-op — using smartBar instead */ }
 function updateSmartBar(signals){
   const bar = document.getElementById("smartBar");
   if(!bar) return;
+  bar.innerHTML = "";
   if(!signals || !signals.length){
-    bar.innerHTML = '<span style="font-size:9px;color:#6b7a99;font-weight:700">⏳ Chargement des signaux…</span>';
-    return;
+    const sp = document.createElement("span");
+    sp.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
+    sp.textContent = "Calcul en cours...";
+    bar.appendChild(sp); return;
   }
-  // Show top signals as compact pills
-  bar.innerHTML = signals.slice(0,8).map(s=>{
-    const dc = s.direction==="ACHAT"?"#00ff88":s.direction==="VENTE"?"#ff3b6b":"#fff200";
-    const bg = s.direction==="ACHAT"?"rgba(0,255,136,.1)":s.direction==="VENTE"?"rgba(255,59,107,.1)":"rgba(255,242,0,.08)";
-    const border = s.direction==="ACHAT"?"rgba(0,255,136,.4)":s.direction==="VENTE"?"rgba(255,59,107,.4)":"rgba(255,242,0,.3)";
-    const pctStr = s.pct >= 0 ? "+"+s.pct.toFixed(1)+"%" : s.pct.toFixed(1)+"%";
-    return `<button onclick="document.getElementById('chartSymbolInput').value='${esc(s.symbol)}';showScreen('charts');loadChart()"
-      style="display:inline-flex;align-items:center;gap:4px;background:${bg};border:1px solid ${border};border-radius:12px;padding:3px 8px;cursor:pointer;transition:.14s"
-      title="Voir le graphique de ${esc(s.name)}">
-      <span style="font-size:9px;font-weight:700;color:#a8b8d8">${esc(s.name)}</span>
-      <span style="font-size:9px;font-weight:800;color:${dc};font-family:'JetBrains Mono',monospace">${esc(s.direction)}</span>
-      <span style="font-size:8.5px;color:${dc};font-family:'JetBrains Mono',monospace">${s.prob}%</span>
-      <span style="font-size:8px;color:#6b7a99;font-family:'JetBrains Mono',monospace">${pctStr}</span>
-    </button>`;
-  }).join("") + '<span style="font-size:8.5px;color:#6b7a99;align-self:center;margin-left:3px">← Clique pour graphique</span>';
+  const actionable = signals.filter(function(s){ return s.direction !== "ATTENTE"; }).slice(0,8);
+  if(!actionable.length){
+    const sp = document.createElement("span");
+    sp.style.cssText = "font-size:9px;color:#6b7a99;width:100%;text-align:center";
+    sp.textContent = "Marches calmes";
+    bar.appendChild(sp); return;
+  }
+  actionable.forEach(function(s){
+    const isAchat = s.direction === "ACHAT";
+    const dc  = isAchat ? "#00ff88" : "#ff3b6b";
+    const bg  = isAchat ? "rgba(0,255,136,.08)" : "rgba(255,59,107,.08)";
+    const brd = isAchat ? "rgba(0,255,136,.4)"  : "rgba(255,59,107,.4)";
+    const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
+    const horizon = s.convLabel === "Forte" ? "Intraday" : s.convLabel === "Modérée" ? "1-3 jours" : "Court terme";
+    const targetStr = s.target && s.target > 0 ? (s.target < 10 ? s.target.toFixed(4) : s.target.toFixed(2)) : "—";
+    const stopStr   = s.stop   && s.stop   > 0 ? (s.stop   < 10 ? s.stop.toFixed(4)   : s.stop.toFixed(2))   : "—";
+
+    const btn = document.createElement("button");
+    btn.dataset.sym = s.symbol;
+    btn.title = s.direction + " sur " + s.name + " — cliquer pour graphique";
+    btn.style.cssText = "flex:1;min-width:calc(25% - 5px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"
+      + "background:" + bg + ";border:1px solid " + brd + ";border-radius:14px;"
+      + "padding:10px 6px;cursor:pointer;font-family:inherit;"
+      + "box-shadow:0 0 10px " + dc + "20;transition:.15s";
+
+    // Direction badge
+    const dir = document.createElement("span");
+    dir.style.cssText = "font-size:10px;font-weight:800;color:" + dc + ";letter-spacing:.6px;line-height:1";
+    dir.textContent = isAchat ? "▲ ACHETER" : "▼ VENDRE";
+
+    // Name
+    const name = document.createElement("span");
+    name.style.cssText = "font-size:11.5px;font-weight:700;color:#e8eefc;line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    name.textContent = s.name;
+
+    // Prob + variation
+    const meta = document.createElement("span");
+    meta.style.cssText = "font-size:9.5px;color:" + dc + ";font-family:monospace;font-weight:600";
+    meta.textContent = s.prob + "% · " + pct;
+
+    // Exit info — separator
+    const sep = document.createElement("div");
+    sep.style.cssText = "width:80%;height:1px;background:rgba(255,255,255,.08);margin:2px 0";
+
+    // Target exit price
+    const exitEl = document.createElement("span");
+    exitEl.style.cssText = "font-size:8.5px;color:#6b7a99;text-align:center;line-height:1.3";
+    exitEl.innerHTML = "<span style='color:#00ff88'>✓ " + targetStr + "</span>"
+      + " <span style='color:#6b7a99'>/</span>"
+      + " <span style='color:#ff3b6b'>✗ " + stopStr + "</span>";
+
+    // Horizon
+    const hor = document.createElement("span");
+    hor.style.cssText = "font-size:8px;color:#6b7a99;font-style:italic";
+    hor.textContent = "⏱ " + horizon;
+
+    btn.appendChild(dir);
+    btn.appendChild(name);
+    btn.appendChild(meta);
+    btn.appendChild(sep);
+    btn.appendChild(exitEl);
+    btn.appendChild(hor);
+
+    btn.onclick = function(){
+      var sym = this.dataset.sym;
+      var inp = document.getElementById("chartSymbolInput");
+      if(inp) inp.value = sym;
+      showScreen("charts");
+      loadChart();
+    };
+    bar.appendChild(btn);
+  });
 }
 
 async function health(){
@@ -2618,7 +2686,7 @@ async function sendChatHome(){
   const msg=input.value.trim(); if(!msg) return;
   input.value="";
   showScreen("assistant");
-  await new Promise(r=>setTimeout(r,100));
+  await new Promise(r=>setTimeout(r,150));
   document.getElementById("chatInput").value=msg;
   sendChat();
 }
@@ -3442,6 +3510,9 @@ function init(){
   // Clocks
   setInterval(renderClocks, 1000);
   renderClocks();
+  // Index prices under clocks — load after 3s, refresh every 5 min
+  setTimeout(loadClockIndexes, 3000);
+  setInterval(loadClockIndexes, 300000);
   // Opportunities band — load after 2s to not block UI
   setTimeout(loadOppBand, 2000);
 }
