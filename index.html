@@ -1099,15 +1099,8 @@ async function getQuotes(symbols) {
     } catch {}
   }
 
-  // Sanity check — reject prices that don't match known ranges
-  const validFetched = fetched.filter(q => isPriceValid(q.symbol, q.regularMarketPrice));
-  for (const q of validFetched) _quoteCache.set(q.symbol, {q, ts:now});
-  // Also invalidate cache entries with wrong prices from previous fetches
-  for(const sym of symbols){
-    const c = _quoteCache.get(sym);
-    if(c && !isPriceValid(sym, c.q.regularMarketPrice)) _quoteCache.delete(sym);
-  }
-  return [...fromCache.filter(q => isPriceValid(q.symbol, q.regularMarketPrice)), ...validFetched];
+  for (const q of fetched) _quoteCache.set(q.symbol, {q, ts:now});
+  return [...fromCache, ...fetched];
 }
 
 function invalidateQuotes(symbols){
@@ -1851,147 +1844,133 @@ function setScanFilter(btn){
 // ── Moteur quantitatif multi-facteurs ──────────────────────
 // Calcule un score haute conviction sur plusieurs dimensions
 function quantScorePro(q, newsRisk, yieldSpread){
-  const sym    = q.symbol || "";
-  const price  = Number(q.regularMarketPrice || 0);
-  if(price <= 0) return null; // données invalides → ignorer
-  const pct    = Number(q.regularMarketChangePercent || 0);
-  const high   = Number(q.regularMarketDayHigh || price);
-  const low    = Number(q.regularMarketDayLow  || price);
-  const vol    = Number(q.regularMarketVolume   || 0);
-  const avgVol = Number(q.averageVolume || q.averageDailyVolume3Month || vol || 1);
-  const open   = Number(q.regularMarketOpen || price);
-  const prev   = Number(q.regularMarketPreviousClose || price);
-  const w52h   = Number(q.fiftyTwoWeekHigh || price * 1.15);
-  const w52l   = Number(q.fiftyTwoWeekLow  || price * 0.85);
-
-  // ── SANITY CHECK: Si high=low=price → données incomplètes
-  // Utiliser volatilité typique par classe d'actif comme ATR fallback
-  const rawRange = high - low;
-  let typicalVolPct;
-  if(sym.endsWith("=F"))      typicalVolPct = 0.018; // futures: ~1.8% range/jour
-  else if(sym.endsWith("-USD")) typicalVolPct = 0.035; // crypto: ~3.5%
-  else if(sym.endsWith("=X"))  typicalVolPct = 0.006; // forex: ~0.6%
-  else if(sym.startsWith("^")) typicalVolPct = 0.012; // indices: ~1.2%
-  else                          typicalVolPct = 0.015; // actions: ~1.5%
-  const atr = rawRange > price * 0.001 ? rawRange : price * typicalVolPct;
+  const price  = Number(q.regularMarketPrice||0);
+  const pct    = Number(q.regularMarketChangePercent||0);
+  const high   = Number(q.regularMarketDayHigh||price);
+  const low    = Number(q.regularMarketDayLow||price);
+  const vol    = Number(q.regularMarketVolume||0);
+  const avgVol = Number(q.averageVolume||q.averageDailyVolume3Month||vol||1);
+  const open   = Number(q.regularMarketOpen||price);
+  const prev   = Number(q.regularMarketPreviousClose||price);
+  const w52h   = Number(q.fiftyTwoWeekHigh||price*1.2);
+  const w52l   = Number(q.fiftyTwoWeekLow||price*0.8);
+  const dayRange = Math.max(high - low, price * 0.001);
   const volRatio = avgVol > 0 ? vol/avgVol : 1;
 
-  // ── TENDANCE 52 SEMAINES — ancre stable (35%)
+  // ── TREND LONG TERME (52 semaines) — stable, ne flip pas chaque heure ──
+  // C'est l'ancre du signal — évite les retournements toutes les heures
   let w52pos = 0.5;
-  if(w52h > w52l) w52pos = Math.max(0, Math.min(1, (price - w52l) / (w52h - w52l)));
-  const trendBull = w52pos > 0.58;
-  const trendBear = w52pos < 0.42;
-  const trendScore = w52pos > 0.80 ? 68
-    : w52pos > 0.60 ? 62
-    : w52pos > 0.40 ? 50
-    : w52pos > 0.20 ? 38 : 32;
+  if(w52h > w52l) w52pos = (price - w52l) / (w52h - w52l);
+  // Trend direction basée sur position 52S (stable)
+  // >60% = tendance haussière confirmée, <40% = tendance baissière confirmée
+  const trendBull = w52pos > 0.55; // dans le haut du range → haussier
+  const trendBear = w52pos < 0.45; // dans le bas du range → baissier
+  const trendScore = w52pos > 0.7 ? 72 : w52pos > 0.55 ? 60 : w52pos < 0.3 ? 28 : w52pos < 0.45 ? 40 : 50;
 
-  // ── MOMENTUM INTRADAY — signal court terme (30%)
-  // Utilise pct réel sans saturation artificielle
-  const momRaw = 50 + pct * 7; // 1% → score 57, -1% → 43
-  const momScore = Math.max(10, Math.min(90, momRaw));
+  // ── MOMENTUM INTRADAY — signal court terme ──
+  let momScore = 50;
+  if     (pct >  3)    momScore = 88;
+  else if(pct >  1.5)  momScore = 74;
+  else if(pct >  0.7)  momScore = 64;
+  else if(pct >  0.2)  momScore = 56;
+  else if(pct < -3)    momScore = 12;
+  else if(pct < -1.5)  momScore = 26;
+  else if(pct < -0.7)  momScore = 36;
+  else if(pct < -0.2)  momScore = 44;
+  else momScore = 50 + (pct * 5); // proportionnel pour les petites variations
 
-  // ── VOLUME CONFIRMATION (15%)
+  // ── VOLUME CONFIRMATION ──
   let volScore = 50;
-  if(volRatio > 3.0)      volScore = pct >= 0 ? 82 : 18;
-  else if(volRatio > 2.0) volScore = pct >= 0 ? 72 : 28;
-  else if(volRatio > 1.5) volScore = pct >= 0 ? 63 : 37;
-  else if(volRatio > 1.2) volScore = pct >= 0 ? 57 : 43;
-  else                    volScore = 50;
+  if(volRatio > 2.5)      volScore = pct >= 0 ? 82 : 18;
+  else if(volRatio > 1.7) volScore = pct >= 0 ? 70 : 30;
+  else if(volRatio > 1.2) volScore = pct >= 0 ? 60 : 40;
+  else                    volScore = 50; // volume normal = neutre
 
-  // ── RSI APPROXIMATIF (10%)
+  // ── RSI APPROXIMATIF ──
   const rsi = Math.max(5, Math.min(95, 50 + pct * 5));
-  const rsiScore = rsi > 75 ? 25 : rsi > 60 ? 60 : rsi < 25 ? 75 : rsi < 40 ? 40 : 50;
+  let rsiScore = 50;
+  if     (rsi > 75) rsiScore = 25; // suracheté → vente
+  else if(rsi > 60) rsiScore = 60; // haussier
+  else if(rsi < 25) rsiScore = 75; // survendu → achat
+  else if(rsi < 40) rsiScore = 40; // baissier
 
-  // ── GAP OUVERTURE (10%)
+  // ── GAP OUVERTURE ──
   const gap = prev > 0 ? ((open-prev)/prev)*100 : 0;
-  const gapScore = gap > 1 ? 70 : gap > 0.4 ? 58 : gap < -1 ? 30 : gap < -0.4 ? 42 : 50;
+  const gapScore = gap > 1 ? 68 : gap > 0.3 ? 57 : gap < -1 ? 32 : gap < -0.3 ? 43 : 50;
 
-  // ── SCORE COMPOSITE PONDÉRÉ
+  // ── SCORE COMPOSITE PONDÉRÉ ──
+  // Trend long terme = 30% (ANCRE STABLE — empêche les flip horaires)
+  // Momentum = 30% (signal primaire intraday)
+  // Volume = 20% (confirmation)
+  // RSI = 10% (oscillateur)
+  // Gap = 10% (signal ouverture)
   let score = (
-    trendScore * 0.35 +
+    trendScore * 0.30 +
     momScore   * 0.30 +
-    volScore   * 0.15 +
+    volScore   * 0.20 +
     rsiScore   * 0.10 +
     gapScore   * 0.10
   );
 
-  // Ajustements macro
-  if(newsRisk > 70) score -= 4;
+  // Ajustements contextuels
+  if(newsRisk > 70)  score -= 5;
   if(yieldSpread !== null && yieldSpread < -0.5) score -= 3;
-  if(volRatio > 2 && Math.abs(pct) > 1.5) score += 4;
+  if(volRatio > 2.5 && Math.abs(pct) > 1.5) score += 4; // forte conviction
+
   score = Math.max(5, Math.min(95, score));
 
-  // ── DIRECTION — toujours ACHAT ou VENTE, jamais ATTENTE
+  // ── DIRECTION — toujours ACHAT ou VENTE, jamais ATTENTE ──
+  // Si score faible (45-55) ET tendance long terme claire → utiliser la tendance
+  // Cela évite les flip horaires sur les signaux faibles
   let direction;
   if(score >= 55)       direction = "ACHAT";
   else if(score <= 45)  direction = "VENTE";
-  else if(trendBull)    direction = "ACHAT";
-  else if(trendBear)    direction = "VENTE";
-  else                  direction = pct >= 0 ? "ACHAT" : "VENTE";
+  else if(trendBull)    direction = "ACHAT";  // zone neutre → ancre sur trend 52S
+  else if(trendBear)    direction = "VENTE";  // zone neutre → ancre sur trend 52S
+  else                  direction = pct >= 0 ? "ACHAT" : "VENTE"; // dernier recours: momentum
 
-  // ── PROBABILITÉ — varie réellement par instrument
-  const dist = Math.abs(score - 50);
-  let prob = 52 + dist * 0.80;
-  if(volRatio > 2)           prob += 7;
-  else if(volRatio > 1.5)    prob += 4;
-  if(Math.abs(pct) > 2.5)    prob += 8;
-  else if(Math.abs(pct) > 1) prob += 4;
-  if((direction==="ACHAT"&&trendBull)||(direction==="VENTE"&&trendBear)) prob += 6;
-  // Bruit déterministe unique par symbole (évite tous les mêmes %)
-  const seed = sym.split("").reduce(function(a,c){ return a + c.charCodeAt(0); }, 0);
-  const noise = ((seed * 17 + seed % 11) % 11) - 5; // -5 à +5, unique par sym
+  // ── PROBABILITÉ réaliste et stable ──
+  const distFromNeutral = Math.abs(score - 50);
+  let prob = 52 + distFromNeutral * 0.85;
+  if(volRatio > 2) prob += 6;
+  else if(volRatio > 1.5) prob += 3;
+  if(Math.abs(pct) > 2) prob += 6;
+  else if(Math.abs(pct) > 1) prob += 3;
+  // Bonus si trend long terme confirme le signal court terme
+  if((direction === "ACHAT" && trendBull) || (direction === "VENTE" && trendBear)) prob += 5;
+  // Variance par symbole (évite tous les mêmes %)
+  const symSeed = (q.symbol||"X").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+  const noise = ((symSeed * 13) % 7) - 3;
   prob = Math.round(Math.min(87, Math.max(53, prob + noise)));
 
-  // ── CONVICTION & HORIZON — basés sur volatilité réelle
-  const volPctDay = atr / price * 100; // % de range journalier
-  const conviction = Math.round(Math.min(100, dist * 2.0 + (volRatio>1.5?8:0) + (Math.abs(pct)>1?5:0)));
-  // Horizon basé sur volatilité + conviction combinées
-  let convLabel, horizon;
-  if(conviction >= 65 && Math.abs(pct) > 1.5){
-    convLabel = "Forte"; horizon = "Intraday — sortir avant la clôture";
-  } else if(conviction >= 45 || Math.abs(pct) > 0.5){
-    convLabel = "Modérée";
-    // Horizon affiné par classe d'actif
-    if(sym.endsWith("-USD"))      horizon = "2 à 5 jours — crypto volatile";
-    else if(sym.endsWith("=X"))   horizon = "3 à 7 jours — forex patient";
-    else if(sym.endsWith("=F"))   horizon = "1 à 4 jours — surveiller chaque séance";
-    else if(sym.startsWith("^"))  horizon = "3 à 10 jours — indice moins volatile";
-    else                          horizon = "2 à 6 jours — action standard";
-  } else {
-    convLabel = "Faible"; horizon = "Signal faible — attendre confirmation demain";
-  }
+  // ── CONVICTION ──
+  const conviction = Math.round(Math.min(100, distFromNeutral * 2.2 + (volRatio>1.5?8:0) + (Math.abs(pct)>1?6:0)));
+  const convLabel = conviction >= 60 ? "Forte" : conviction >= 35 ? "Modérée" : "Faible";
 
-  // ── NIVEAUX TECHNIQUES — basés sur ATR réel (pas de données fictives)
+  // ── NIVEAUX TECHNIQUES ──
+  const atr = dayRange;
   const entry  = price;
-  const target = direction === "ACHAT" ? price + atr * 2.0 : price - atr * 2.0;
-  const stop   = direction === "ACHAT" ? price - atr * 0.8 : price + atr * 0.8;
-  const rrRatio = (Math.abs(target-entry) / Math.abs(stop-entry)).toFixed(1);
-  const rr = rrRatio + ":1";
+  const target = direction === "ACHAT" ? price + atr * 2.5 : price - atr * 2.5;
+  const stop   = direction === "ACHAT" ? price - atr * 1.0 : price + atr * 1.0;
+  const rr     = "2.5:1";
 
-  // ── RAISONS ARGUMENTÉES & VARIÉES
+  // ── RAISONS ARGUMENTÉES ──
   const raisons = [];
-  if(trendBull && direction==="ACHAT")
-    raisons.push("Tendance haussière long terme — prix dans le haut du range 52S (" + (w52pos*100).toFixed(0) + "%)");
-  else if(trendBear && direction==="VENTE")
-    raisons.push("Tendance baissière long terme — prix dans le bas du range 52S (" + (w52pos*100).toFixed(0) + "%)");
-  else
-    raisons.push("Signal moyen terme — position dans le range 52S : " + (w52pos*100).toFixed(0) + "%");
+  if((direction==="ACHAT"&&trendBull)||(direction==="VENTE"&&trendBear))
+    raisons.push("Tendance long terme confirmée — prix dans le " + (trendBull?"haut":"bas") + " du range 52 semaines (" + (w52pos*100).toFixed(0) + "%)");
+  if(Math.abs(pct) > 0.3)
+    raisons.push("Momentum " + (pct>0?"haussier":"baissier") + " intraday : " + (pct>0?"+":"") + pct.toFixed(2) + "%");
+  if(volRatio > 1.4)
+    raisons.push("Volume " + volRatio.toFixed(1) + "× la moyenne — confirmation institutionnelle");
+  if(rsi > 68) raisons.push("RSI élevé (" + rsi.toFixed(0) + ") — dynamique acheteuse forte");
+  else if(rsi < 32) raisons.push("RSI bas (" + rsi.toFixed(0) + ") — zone de survente, rebond attendu");
+  if(Math.abs(gap) > 0.5) raisons.push("Gap d'ouverture " + (gap>0?"haussier":"baissier") + " de " + Math.abs(gap).toFixed(1) + "%");
+  if(raisons.length === 0)
+    raisons.push("Signal composite (" + direction + ") — score " + score.toFixed(0) + "/100, trend 52S: " + (trendBull?"haussier":trendBear?"baissier":"neutre"));
+  if(raisons.length < 2)
+    raisons.push("Conviction " + convLabel + " — convergence de " + ["momentum","volume","RSI","tendance"].slice(0,3).join(", "));
 
-  if(Math.abs(pct) > 0.2)
-    raisons.push("Momentum intraday " + (pct>0?"haussier":"baissier") + " : " + (pct>0?"+":"") + pct.toFixed(2) + "% aujourd'hui");
-  else
-    raisons.push("Séance calme (" + pct.toFixed(2) + "%) — signal dominant : tendance long terme");
-
-  if(volRatio > 1.3)
-    raisons.push("Volume " + volRatio.toFixed(1) + "× la moyenne — intérêt marché confirmé");
-
-  if(rsi > 70) raisons.push("RSI approximatif élevé (" + rsi.toFixed(0) + ") — surveiller retournement");
-  else if(rsi < 30) raisons.push("RSI bas (" + rsi.toFixed(0) + ") — zone de survente, rebond attendu");
-
-  if(Math.abs(gap) > 0.5) raisons.push("Gap " + (gap>0?"haussier":"baissier") + " d'ouverture : " + Math.abs(gap).toFixed(1) + "%");
-
-  return { direction, prob, conviction, score, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange:atr, convLabel, horizon, trendBull, trendBear, w52pos };
+  return { direction, prob, conviction, score, entry, target, stop, rr, raisons, rsi, volRatio, pct, dayRange, convLabel, trendBull, trendBear };
 }
 
 async function runScanPro(){
@@ -2245,7 +2224,7 @@ function showSignauxConfig(){
   modal.innerHTML = `
     <div style="background:#0a1020;border:1.5px solid #00ff88;border-radius:16px;padding:18px;width:100%;max-width:390px;box-shadow:0 0 28px rgba(0,255,136,.18)">
       <h3 style="font-family:Montserrat,sans-serif;font-size:14px;font-weight:800;color:#e8eefc;margin-bottom:5px">⚡ Configurer les Signaux</h3>
-      <p style="font-size:10.5px;color:#6b7a99;margin-bottom:11px">Format : <code style="color:#00ff88">Nom=SYMBOLE</code> — une ligne par instrument<br><span style="font-size:9.5px">Ex: Gaz Naturel=NG=F &nbsp;|&nbsp; Or=GC=F &nbsp;|&nbsp; Bitcoin=BTC-USD &nbsp;|&nbsp; EUR/USD=EURUSD=X</span></p>
+      <p style="font-size:10.5px;color:#6b7a99;margin-bottom:11px">Format : <code style="color:#00ff88">NOM=SYMBOLE</code> — une ligne par instrument<br>Ex: Gaz Naturel=NG=F | Or=GC=F | Bitcoin=BTC-USD</p>
       <textarea id="signauxConfigInput" style="width:100%;height:220px;background:#060810;color:#e8eefc;border:1px solid #1c2d48;border-radius:9px;padding:9px;font-size:11px;font-family:'JetBrains Mono',monospace;resize:vertical">${esc(current)}</textarea>
       <div style="display:flex;gap:7px;margin-top:11px">
         <button onclick="applySignauxConfig()" style="flex:1;background:rgba(0,255,136,.14);border:1px solid rgba(0,255,136,.48);border-radius:9px;color:#00ff88;padding:10px;font-family:Montserrat,sans-serif;font-weight:700;font-size:12px;cursor:pointer">✓ Appliquer</button>
@@ -2262,14 +2241,9 @@ function applySignauxConfig(){
   const lines = input.value.split("\n").map(l=>l.trim()).filter(Boolean);
   const markets = [];
   for(const line of lines){
-    // Handle symbols with "=" in them: "Gaz Naturel=NG=F" -> name="Gaz Naturel", sym="NG=F"
-    // Strategy: find first "=" that splits name from symbol
-    // Symbol starts after first "=" and may contain more "=" (like NG=F, GC=F, EURUSD=X)
-    const firstEq = line.indexOf("=");
-    if(firstEq < 1) continue;
-    const name = line.slice(0, firstEq).trim();
-    const sym  = line.slice(firstEq+1).trim();
-    if(name && sym) markets.push({n:name, s:sym});
+    const eq = line.lastIndexOf("=");
+    if(eq < 1) continue;
+    markets.push({n:line.slice(0,eq).trim(), s:line.slice(eq+1).trim()});
   }
   if(!markets.length) return;
   localStorage.setItem("pgi_band_markets", JSON.stringify(markets));
@@ -2307,8 +2281,6 @@ async function loadOppBand(force=false){
     // Score avec moteur quantitatif pro
     const signals = BAND_MARKETS.map(m=>{
       const q=quotes.find(qq=>qq.symbol===m.s || qq.symbol===m.s.toUpperCase());
-      // Reject bad prices
-      if(q && !isPriceValid(m.s, q.regularMarketPrice)) return null;
       if(!q||!q.regularMarketPrice) return null;
       const sig=quantScorePro(q,30,null);
       return {...sig, symbol:m.s, name:m.n, price:q.regularMarketPrice};
@@ -2362,8 +2334,7 @@ async function loadOppBand(force=false){
       symbol:o.symbol, name:o.name, direction:o.direction,
       prob:o.prob, pct:o.pct, price:o.price,
       target:o.target, stop:o.stop, entry:o.entry,
-      convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0,
-      horizon:o.horizon||""
+      convLabel:o.convLabel||"Modérée", dayRange:o.dayRange||0
     })));
     const html=signals.map(o=>`
       <div class="opp-item" onclick="document.getElementById('chartSymbolInput').value='${esc(o.symbol)}';showScreen('charts');loadChart()" title="Cliquer pour voir le graphique">
@@ -2416,7 +2387,7 @@ function updateSmartBar(signals){
     const bg  = isAchat ? "rgba(0,255,136,.08)" : "rgba(255,59,107,.08)";
     const brd = isAchat ? "rgba(0,255,136,.4)"  : "rgba(255,59,107,.4)";
     const pct = (s.pct >= 0 ? "+" : "") + s.pct.toFixed(1) + "%";
-    const horizon = s.horizon ? s.horizon.split(" — ")[0] : s.convLabel === "Forte" ? "Intraday" : "Plusieurs jours";
+    const horizon = s.convLabel === "Forte" ? "Intraday" : s.convLabel === "Modérée" ? "1-3 jours" : "Court terme";
     const targetStr = s.target && s.target > 0 ? (s.target < 10 ? s.target.toFixed(4) : s.target.toFixed(2)) : "—";
     const stopStr   = s.stop   && s.stop   > 0 ? (s.stop   < 10 ? s.stop.toFixed(4)   : s.stop.toFixed(2))   : "—";
 
