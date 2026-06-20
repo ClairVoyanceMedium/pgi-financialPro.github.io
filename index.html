@@ -921,6 +921,7 @@ const SCREENS_MAP = {
   alertes:"alertesScreen", reglages:"reglagesScreen", terminal:"terminalScreen",
   charts:"chartsScreen", notes:"notesScreen"
 };
+let _chartLiveInterval = null;
 function showScreen(name){
   Object.values(SCREENS_MAP).forEach(id=>{const el=document.getElementById(id); if(el) el.classList.remove("active");});
   const target=document.getElementById(SCREENS_MAP[name]||SCREENS_MAP.home);
@@ -928,6 +929,12 @@ function showScreen(name){
   if(name==="alertes") loadAlertStatus();
   if(name==="terminal") loadTerminal();
   if(name==="charts" && chartCurrentSymbol) loadChart();
+  // v9.2: tant que l'utilisateur reste sur l'ecran Graphiques, le prix live
+  // se resynchronise toutes les 25s avec la meme source que les cartes.
+  if(_chartLiveInterval){ clearInterval(_chartLiveInterval); _chartLiveInterval=null; }
+  if(name==="charts"){
+    _chartLiveInterval=setInterval(()=>{ if(chartCurrentSymbol) syncChartWithLivePrice(chartCurrentSymbol,false); },25000);
+  }
 }
 // ═══════════════════════════════════════════════════════════
 // CLOCKS — Style salle des marchés années 80 B&W
@@ -2724,12 +2731,60 @@ async function loadChart(){
     chartCurrentData=d.candles;
     updateChartStats(d.stats, symbol);
     await renderChart(d.candles);
-    document.getElementById("chartSource").textContent="Source : "+esc(d.source)+" · "+esc(d.candles.length)+" bougies · "+new Date(d.ts||Date.now()).toLocaleTimeString("fr-FR");
+    // v9.2: synchronise le prix affiché avec getQuotes() — exactement la
+    // meme source que les cartes Smart Bar / COURS / Scanner / Marches —
+    // pour garantir que le prix vu ici est identique partout sur le site.
+    document.getElementById("chartLoadingMsg").textContent="Synchronisation prix live…";
+    await syncChartWithLivePrice(symbol, true);
+    document.getElementById("chartSource").textContent="Source : "+esc(d.source)+" · "+esc(d.candles.length)+" bougies · MAJ "+new Date().toLocaleTimeString("fr-FR");
   }catch(e){
     document.getElementById("chartPlaceholder").style.display="flex";
     document.getElementById("chartCanvas").style.display="none";
     document.getElementById("chartPlaceholder").innerHTML=`<span style='font-size:22px'>⚠️</span><span style='color:#ff3b6b;font-size:12px'>${esc(e.message)}</span>`;
   }finally{ document.getElementById("chartLoading").style.display="none"; }
+}
+
+// v9.2: prix live unifie — appelle getQuotes() (meme fonction que Smart Bar,
+// bande COURS, Scanner, Marches, Analyse) pour que le prix affiche sur le
+// graphique soit TOUJOURS identique a celui des cartes au meme instant.
+// Patche aussi la derniere bougie pour coherence visuelle.
+async function syncChartWithLivePrice(symbol, isInitial){
+  try{
+    const liveQuotes = await getQuotes([symbol]);
+    const lq = liveQuotes.find(q=>q.symbol===symbol) || liveQuotes[0];
+    if(!lq || !lq.regularMarketPrice) return;
+    const livePrice = Number(lq.regularMarketPrice);
+    const liveChangePct = Number(lq.regularMarketChangePercent||0);
+    const liveHigh = Number(lq.regularMarketDayHigh||livePrice);
+    const liveLow  = Number(lq.regularMarketDayLow||livePrice);
+    const liveOpen = Number(lq.regularMarketOpen||livePrice);
+
+    if(chartCurrentData.length){
+      const sorted = chartCurrentData.slice().sort((a,b)=>a.time-b.time);
+      const last = sorted[sorted.length-1];
+      last.close = livePrice;
+      last.high  = Math.max(last.high, livePrice, liveHigh);
+      last.low   = Math.min(last.low, livePrice, liveLow);
+      chartCurrentData = sorted;
+      if(chartSeries){
+        try{ chartSeries.update({time:last.time, open:last.open, high:last.high, low:last.low, close:last.close}); }catch{}
+      }
+    }
+
+    const pEl=document.getElementById("chartPriceMain");
+    if(pEl){ pEl.textContent=money(livePrice); pEl.className=liveChangePct>=0?"pos":"neg"; }
+    const cEl=document.getElementById("cs-change");
+    if(cEl){ const up=liveChangePct>=0; cEl.textContent=(up?"+":"")+liveChangePct.toFixed(2)+"%"; cEl.className="metric-v "+(up?"pos":"neg"); }
+    const setIf=(id,val)=>{const el=document.getElementById(id); if(el && val!=null) el.textContent=val;};
+    setIf("cs-high", money(liveHigh));
+    setIf("cs-low", money(liveLow));
+    setIf("cs-open", money(liveOpen));
+
+    if(!isInitial){
+      const srcEl=document.getElementById("chartSource");
+      if(srcEl) srcEl.textContent = srcEl.textContent.replace(/\s*·\s*MAJ.*$/,"") + " · MAJ "+new Date().toLocaleTimeString("fr-FR");
+    }
+  }catch(e){ console.warn("syncChartWithLivePrice:", e.message); }
 }
 
 function updateChartStats(s, symbol){
