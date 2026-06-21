@@ -1226,42 +1226,117 @@ function newsDirBadge(riskScore, title){
   return dirBadge(o.dir, o.prob);
 }
 // ══════════════════════════════════════════════════════════════
-// VOICE SYSTEM — Web Speech API
+// VOICE SYSTEM — Web Speech API (v9.3 — lecture clarifiée)
 // ══════════════════════════════════════════════════════════════
 let _voiceEnabled = localStorage.getItem("pgi_voice") === "1";
 let _voiceSpeaking = false;
+let _cachedVoice = null;
 
 function getBestVoice(){
+  if(!window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
-  const fr_male = voices.find(v=>v.lang.startsWith("fr")&&v.name.toLowerCase().includes("male"));
-  const fr = voices.find(v=>v.lang.startsWith("fr"));
-  const en_male = voices.filter(v=>v.lang.startsWith("en")).find(v=>
-    v.name.toLowerCase().match(/male|man|guy|david|james|richard|mark|daniel|george|thomas/)
+  if(!voices.length) return null;
+  const fr_male = voices.find(v=>v.lang.toLowerCase().startsWith("fr")&&/male|homme|thomas|paul|antoine/i.test(v.name));
+  const fr = voices.find(v=>v.lang.toLowerCase().startsWith("fr"));
+  const en_male = voices.filter(v=>v.lang.toLowerCase().startsWith("en")).find(v=>
+    /male|man|guy|david|james|richard|mark|daniel|george|thomas/i.test(v.name)
   );
-  const en = voices.find(v=>v.lang.startsWith("en"));
-  return fr_male || fr || en_male || en || voices[0] || null;
+  const en = voices.find(v=>v.lang.toLowerCase().startsWith("en"));
+  _cachedVoice = fr_male || fr || en_male || en || voices[0] || null;
+  return _cachedVoice;
+}
+
+// Acronymes financiers a epeler lettre par lettre — sinon le moteur vocal
+// tente de les prononcer comme un mot unique illisible ("MACD" -> charabia).
+// ACHAT/VENTE/ATTENTE ne sont volontairement PAS dans cette liste : ce sont
+// de vrais mots francais a lire normalement, pas des acronymes.
+const SPEECH_ACRONYMS = ["RSI","MACD","VWAP","ATR","EMA","SMA","ADX","CCI","OBV","EPS","PMI","ISM","PIB","KPI","ETF","ATH","FMP"];
+
+function spellOutAcronyms(text){
+  let out = text;
+  for(const ac of SPEECH_ACRONYMS){
+    out = out.replace(new RegExp("\\b"+ac+"(\\d*)\\b","g"), (m,digits)=> ac.split("").join(" ") + (digits?" "+digits:""));
+  }
+  return out;
+}
+
+// Normalise le texte pour que la synthese vocale lise correctement chaque
+// mot et chaque chiffre : nombres, pourcentages, ratios, paires de devises,
+// acronymes techniques. Adapte les mots de liaison ("virgule"/"point",
+// "pour cent"/"percent") a la langue REELLEMENT utilisee par la voix
+// selectionnee, pour eviter qu'une voix anglaise essaie de prononcer des
+// mots francais (ou l'inverse) — c'est ce qui rendait la lecture incomprehensible.
+function cleanTextForSpeech(text, isFrench){
+  let t = String(text||"");
+
+  // Markdown / HTML / liens
+  t = t.replace(/\*\*(.+?)\*\*/g,"$1").replace(/\*(.+?)\*/g,"$1");
+  t = t.replace(/<[^>]+>/g," ");
+  t = t.replace(/https?:\/\/\S+/g," ");
+  // Emojis et pictogrammes (large plage Unicode) + puces de mise en forme
+  t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu," ");
+  t = t.replace(/[►▲▼☞✓✗✦•·#]/g," ");
+
+  // Acronymes techniques -> epeles lettre par lettre
+  t = spellOutAcronyms(t);
+  t = t.replace(/\b(?:ratio\s+)?R\s*\/\s*R\b/gi, isFrench ? "ratio risque rendement" : "risk reward ratio");
+  t = t.replace(/\bS\s*&\s*P\b/gi, "S et P");
+  t = t.replace(/&/g, isFrench ? " et " : " and ");
+
+  // Plages numeriques "1-3 jours" -> "1 a 3 jours" (avant traitement des signes,
+  // pour ne pas confondre un tiret de plage avec un signe moins)
+  t = t.replace(/\b(\d+)\s*-\s*(\d+)\b/g, "$1 "+(isFrench?"à":"to")+" $2");
+
+  // Ratios "2.5:1" -> "2.5 pour 1"
+  t = t.replace(/(\d)\s*:\s*(\d)/g, "$1 "+(isFrench?"pour":"to")+" $2");
+
+  // Paires de devises "EUR/USD" -> "EUR contre USD"
+  t = t.replace(/\b([A-Z]{3})\s*\/\s*([A-Z]{3})\b/g, isFrench ? "$1 contre $2" : "$1 versus $2");
+  // Slash residuel -> espace
+  t = t.replace(/\//g," ");
+
+  // Signe pourcentage
+  t = t.replace(/%/g, isFrench ? " pour cent" : " percent");
+
+  // Signe +/- explicite devant un nombre (variation) -> mot
+  t = t.replace(/(^|[\s(])([+\-])\s*(\d)/g, (m,pre,sign,digit)=>
+    pre + (sign==="+" ? (isFrench?"plus ":"plus ") : (isFrench?"moins ":"minus ")) + digit
+  );
+
+  // Separateur decimal "." entre chiffres -> mot (le point seul perturbe
+  // beaucoup de moteurs vocaux mobiles, surtout en francais)
+  t = t.replace(/(\d)\.(\d)/g, "$1 "+(isFrench?"virgule":"point")+" $2");
+
+  // Devises
+  t = t.replace(/€/g," euros");
+  t = t.replace(/\$/g," dollars");
+
+  // Nettoyage final
+  t = t.replace(/\s+/g," ").trim();
+  return t.slice(0,1500);
 }
 
 function speak(text, force=false){
   if(!_voiceEnabled && !force) return;
   if(!window.speechSynthesis) return;
-  const clean = text
-    .replace(/\*\*(.+?)\*\*/g,"$1")
-    .replace(/\*(.+?)\*/g,"$1")
-    .replace(/<[^>]+>/g," ")
-    .replace(/[#►→←↑↓✅❌⚠️🔴🟢🟡⚡🎯📈📊]/g,"")
-    .replace(/https?:\/\/\S+/g,"")
-    .replace(/\s+/g," ")
-    .trim()
-    .slice(0,1200);
+  const voice = _cachedVoice || getBestVoice();
+  const isFrench = !voice || voice.lang.toLowerCase().startsWith("fr");
+  const clean = cleanTextForSpeech(text, isFrench);
+  if(!clean) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(clean);
-  const voice = getBestVoice();
-  if(voice) utt.voice = voice;
-  utt.lang = "fr-FR";
-  utt.rate  = 0.9;
-  utt.pitch = 0.82;
-  utt.volume= 0.95;
+  // v9.3 FIX: utt.lang DOIT correspondre a la langue de la voix reellement
+  // selectionnee. Forcer "fr-FR" alors que seule une voix anglaise est
+  // disponible faisait prononcer du francais avec un modele phonetique
+  // anglais (ou l'inverse) — resultat incomprehensible.
+  if(voice){ utt.voice = voice; utt.lang = voice.lang; }
+  else { utt.lang = "fr-FR"; }
+  // v9.3 FIX: pitch naturel (1.0) — la deformation de hauteur (0.82)
+  // degradait fortement l'intelligibilite sur de nombreux moteurs vocaux
+  // mobiles. Debit legerement ralenti pour la clarte.
+  utt.rate  = 0.95;
+  utt.pitch = 1.0;
+  utt.volume= 1.0;
   _voiceSpeaking = true;
   utt.onend  = ()=>{ _voiceSpeaking=false; };
   utt.onerror= ()=>{ _voiceSpeaking=false; };
@@ -1279,7 +1354,7 @@ function toggleVoice(){
     btn.style.boxShadow = _voiceEnabled ? "0 0 10px rgba(0,255,136,.3)" : "none";
   });
   if(_voiceEnabled){
-    speak("Option vocale activée. Je vais lire mes réponses à voix haute.", true);
+    speak("Option vocale activée. Je vais maintenant lire mes réponses à voix haute.", true);
   }
 }
 
@@ -1724,10 +1799,35 @@ const COURS_SYMBOLS = [
 
 let _coursLastLoad = 0;
 
+// v9.3: repare automatiquement les configs personnalisees corrompues par
+// l'ancien bug de parsing (lastIndexOf au lieu de indexOf). Si le NOM
+// contient un "=" (jamais legitime pour un nom d'instrument), on reconstruit
+// la ligne d'origine (n+"="+s reconstitue exactement la ligne tapee par
+// l'utilisateur) puis on la re-decoupe correctement sur le PREMIER "=",
+// et on sauvegarde le resultat repare pour que ca ne se reproduise plus.
+function fixCorruptedMarkets(markets, storageKey){
+  if(!Array.isArray(markets)) return markets;
+  let fixed = false;
+  const repaired = markets.map(m=>{
+    if(m && typeof m.n === "string" && m.n.includes("=")){
+      const original = m.n + "=" + m.s;
+      const idx = original.indexOf("=");
+      fixed = true;
+      return { n: original.slice(0,idx).trim(), s: original.slice(idx+1).trim() };
+    }
+    return m;
+  });
+  if(fixed && storageKey){
+    try{ localStorage.setItem(storageKey, JSON.stringify(repaired)); }catch{}
+    console.info("PGI: configuration "+storageKey+" réparée automatiquement (bug de parsing corrigé)");
+  }
+  return repaired;
+}
+
 function getCoursSymbols(){
   try{
     const saved = localStorage.getItem("pgi_cours_symbols");
-    if(saved) return JSON.parse(saved);
+    if(saved) return fixCorruptedMarkets(JSON.parse(saved), "pgi_cours_symbols");
   }catch{}
   return COURS_SYMBOLS;
 }
@@ -1757,7 +1857,12 @@ function applyCoursConfig(){
   const lines = input.value.split("\n").map(l=>l.trim()).filter(Boolean);
   const markets = [];
   for(const line of lines){
-    const eq = line.lastIndexOf("=");
+    // v9.3 FIX: indexOf (premier "=") et non lastIndexOf — les symboles
+    // contiennent eux-memes un "=" (NG=F, GC=F, EURUSD=X...), donc couper
+    // sur le DERNIER "=" coupait le symbole en deux et donnait un mauvais
+    // ticker (ex: "Gaz Naturel=NG=F" -> nom="Gaz Naturel=NG", symbole="F"
+    // qui est en realite l'action Ford !). Le nom n'a lui jamais de "=".
+    const eq = line.indexOf("=");
     if(eq < 1) continue;
     markets.push({n:line.slice(0,eq).trim(), s:line.slice(eq+1).trim()});
   }
@@ -1854,7 +1959,7 @@ const BAND_DEFAULT_SYMBOLS = [
 function getBandMarkets(){
   try{
     const saved = localStorage.getItem("pgi_band_markets");
-    if(saved) return JSON.parse(saved);
+    if(saved) return fixCorruptedMarkets(JSON.parse(saved), "pgi_band_markets");
   }catch{}
   return BAND_DEFAULT_SYMBOLS;
 }
@@ -1884,7 +1989,8 @@ function applySignauxConfig(){
   const lines = input.value.split("\n").map(l=>l.trim()).filter(Boolean);
   const markets = [];
   for(const line of lines){
-    const eq = line.lastIndexOf("=");
+    // v9.3 FIX: indexOf (premier "=") et non lastIndexOf — voir applyCoursConfig()
+    const eq = line.indexOf("=");
     if(eq < 1) continue;
     markets.push({n:line.slice(0,eq).trim(), s:line.slice(eq+1).trim()});
   }
