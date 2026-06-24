@@ -70,9 +70,11 @@ a{color:#00d4ff;text-decoration:none}
 .opp-band-wrap{margin:8px 10px 6px;background:rgba(4,8,18,.97);border:2px solid #00ff88;border-radius:10px;overflow:hidden;height:40px;display:flex;align-items:center;position:relative;box-shadow:0 0 8px rgba(0,255,136,.35),0 0 22px rgba(0,255,136,.15),0 0 40px rgba(0,255,136,.07);animation:oppNeon 3s ease-in-out infinite}
 @keyframes oppNeon{0%,100%{box-shadow:0 0 8px rgba(0,255,136,.35),0 0 22px rgba(0,255,136,.15),0 0 40px rgba(0,255,136,.07)}50%{box-shadow:0 0 12px rgba(0,255,136,.6),0 0 32px rgba(0,255,136,.28),0 0 60px rgba(0,255,136,.12)}}
 .opp-band-label{flex-shrink:0;padding:0 12px;font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#00ff88;border-right:1.5px solid rgba(0,255,136,.3);height:100%;display:flex;align-items:center;white-space:nowrap;background:rgba(0,255,136,.08);text-shadow:0 0 8px rgba(0,255,136,.7)}
-.opp-band-track{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}
-.opp-band-inner{display:flex;gap:0;white-space:nowrap;animation:oppScroll 35s linear infinite;will-change:transform}
-.opp-band-inner:hover{animation-play-state:paused}
+.opp-band-pause{flex-shrink:0;background:rgba(0,255,136,.08);border:none;border-right:1.5px solid rgba(0,255,136,.3);color:#00ff88;font-size:12px;cursor:pointer;height:100%;padding:0 11px;display:flex;align-items:center;justify-content:center}
+.opp-band-pause:hover{background:rgba(0,255,136,.16)}
+.opp-band-track{flex:1;overflow-x:auto;overflow-y:hidden;height:100%;display:flex;align-items:center;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.opp-band-track::-webkit-scrollbar{display:none}
+.opp-band-inner{display:flex;gap:0;white-space:nowrap;will-change:transform}
 .opp-item{display:inline-flex;align-items:center;gap:7px;padding:0 16px;border-right:1px solid #1c2d48;height:38px;font-size:11px;cursor:default}
 .opp-item-name{font-weight:700;color:#a8b8d8;letter-spacing:.3px}
 .opp-item-dir{font-weight:800;font-size:10px;padding:2px 7px;border-radius:5px;letter-spacing:.5px}
@@ -243,10 +245,11 @@ input[readonly]{color:#6b7a99;cursor:default;background:rgba(4,7,16,.7)}
     <div class="clocks-row-bottom" id="clocksRow3"></div>
   </div>
 
-  <!-- COURS BAND (v9.1 — Forex + Matières premières, independent from Smart Bar) -->
+  <!-- COURS BAND (v9.4 — pause + defilement manuel gauche/droite) -->
   <div class="opp-band-wrap" id="oppBandWrap">
     <div class="opp-band-label" style="cursor:pointer" onclick="showCoursConfig()" title="Configurer les cours affichés">📊 COURS ⚙</div>
-    <div class="opp-band-track">
+    <button class="opp-band-pause" id="coursPauseBtn" onclick="toggleCoursScroll()" title="Pause / Lecture du défilement">⏸</button>
+    <div class="opp-band-track" id="oppBandTrack">
       <div class="opp-band-inner" id="oppBandInner">
         <div class="opp-loading" id="oppBandLoading">Chargement des cours…</div>
       </div>
@@ -1269,12 +1272,13 @@ function spellOutAcronyms(text){
 function cleanTextForSpeech(text, isFrench){
   let t = String(text||"");
 
-  // Markdown / HTML / liens
+  // Markdown / HTML / liens / asterisques (jamais lus a voix haute)
   t = t.replace(/\*\*(.+?)\*\*/g,"$1").replace(/\*(.+?)\*/g,"$1");
+  t = t.replace(/\*/g," ");
   t = t.replace(/<[^>]+>/g," ");
   t = t.replace(/https?:\/\/\S+/g," ");
   // Emojis et pictogrammes (large plage Unicode) + puces de mise en forme
-  t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu," ");
+  t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}]/gu," ");
   t = t.replace(/[►▲▼☞✓✗✦•·#]/g," ");
 
   // Acronymes techniques -> epeles lettre par lettre
@@ -1300,7 +1304,7 @@ function cleanTextForSpeech(text, isFrench){
 
   // Signe +/- explicite devant un nombre (variation) -> mot
   t = t.replace(/(^|[\s(])([+\-])\s*(\d)/g, (m,pre,sign,digit)=>
-    pre + (sign==="+" ? (isFrench?"plus ":"plus ") : (isFrench?"moins ":"minus ")) + digit
+    pre + (sign==="+" ? "plus " : (isFrench?"moins ":"minus ")) + digit
   );
 
   // Separateur decimal "." entre chiffres -> mot (le point seul perturbe
@@ -1311,9 +1315,56 @@ function cleanTextForSpeech(text, isFrench){
   t = t.replace(/€/g," euros");
   t = t.replace(/\$/g," dollars");
 
-  // Nettoyage final
+  // Nettoyage final (la ponctuation restante est retiree juste apres le
+  // decoupage en phrases, dans splitIntoSpeechChunks)
   t = t.replace(/\s+/g," ").trim();
-  return t.slice(0,1500);
+  return t;
+}
+
+// v9.4: decoupe le texte deja nettoye en phrases courtes. Ceci sert DEUX
+// objectifs : 1) contourner le bug connu des navigateurs (notamment sur
+// mobile/Android) qui interrompent une lecture trop longue avant la fin —
+// chaque phrase devient une utterance courte mise en file d'attente plutot
+// qu'une seule lecture geante qui se coupe ; 2) permettre de retirer la
+// ponctuation residuelle (. , ; : ! ? — etc.) sans perdre les pauses
+// naturelles entre phrases, puisque chaque phrase est desormais sa propre
+// utterance — la ponctuation elle-meme n'a donc plus besoin d'etre lue.
+function splitIntoSpeechChunks(text, maxLen=200){
+  const withMarker = text.replace(/([.!?])\s+/g, "$1\u0001");
+  const rough = withMarker.split("\u0001").map(s=>s.trim()).filter(Boolean);
+  const chunks = [];
+  let current = "";
+  for(const s of rough){
+    if((current+" "+s).trim().length > maxLen && current){
+      chunks.push(current.trim());
+      current = s;
+    } else {
+      current = (current ? current+" " : "") + s;
+    }
+  }
+  if(current.trim()) chunks.push(current.trim());
+
+  // Securite : si une "phrase" depasse encore largement la limite (texte
+  // sans ponctuation), on la decoupe aussi par mots.
+  const safeChunks = [];
+  for(const c of chunks){
+    if(c.length <= maxLen*1.6){ safeChunks.push(c); continue; }
+    const words = c.split(" ");
+    let buf = "";
+    for(const w of words){
+      if((buf+" "+w).trim().length > maxLen && buf){ safeChunks.push(buf.trim()); buf = w; }
+      else buf = (buf?buf+" ":"") + w;
+    }
+    if(buf.trim()) safeChunks.push(buf.trim());
+  }
+
+  // Ponctuation residuelle retiree maintenant que les phrases sont decoupees
+  // — elle ne sera donc jamais prononcee a voix haute.
+  return safeChunks
+    .map(c=>c.replace(/[.,;:!?—–""''«»()\[\]{}]/g," ")
+              .replace(/(^|\s)-+(\s|$)/g,"$1$2")
+              .replace(/\s+/g," ").trim())
+    .filter(Boolean);
 }
 
 function speak(text, force=false){
@@ -1323,24 +1374,26 @@ function speak(text, force=false){
   const isFrench = !voice || voice.lang.toLowerCase().startsWith("fr");
   const clean = cleanTextForSpeech(text, isFrench);
   if(!clean) return;
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(clean);
-  // v9.3 FIX: utt.lang DOIT correspondre a la langue de la voix reellement
-  // selectionnee. Forcer "fr-FR" alors que seule une voix anglaise est
-  // disponible faisait prononcer du francais avec un modele phonetique
-  // anglais (ou l'inverse) — resultat incomprehensible.
-  if(voice){ utt.voice = voice; utt.lang = voice.lang; }
-  else { utt.lang = "fr-FR"; }
-  // v9.3 FIX: pitch naturel (1.0) — la deformation de hauteur (0.82)
-  // degradait fortement l'intelligibilite sur de nombreux moteurs vocaux
-  // mobiles. Debit legerement ralenti pour la clarte.
-  utt.rate  = 0.95;
-  utt.pitch = 1.0;
-  utt.volume= 1.0;
-  _voiceSpeaking = true;
-  utt.onend  = ()=>{ _voiceSpeaking=false; };
-  utt.onerror= ()=>{ _voiceSpeaking=false; };
-  window.speechSynthesis.speak(utt);
+  const chunks = splitIntoSpeechChunks(clean);
+  if(!chunks.length) return;
+  // v9.4 FIX: on n'annule JAMAIS la parole en cours ici — chaque nouvelle
+  // reponse est simplement ajoutee a la file d'attente du navigateur.
+  // Ainsi rien de deja lu n'est jamais repete : la lecture continue
+  // naturellement vers la nouvelle reponse au lieu de redemarrer depuis
+  // le debut (la file d'attente native de speechSynthesis joue les
+  // utterances dans l'ordre ou elles sont ajoutees via .speak()).
+  for(const chunk of chunks){
+    const utt = new SpeechSynthesisUtterance(chunk);
+    if(voice){ utt.voice = voice; utt.lang = voice.lang; }
+    else { utt.lang = "fr-FR"; }
+    utt.rate  = 0.95;
+    utt.pitch = 1.0;
+    utt.volume= 1.0;
+    utt.onstart= ()=>{ _voiceSpeaking=true; };
+    utt.onend  = ()=>{ _voiceSpeaking=false; };
+    utt.onerror= ()=>{ _voiceSpeaking=false; };
+    window.speechSynthesis.speak(utt);
+  }
 }
 
 function toggleVoice(){
@@ -1879,6 +1932,45 @@ function resetCoursConfig(){
   if(inp) inp.value = COURS_SYMBOLS.map(m=>m.n+"="+m.s).join("\n");
 }
 
+// v9.4: pause + defilement manuel gauche/droite pour la bande COURS.
+// L'auto-defilement est pilote en JS (scrollLeft) plutot que par animation
+// CSS, ce qui permet au navigateur de gerer nativement le swipe tactile
+// sans conflit avec l'animation.
+let _coursScrollPaused = false;
+let _coursScrollInterval = null;
+
+function toggleCoursScroll(){
+  _coursScrollPaused = !_coursScrollPaused;
+  const btn = document.getElementById("coursPauseBtn");
+  if(btn) btn.textContent = _coursScrollPaused ? "▶" : "⏸";
+}
+
+function startCoursAutoScroll(){
+  clearInterval(_coursScrollInterval);
+  _coursScrollInterval = setInterval(()=>{
+    const track = document.getElementById("oppBandTrack");
+    if(!track) return;
+    if(_coursScrollPaused || track._userInteracting) return;
+    track.scrollLeft += 1;
+    const half = track.scrollWidth / 2;
+    if(half > 0 && track.scrollLeft >= half) track.scrollLeft = 0;
+  }, 30);
+}
+
+function initCoursTrackInteraction(){
+  const track = document.getElementById("oppBandTrack");
+  if(!track || track._interactionAdded) return;
+  track._interactionAdded = true;
+  let resumeTimeout = null;
+  const pauseTemp = ()=>{ track._userInteracting = true; clearTimeout(resumeTimeout); };
+  const resumeTemp = ()=>{ resumeTimeout = setTimeout(()=>{ track._userInteracting = false; }, 3000); };
+  track.addEventListener("touchstart", pauseTemp, {passive:true});
+  track.addEventListener("touchend", resumeTemp, {passive:true});
+  track.addEventListener("mousedown", pauseTemp, {passive:true});
+  track.addEventListener("mouseup", resumeTemp, {passive:true});
+  track.addEventListener("mouseleave", resumeTemp, {passive:true});
+}
+
 async function loadCoursBand(force=false){
   const now = Date.now();
   if(!force && now - _coursLastLoad < 120000 && _coursLastLoad > 0) return;
@@ -1926,13 +2018,11 @@ async function loadCoursBand(force=false){
     }
 
     const html = items.join("");
-    inner.style.animation = "none";
     inner.innerHTML = html + html;
-    requestAnimationFrame(()=>{
-      const w = inner.scrollWidth / 2;
-      const dur = Math.max(25, Math.round(w / 55));
-      inner.style.animation = `oppScroll ${dur}s linear infinite`;
-    });
+    const track = document.getElementById("oppBandTrack");
+    if(track) track.scrollLeft = 0;
+    initCoursTrackInteraction();
+    startCoursAutoScroll();
 
   }catch(e){
     console.warn("loadCoursBand:", e.message);
